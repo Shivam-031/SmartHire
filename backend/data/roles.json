@@ -1,0 +1,7 @@
+{
+  "Backend Developer": ["Python", "Java", "SQL", "REST API", "Docker", "Git", "CI/CD", "AWS", "Flask", "Django"],
+  "Frontend Developer": ["JavaScript", "TypeScript", "React", "HTML", "CSS", "Git", "Responsive Design", "State Management"],
+  "Full Stack Developer": ["JavaScript", "Node.js", "React", "SQL", "MongoDB", "Git", "REST API", "Docker"],
+  "Data Analyst": ["Python", "SQL", "Pandas", "NumPy", "Tableau", "PowerBI", "Statistics", "Data Visualization"],
+  "QA / Test Engineer": ["Selenium", "Pytest", "JUnit", "API Testing", "Bug Tracking", "Test Cases", "CI/CD", "Regression Testing"]
+}

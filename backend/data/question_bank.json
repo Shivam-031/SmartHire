@@ -1,0 +1,877 @@
+[
+  {
+    "id": 1,
+    "role": "Backend Developer",
+    "skill_tag": null,
+    "question_text": "Describe a time you had to optimize a slow database query. What was your approach?",
+    "expected_keywords": ["explain plan", "indexing", "query optimization", "execution plan", "bottleneck"]
+  },
+  {
+    "id": 2,
+    "role": "Backend Developer",
+    "skill_tag": "Python",
+    "question_text": "What is the difference between a list and a tuple in Python, and when would you use each?",
+    "expected_keywords": ["mutable", "immutable", "performance", "hashable", "fixed-size"]
+  },
+  {
+    "id": 3,
+    "role": "Backend Developer",
+    "skill_tag": "SQL",
+    "question_text": "What are the differences between INNER JOIN, LEFT JOIN, and RIGHT JOIN?",
+    "expected_keywords": ["intersection", "left table", "right table", "null values", "match"]
+  },
+  {
+    "id": 4,
+    "role": "Backend Developer",
+    "skill_tag": "REST API",
+    "question_text": "Explain the concept of Idempotency in REST APIs. Which HTTP methods are idempotent?",
+    "expected_keywords": ["same result", "multiple identical requests", "GET", "PUT", "DELETE"]
+  },
+  {
+    "id": 5,
+    "role": "Backend Developer",
+    "skill_tag": "Docker",
+    "question_text": "What is the difference between a Docker image and a Docker container?",
+    "expected_keywords": ["read-only", "blueprint", "instance", "running process", "writable layer"]
+  },
+  {
+    "id": 6,
+    "role": "Backend Developer",
+    "skill_tag": "Redis",
+    "question_text": "How does Redis improve the performance of a web application?",
+    "expected_keywords": ["in-memory", "caching", "latency", "throughput", "key-value"]
+  },
+  {
+    "id": 7,
+    "role": "Backend Developer",
+    "skill_tag": "Microservices",
+    "question_text": "What are the main challenges when moving from a monolithic architecture to microservices?",
+    "expected_keywords": ["distributed tracing", "network latency", "data consistency", "deployment complexity", "service discovery"]
+  },
+  {
+    "id": 8,
+    "role": "Backend Developer",
+    "skill_tag": "Java",
+    "question_text": "Explain the concept of Garbage Collection in Java. How does it work?",
+    "expected_keywords": ["heap memory", "unreachable objects", "mark and sweep", "JVM", "memory leak"]
+  },
+  {
+    "id": 9,
+    "role": "Backend Developer",
+    "skill_tag": "CI/CD",
+    "question_text": "What is a CI/CD pipeline and why is it important for backend development?",
+    "expected_keywords": ["continuous integration", "continuous deployment", "automation", "automated tests", "delivery speed"]
+  },
+  {
+    "id": 10,
+    "role": "Backend Developer",
+    "skill_tag": "AWS",
+    "question_text": "What are the primary differences between AWS Lambda and EC2?",
+    "expected_keywords": ["serverless", "virtual machine", "event-driven", "scaling", "management overhead"]
+  },
+  {
+    "id": 11,
+    "role": "Backend Developer",
+    "skill_tag": "MongoDB",
+    "question_text": "When would you choose MongoDB over a relational database like PostgreSQL?",
+    "expected_keywords": ["unstructured data", "schema-less", "horizontal scaling", "document store", "flexible"]
+  },
+  {
+    "id": 12,
+    "role": "Backend Developer",
+    "skill_tag": "Python",
+    "question_text": "Explain Python decorators and provide a use case for them.",
+    "expected_keywords": ["wrapper", "function modification", "logging", "authentication", "higher-order function"]
+  },
+  {
+    "id": 13,
+    "role": "Backend Developer",
+    "skill_tag": "REST API",
+    "question_text": "What is the difference between PUT and PATCH in a REST API?",
+    "expected_keywords": ["full replacement", "partial update", "idempotent", "payload", "resource"]
+  },
+  {
+    "id": 14,
+    "role": "Backend Developer",
+    "skill_tag": "SQL",
+    "question_text": "What are database indexes and how do they speed up queries?",
+    "expected_keywords": ["B-tree", "lookup", "scan", "performance", "search complexity"]
+  },
+  {
+    "id": 15,
+    "role": "Backend Developer",
+    "skill_tag": "Redis",
+    "question_text": "What is a cache stampede and how can you prevent it?",
+    "expected_keywords": ["simultaneous requests", "cache miss", "locking", "jitter", "probabilistic early expiration"]
+  },
+  {
+    "id": 16,
+    "role": "Backend Developer",
+    "skill_tag": null,
+    "question_text": "How do you handle technical debt in a fast-paced project?",
+    "expected_keywords": ["refactoring", "backlog", "documentation", "incremental improvement", "trade-offs"]
+  },
+  {
+    "id": 17,
+    "role": "Backend Developer",
+    "skill_tag": "Multithreading",
+    "question_text": "What is a deadlock in multithreading and how can you avoid it?",
+    "expected_keywords": ["circular dependency", "resource locking", "timeout", "lock ordering", "starvation"]
+  },
+  {
+    "id": 18,
+    "role": "Backend Developer",
+    "skill_tag": "CI/CD",
+    "question_text": "Describe the difference between Continuous Delivery and Continuous Deployment.",
+    "expected_keywords": ["manual approval", "automatic release", "production", "pipeline", "staging"]
+  },
+  {
+    "id": 19,
+    "role": "Backend Developer",
+    "skill_tag": "GraphQL",
+    "question_text": "What are the advantages of GraphQL over REST?",
+    "expected_keywords": ["over-fetching", "under-fetching", "single endpoint", "type system", "client-specified"]
+  },
+  {
+    "id": 20,
+    "role": "Backend Developer",
+    "skill_tag": "SQL",
+    "question_text": "Explain the difference between a clustered and a non-clustered index.",
+    "expected_keywords": ["physical order", "logical order", "leaf level", "primary key", "pointer"]
+  },
+  {
+    "id": 21,
+    "role": "Backend Developer",
+    "skill_tag": "Docker",
+    "question_text": "Explain the purpose of a Dockerfile and the difference between CMD and ENTRYPOINT.",
+    "expected_keywords": ["build instructions", "default command", "argument override", "container start", "base image"]
+  },
+  {
+    "id": 22,
+    "role": "Backend Developer",
+    "skill_tag": "Java",
+    "question_text": "What is the difference between a HashMap and a TreeMap in Java?",
+    "expected_keywords": ["hashing", "sorted order", "time complexity", "tree", "null keys"]
+  },
+  {
+    "id": 23,
+    "role": "Backend Developer",
+    "skill_tag": null,
+    "question_text": "How do you ensure the security of a REST API?",
+    "expected_keywords": ["authentication", "authorization", "jwt", "oauth", "input validation", "https", "rate limiting"]
+  },
+  {
+    "id": 24,
+    "role": "Backend Developer",
+    "skill_tag": "Microservices",
+    "question_text": "What is the Saga pattern and when would you use it?",
+    "expected_keywords": ["distributed transaction", "event-driven", "compensating transaction", "consistency", "eventual consistency"]
+  },
+  {
+    "id": 25,
+    "role": "Backend Developer",
+    "skill_tag": "Python",
+    "question_text": "What are generators in Python and how do they differ from lists?",
+    "expected_keywords": ["yield", "lazy evaluation", "memory efficiency", "iterator", "on-demand"]
+  },
+  {
+    "id": 26,
+    "role": "Frontend Developer",
+    "skill_tag": null,
+    "question_text": "What is the difference between client-side rendering (CSR) and server-side rendering (SSR)?",
+    "expected_keywords": ["seo", "initial load", "browser", "server", "hydration", "performance"]
+  },
+  {
+    "id": 27,
+    "role": "Frontend Developer",
+    "skill_tag": "React",
+    "question_text": "What is the Virtual DOM and how does it work in React?",
+    "expected_keywords": ["reconciliation", "diffing algorithm", "efficient updates", "javascript object", "DOM manipulation"]
+  },
+  {
+    "id": 28,
+    "role": "Frontend Developer",
+    "skill_tag": "JavaScript",
+    "question_text": "Explain the concept of closures in JavaScript.",
+    "expected_keywords": ["lexical environment", "inner function", "scope", "private variables", "persistent state"]
+  },
+  {
+    "id": 29,
+    "role": "Frontend Developer",
+    "skill_tag": "CSS",
+    "question_text": "What is the CSS Box Model and how does it affect element sizing?",
+    "expected_keywords": ["content", "padding", "border", "margin", "box-sizing"]
+  },
+  {
+    "id": 30,
+    "role": "Frontend Developer",
+    "skill_tag": "TypeScript",
+    "question_text": "What are the benefits of using TypeScript over plain JavaScript?",
+    "expected_keywords": ["static typing", "type safety", "intellisense", "compile-time errors", "interfaces"]
+  },
+  {
+    "id": 31,
+    "role": "Frontend Developer",
+    "skill_tag": "React",
+    "question_text": "Explain the React component lifecycle and the purpose of useEffect.",
+    "expected_keywords": ["mounting", "updating", "unmounting", "side effects", "dependency array"]
+  },
+  {
+    "id": 32,
+    "role": "Frontend Developer",
+    "skill_tag": "Redux",
+    "question_text": "What is the role of a reducer in Redux?",
+    "expected_keywords": ["pure function", "state transition", "action", "new state", "immutability"]
+  },
+  {
+    "id": 33,
+    "role": "Frontend Developer",
+    "skill_tag": "HTML",
+    "question_text": "What is semantic HTML and why is it important?",
+    "expected_keywords": ["accessibility", "seo", "meaningful tags", "screen readers", "structure"]
+  },
+  {
+    "id": 34,
+    "role": "Frontend Developer",
+    "skill_tag": "Responsive Design",
+    "question_text": "How do media queries work and when should you use them?",
+    "expected_keywords": ["viewport", "breakpoints", "screen size", "css", "adaptive"]
+  },
+  {
+    "id": 35,
+    "role": "Frontend Developer",
+    "skill_tag": "JavaScript",
+    "question_text": "Explain the difference between == and === in JavaScript.",
+    "expected_keywords": ["type coercion", "strict equality", "value", "type check"]
+  },
+  {
+    "id": 36,
+    "role": "Frontend Developer",
+    "skill_tag": "React",
+    "question_text": "What are Higher-Order Components (HOCs) and when would you use them?",
+    "expected_keywords": ["component wrapper", "reuse logic", "props", "composition", "cross-cutting concerns"]
+  },
+  {
+    "id": 37,
+    "role": "Frontend Developer",
+    "skill_tag": "CSS",
+    "question_text": "Describe the difference between CSS Grid and Flexbox.",
+    "expected_keywords": ["one-dimensional", "two-dimensional", "rows and columns", "alignment", "layout"]
+  },
+  {
+    "id": 38,
+    "role": "Frontend Developer",
+    "skill_tag": "TypeScript",
+    "question_text": "What are Generics in TypeScript and why are they useful?",
+    "expected_keywords": ["type parameters", "reusability", "flexibility", "type safety", "placeholder"]
+  },
+  {
+    "id": 39,
+    "role": "Frontend Developer",
+    "skill_tag": "JavaScript",
+    "question_text": "What is the Event Loop in JavaScript and how does it handle asynchronous code?",
+    "expected_keywords": ["call stack", "task queue", "microtask queue", "callback", "non-blocking"]
+  },
+  {
+    "id": 40,
+    "role": "Frontend Developer",
+    "skill_tag": "State Management",
+    "question_text": "When should you use a global state management library like Redux instead of local component state?",
+    "expected_keywords": ["prop drilling", "shared state", "complexity", "multiple components", "centralized"]
+  },
+  {
+    "id": 41,
+    "role": "Frontend Developer",
+    "skill_tag": null,
+    "question_text": "How do you optimize the performance of a web application's frontend?",
+    "expected_keywords": ["lazy loading", "code splitting", "compression", "image optimization", "caching", "bundle size"]
+  },
+  {
+    "id": 42,
+    "role": "Frontend Developer",
+    "skill_tag": "React",
+    "question_text": "Explain the concept of lifting state up in React.",
+    "expected_keywords": ["parent component", "shared state", "props", "synchronization", "data flow"]
+  },
+  {
+    "id": 43,
+    "role": "Frontend Developer",
+    "skill_tag": "JavaScript",
+    "question_text": "What are Promises and how do they differ from callbacks?",
+    "expected_keywords": ["async", "then", "catch", "callback hell", "future value", "await"]
+  },
+  {
+    "id": 44,
+    "role": "Frontend Developer",
+    "skill_tag": "CSS",
+    "question_text": "Explain the difference between position: relative, absolute, fixed, and sticky.",
+    "expected_keywords": ["normal flow", "nearest positioned ancestor", "viewport", "scroll position"]
+  },
+  {
+    "id": 45,
+    "role": "Frontend Developer",
+    "skill_tag": "TypeScript",
+    "question_text": "What are Interface and Type aliases in TypeScript? When would you choose one over the other?",
+    "expected_keywords": ["declaration merging", "union types", "object structure", "extend", "intersection"]
+  },
+  {
+    "id": 46,
+    "role": "Frontend Developer",
+    "skill_tag": "React",
+    "question_text": "What is the purpose of the key prop in React lists?",
+    "expected_keywords": ["identification", "re-rendering", "diffing", "performance", "stability"]
+  },
+  {
+    "id": 47,
+    "role": "Frontend Developer",
+    "skill_tag": "JavaScript",
+    "question_text": "Explain the difference between map(), filter(), and reduce() in JavaScript arrays.",
+    "expected_keywords": ["transformation", "subset", "accumulation", "callback", "new array"]
+  },
+  {
+    "id": 48,
+    "role": "Frontend Developer",
+    "skill_tag": "HTML",
+    "question_text": "What are data- attributes in HTML5 and how can they be used?",
+    "expected_keywords": ["custom data", "dataset", "metadata", "javascript access", "attributes"]
+  },
+  {
+    "id": 49,
+    "role": "Frontend Developer",
+    "skill_tag": "Responsive Design",
+    "question_text": "What is a mobile-first approach to design and why is it beneficial?",
+    "expected_keywords": ["progressive enhancement", "smaller screens", "simplicity", "performance", "viewport"]
+  },
+  {
+    "id": 50,
+    "role": "Frontend Developer",
+    "skill_tag": null,
+    "question_text": "Describe your process for debugging a complex UI bug.",
+    "expected_keywords": ["devtools", "reproduction", "isolation", "logging", "inspecting state", "binary search"]
+  },
+  {
+    "id": 51,
+    "role": "Full Stack Developer",
+    "skill_tag": null,
+    "question_text": "How do you decide whether to implement a piece of logic on the frontend or the backend?",
+    "expected_keywords": ["security", "performance", "user experience", "data validation", "latency", "business logic"]
+  },
+  {
+    "id": 52,
+    "role": "Full Stack Developer",
+    "skill_tag": "Node.js",
+    "question_text": "Explain the concept of the event loop in Node.js.",
+    "expected_keywords": ["single-threaded", "non-blocking", "callbacks", "libuv", "phase"]
+  },
+  {
+    "id": 53,
+    "role": "Full Stack Developer",
+    "skill_tag": "React",
+    "question_text": "How do you handle authentication across a frontend and backend?",
+    "expected_keywords": ["jwt", "cookies", "oauth", "session", "interceptors", "headers"]
+  },
+  {
+    "id": 54,
+    "role": "Full Stack Developer",
+    "skill_tag": "SQL",
+    "question_text": "What is database normalization and when would you intentionally denormalize a database?",
+    "expected_keywords": ["redundancy", "anomalies", "read performance", "joins", "write speed"]
+  },
+  {
+    "id": 55,
+    "role": "Full Stack Developer",
+    "skill_tag": "Docker",
+    "question_text": "How do you use Docker Compose to manage a full stack application with multiple services?",
+    "expected_keywords": ["yaml", "networking", "service dependency", "volumes", "environment variables"]
+  },
+  {
+    "id": 56,
+    "role": "Full Stack Developer",
+    "skill_tag": "REST API",
+    "question_text": "How do you handle versioning in a REST API?",
+    "expected_keywords": ["url versioning", "header versioning", "backward compatibility", "migration", "deprecating"]
+  },
+  {
+    "id": 57,
+    "role": "Full Stack Developer",
+    "skill_tag": "MongoDB",
+    "question_text": "Explain the difference between embedding and referencing in MongoDB.",
+    "expected_keywords": ["denormalization", "foreign key", "read speed", "write speed", "document size limit"]
+  },
+  {
+    "id": 58,
+    "role": "Full Stack Developer",
+    "skill_tag": "JavaScript",
+    "question_text": "What are the advantages and disadvantages of using a single language (like JS/TS) for both frontend and backend?",
+    "expected_keywords": ["code sharing", "context switching", "ecosystem", "type sharing", "performance"]
+  },
+  {
+    "id": 59,
+    "role": "Full Stack Developer",
+    "skill_tag": "Git",
+    "question_text": "Describe your preferred git branching strategy for a team project.",
+    "expected_keywords": ["gitflow", "feature branches", "pull requests", "main", "develop", "merge conflict"]
+  },
+  {
+    "id": 60,
+    "role": "Full Stack Developer",
+    "skill_tag": "AWS",
+    "question_text": "Explain how you would deploy a full stack app (React + Node + Postgres) to AWS.",
+    "expected_keywords": ["s3", "cloudfront", "ec2", "rds", "vpc", "pipeline"]
+  },
+  {
+    "id": 61,
+    "role": "Full Stack Developer",
+    "skill_tag": "CI/CD",
+    "question_text": "How do you ensure that a frontend deployment doesn't break the backend API?",
+    "expected_keywords": ["contract testing", "integration tests", "versioning", "staging environment", "backward compatibility"]
+  },
+  {
+    "id": 62,
+    "role": "Full Stack Developer",
+    "skill_tag": "React",
+    "question_text": "What is the difference between controlled and uncontrolled components in React?",
+    "expected_keywords": ["state", "value prop", "ref", "onChange", "dom"]
+  },
+  {
+    "id": 63,
+    "role": "Full Stack Developer",
+    "skill_tag": "Node.js",
+    "question_text": "Explain the difference between process.nextTick() and setImmediate() in Node.js.",
+    "expected_keywords": ["event loop", "microtask", "timer phase", "execution order", "priority"]
+  },
+  {
+    "id": 64,
+    "role": "Full Stack Developer",
+    "skill_tag": "SQL",
+    "question_text": "What is a database transaction and what are the ACID properties?",
+    "expected_keywords": ["atomicity", "consistency", "isolation", "durability", "commit", "rollback"]
+  },
+  {
+    "id": 65,
+    "role": "Full Stack Developer",
+    "skill_tag": "Docker",
+    "question_text": "Explain the concept of multi-stage builds in Docker.",
+    "expected_keywords": ["image size", "build artifacts", "production image", "intermediate stages", "efficiency"]
+  },
+  {
+    "id": 66,
+    "role": "Full Stack Developer",
+    "skill_tag": null,
+    "question_text": "How do you approach learning a new technology or framework quickly?",
+    "expected_keywords": ["documentation", "tutorial", "small project", "official examples", "community", "learning by doing"]
+  },
+  {
+    "id": 67,
+    "role": "Full Stack Developer",
+    "skill_tag": "JavaScript",
+    "question_text": "What are the differences between async/await and Promises?",
+    "expected_keywords": ["syntactic sugar", "readability", "try-catch", "sequential", "non-blocking"]
+  },
+  {
+    "id": 68,
+    "role": "Full Stack Developer",
+    "skill_tag": "REST API",
+    "question_text": "How do you handle pagination in a REST API?",
+    "expected_keywords": ["offset", "limit", "cursor", "page number", "metadata", "total count"]
+  },
+  {
+    "id": 69,
+    "role": "Full Stack Developer",
+    "skill_tag": "MongoDB",
+    "question_text": "What is an aggregation pipeline in MongoDB?",
+    "expected_keywords": ["stages", "filter", "group", "sort", "transformation", "pipeline"]
+  },
+  {
+    "id": 70,
+    "role": "Full Stack Developer",
+    "skill_tag": "Git",
+    "question_text": "What is the difference between git merge and git rebase?",
+    "expected_keywords": ["commit history", "linear", "merge commit", "rewriting history", "conflict resolution"]
+  },
+  {
+    "id": 71,
+    "role": "Full Stack Developer",
+    "skill_tag": "AWS",
+    "question_text": "What is a VPC in AWS and why is it used?",
+    "expected_keywords": ["virtual private cloud", "isolation", "subnet", "security group", "private network"]
+  },
+  {
+    "id": 72,
+    "role": "Full Stack Developer",
+    "skill_tag": "CI/CD",
+    "question_text": "Explain the concept of a Blue-Green deployment.",
+    "expected_keywords": ["identical environments", "zero downtime", "traffic switching", "rollback", "production"]
+  },
+  {
+    "id": 73,
+    "role": "Full Stack Developer",
+    "skill_tag": "React",
+    "question_text": "What are React Hooks and why were they introduced?",
+    "expected_keywords": ["functional components", "state", "lifecycle", "class components", "reusability"]
+  },
+  {
+    "id": 74,
+    "role": "Full Stack Developer",
+    "skill_tag": "Node.js",
+    "question_text": "What is the purpose of package-lock.json in a Node.js project?",
+    "expected_keywords": ["deterministic", "version locking", "dependencies", "consistency", "reproducibility"]
+  },
+  {
+    "id": 75,
+    "role": "Full Stack Developer",
+    "skill_tag": null,
+    "question_text": "Describe a challenging full-stack feature you implemented and how you overcame the obstacles.",
+    "expected_keywords": ["problem solving", "architecture", "integration", "debugging", "trade-offs", "solution"]
+  },
+  {
+    "id": 76,
+    "role": "Data Analyst",
+    "skill_tag": null,
+    "question_text": "Describe your typical process for analyzing a new dataset from scratch.",
+    "expected_keywords": ["data cleaning", "exploratory data analysis", "eda", "outliers", "missing values", "visualization"]
+  },
+  {
+    "id": 77,
+    "role": "Data Analyst",
+    "skill_tag": "SQL",
+    "question_text": "What are Window Functions in SQL and when would you use them?",
+    "expected_keywords": ["over clause", "partition by", "rank", "running total", "row number"]
+  },
+  {
+    "id": 78,
+    "role": "Data Analyst",
+    "skill_tag": "Pandas",
+    "question_text": "How do you handle missing data in a Pandas DataFrame?",
+    "expected_keywords": ["fillna", "dropna", "imputation", "interpolation", "mean/median"]
+  },
+  {
+    "id": 79,
+    "role": "Data Analyst",
+    "skill_tag": "Python",
+    "question_text": "What is the difference between a Series and a DataFrame in Pandas?",
+    "expected_keywords": ["one-dimensional", "two-dimensional", "columns", "index", "table"]
+  },
+  {
+    "id": 80,
+    "role": "Data Analyst",
+    "skill_tag": "Tableau",
+    "question_text": "What is a Calculated Field in Tableau and provide an example of one?",
+    "expected_keywords": ["formula", "logic", "transformation", "aggregation", "dimension/measure"]
+  },
+  {
+    "id": 81,
+    "role": "Data Analyst",
+    "skill_tag": "Statistics",
+    "question_text": "Explain the difference between a Type I error and a Type II error in hypothesis testing.",
+    "expected_keywords": ["false positive", "false negative", "null hypothesis", "significance level", "power"]
+  },
+  {
+    "id": 82,
+    "role": "Data Analyst",
+    "skill_tag": "SQL",
+    "question_text": "What is the difference between WHERE and HAVING clauses in SQL?",
+    "expected_keywords": ["filter", "aggregate", "group by", "pre-aggregation", "post-aggregation"]
+  },
+  {
+    "id": 83,
+    "role": "Data Analyst",
+    "skill_tag": "NumPy",
+    "question_text": "What is broadcasting in NumPy and why is it useful?",
+    "expected_keywords": ["array shapes", "element-wise", "vectorization", "memory efficiency", "performance"]
+  },
+  {
+    "id": 84,
+    "role": "Data Analyst",
+    "skill_tag": "Data Visualization",
+    "question_text": "When would you use a scatter plot versus a line chart?",
+    "expected_keywords": ["correlation", "relationship", "trend", "time series", "distribution"]
+  },
+  {
+    "id": 85,
+    "role": "Data Analyst",
+    "skill_tag": "PowerBI",
+    "question_text": "What is DAX in Power BI and how is it used?",
+    "expected_keywords": ["data analysis expressions", "calculated columns", "measures", "formula", "filtering"]
+  },
+  {
+    "id": 86,
+    "role": "Data Analyst",
+    "skill_tag": "SQL",
+    "question_text": "Explain the concept of a Common Table Expression (CTE) and when you would use one over a subquery.",
+    "expected_keywords": ["with clause", "readability", "recursion", "temporary result", "organization"]
+  },
+  {
+    "id": 87,
+    "role": "Data Analyst",
+    "skill_tag": "Statistics",
+    "question_text": "What is a p-value and how do you interpret it in a statistical test?",
+    "expected_keywords": ["probability", "null hypothesis", "significance", "alpha", "evidence"]
+  },
+  {
+    "id": 88,
+    "role": "Data Analyst",
+    "skill_tag": "Pandas",
+    "question_text": "Explain the difference between merge(), join(), and concat() in Pandas.",
+    "expected_keywords": ["index", "column", "axis", "inner/outer", "concatenation"]
+  },
+  {
+    "id": 89,
+    "role": "Data Analyst",
+    "skill_tag": "PySpark",
+    "question_text": "What is the difference between a DataFrame and an RDD in Apache Spark?",
+    "expected_keywords": ["structured", "unstructured", "optimization", "catalyst optimizer", "schema"]
+  },
+  {
+    "id": 90,
+    "role": "Data Analyst",
+    "skill_tag": "SQL",
+    "question_text": "What is a self-join and provide a practical example of when you would use one?",
+    "expected_keywords": ["same table", "hierarchy", "manager-employee", "comparison", "alias"]
+  },
+  {
+    "id": 91,
+    "role": "Data Analyst",
+    "skill_tag": null,
+    "question_text": "How do you ensure the quality and accuracy of your data analysis results?",
+    "expected_keywords": ["cross-validation", "sanity check", "peer review", "outlier detection", "documentation"]
+  },
+  {
+    "id": 92,
+    "role": "Data Analyst",
+    "skill_tag": "Statistics",
+    "question_text": "Explain the difference between correlation and causation.",
+    "expected_keywords": ["linear relationship", "cause-effect", "confounding variables", "spurious correlation", "experiment"]
+  },
+  {
+    "id": 93,
+    "role": "Data Analyst",
+    "skill_tag": "Data Visualization",
+    "question_text": "What are the key principles of effective data visualization?",
+    "expected_keywords": ["simplicity", "clarity", "avoiding clutter", "color usage", "storytelling", "accuracy"]
+  },
+  {
+    "id": 94,
+    "role": "Data Analyst",
+    "skill_tag": "SQL",
+    "question_text": "What is the purpose of the GROUP BY clause and how does it work with aggregate functions?",
+    "expected_keywords": ["grouping", "sum", "avg", "count", "max/min", "buckets"]
+  },
+  {
+    "id": 95,
+    "role": "Data Analyst",
+    "skill_tag": "Pandas",
+    "question_text": "Explain the concept of groupby() and aggregation in Pandas.",
+    "expected_keywords": ["split-apply-combine", "mean", "sum", "custom aggregation", "grouping"]
+  },
+  {
+    "id": 96,
+    "role": "Data Analyst",
+    "skill_tag": "Statistics",
+    "question_text": "What is a normal distribution and why is it important in data analysis?",
+    "expected_keywords": ["bell curve", "mean", "median", "standard deviation", "central limit theorem"]
+  },
+  {
+    "id": 97,
+    "role": "Data Analyst",
+    "skill_tag": "SQL",
+    "question_text": "What is the difference between a Rank(), Dense_Rank(), and Row_Number() function in SQL?",
+    "expected_keywords": ["ties", "gaps", "sequential", "ordering", "window function"]
+  },
+  {
+    "id": 98,
+    "role": "Data Analyst",
+    "skill_tag": "NumPy",
+    "question_text": "What is vectorization in NumPy and how does it improve performance over Python loops?",
+    "expected_keywords": ["simd", "c implementation", "overhead", "parallelism", "array operations"]
+  },
+  {
+    "id": 99,
+    "role": "Data Analyst",
+    "skill_tag": "Statistics",
+    "question_text": "Explain the concept of A/B testing and how you would design an experiment.",
+    "expected_keywords": ["control group", "variant", "hypothesis", "sample size", "statistical significance"]
+  },
+  {
+    "id": 100,
+    "role": "Data Analyst",
+    "skill_tag": null,
+    "question_text": "Describe a time you found an interesting insight in a dataset that led to a business decision.",
+    "expected_keywords": ["discovery", "analysis", "insight", "business value", "recommendation", "action"]
+  },
+  {
+    "id": 101,
+    "role": "QA / Test Engineer",
+    "skill_tag": null,
+    "question_text": "What is the difference between a bug, a defect, and a failure?",
+    "expected_keywords": ["mistake", "deviation", "observable result", "implementation", "requirement"]
+  },
+  {
+    "id": 102,
+    "role": "QA / Test Engineer",
+    "skill_tag": "Selenium",
+    "question_text": "What are the different types of waits in Selenium and when should you use each?",
+    "expected_keywords": ["implicit wait", "explicit wait", "fluent wait", "timeout", "polling"]
+  },
+  {
+    "id": 103,
+    "role": "QA / Test Engineer",
+    "skill_tag": "Pytest",
+    "question_text": "Explain the purpose of fixtures in Pytest.",
+    "expected_keywords": ["setup", "teardown", "dependency injection", "scope", "reusability"]
+  },
+  {
+    "id": 104,
+    "role": "QA / Test Engineer",
+    "skill_tag": "API Testing",
+    "question_text": "What are the most common HTTP status codes you look for when testing an API?",
+    "expected_keywords": ["200 ok", "201 created", "400 bad request", "401 unauthorized", "404 not found", "500 internal error"]
+  },
+  {
+    "id": 105,
+    "role": "QA / Test Engineer",
+    "skill_tag": "TDD",
+    "question_text": "Describe the Red-Green-Refactor cycle in Test-Driven Development.",
+    "expected_keywords": ["fail", "pass", "cleanup", "minimal code", "iteration"]
+  },
+  {
+    "id": 106,
+    "role": "QA / Test Engineer",
+    "skill_tag": "JUnit",
+    "question_text": "What are assertions in JUnit and what happens when an assertion fails?",
+    "expected_keywords": ["expected value", "actual value", "exception", "test failure", "validation"]
+  },
+  {
+    "id": 107,
+    "role": "QA / Test Engineer",
+    "skill_tag": "Regression Testing",
+    "question_text": "When and why should you perform regression testing?",
+    "expected_keywords": ["new changes", "unintended side effects", "existing functionality", "stability", "deployment"]
+  },
+  {
+    "id": 108,
+    "role": "QA / Test Engineer",
+    "skill_tag": "CI/CD",
+    "question_text": "How do you integrate automated tests into a CI/CD pipeline?",
+    "expected_keywords": ["pipeline stage", "build trigger", "test report", "blocking deployment", "automation"]
+  },
+  {
+    "id": 109,
+    "role": "QA / Test Engineer",
+    "skill_tag": "Bug Tracking",
+    "question_text": "What are the essential components of a high-quality bug report?",
+    "expected_keywords": ["steps to reproduce", "expected result", "actual result", "environment", "severity", "priority"]
+  },
+  {
+    "id": 110,
+    "role": "QA / Test Engineer",
+    "skill_tag": "Selenium",
+    "question_text": "What is the Page Object Model (POM) and why is it useful for automation?",
+    "expected_keywords": ["abstraction", "maintainability", "reusability", "page classes", "separation of concerns"]
+  },
+  {
+    "id": 111,
+    "role": "QA / Test Engineer",
+    "skill_tag": "API Testing",
+    "question_text": "What is the difference between functional testing and non-functional testing of an API?",
+    "expected_keywords": ["business logic", "performance", "security", "scalability", "correctness"]
+  },
+  {
+    "id": 112,
+    "role": "QA / Test Engineer",
+    "skill_tag": "BDD",
+    "question_text": "What is Gherkin and how does it help in Behavior-Driven Development?",
+    "expected_keywords": ["given when then", "natural language", "collaboration", "acceptance criteria", "cucumber"]
+  },
+  {
+    "id": 113,
+    "role": "QA / Test Engineer",
+    "skill_tag": "Load Testing",
+    "question_text": "What is the difference between load testing and stress testing?",
+    "expected_keywords": ["expected load", "breaking point", "peak capacity", "performance", "stability"]
+  },
+  {
+    "id": 114,
+    "role": "QA / Test Engineer",
+    "skill_tag": "JUnit",
+    "question_text": "What is the purpose of @BeforeEach and @AfterEach annotations in JUnit 5?",
+    "expected_keywords": ["setup", "teardown", "per test", "initialization", "cleanup"]
+  },
+  {
+    "id": 115,
+    "role": "QA / Test Engineer",
+    "skill_tag": null,
+    "question_text": "How do you prioritize test cases when you have limited time for testing?",
+    "expected_keywords": ["risk-based", "critical paths", "high impact", "frequency of use", "probability of failure"]
+  },
+  {
+    "id": 116,
+    "role": "QA / Test Engineer",
+    "skill_tag": "API Testing",
+    "question_text": "How do you test for edge cases in an API endpoint?",
+    "expected_keywords": ["boundary values", "null input", "invalid types", "max length", "empty payload"]
+  },
+  {
+    "id": 117,
+    "role": "QA / Test Engineer",
+    "skill_tag": "Regression Testing",
+    "question_text": "What is the difference between a smoke test and a sanity test?",
+    "expected_keywords": ["critical functionality", "specific fix", "broad", "narrow", "build verification"]
+  },
+  {
+    "id": 118,
+    "role": "QA / Test Engineer",
+    "skill_tag": "Selenium",
+    "question_text": "How do you handle dynamic elements in Selenium that change their ID on every page load?",
+    "expected_keywords": ["xpath", "css selector", "contains", "relative locators", "parent-child"]
+  },
+  {
+    "id": 119,
+    "role": "QA / Test Engineer",
+    "skill_tag": "CI/CD",
+    "question_text": "What is the role of a test report in a CI pipeline?",
+    "expected_keywords": ["visibility", "failure analysis", "trends", "quality gate", "stakeholders"]
+  },
+  {
+    "id": 120,
+    "role": "QA / Test Engineer",
+    "skill_tag": "Bug Tracking",
+    "question_text": "What do you do if a developer marks a bug you reported as 'Cannot Reproduce'?",
+    "expected_keywords": ["re-verify", "more details", "screen recording", "environment check", "collaboration"]
+  },
+  {
+    "id": 121,
+    "role": "QA / Test Engineer",
+    "skill_tag": "TDD",
+    "question_text": "What are the advantages of writing tests before writing the actual code?",
+    "expected_keywords": ["clear requirements", "better design", "confidence", "less debugging", "documentation"]
+  },
+  {
+    "id": 122,
+    "role": "QA / Test Engineer",
+    "skill_tag": "API Testing",
+    "question_text": "What is contract testing and why is it useful for microservices?",
+    "expected_keywords": ["provider", "consumer", "api specification", "breaking changes", "integration"]
+  },
+  {
+    "id": 123,
+    "role": "QA / Test Engineer",
+    "skill_tag": "Regression Testing",
+    "question_text": "What is a test suite and how do you organize it for efficiency?",
+    "expected_keywords": ["grouping", "priority", "automation", "execution time", "coverage"]
+  },
+  {
+    "id": 124,
+    "role": "QA / Test Engineer",
+    "skill_tag": "JUnit",
+    "question_text": "What is parameterized testing and when would you use it?",
+    "expected_keywords": ["multiple inputs", "same logic", "test cases", "data-driven", "efficiency"]
+  },
+  {
+    "id": 125,
+    "role": "QA / Test Engineer",
+    "skill_tag": null,
+    "question_text": "Describe a time you found a critical bug just before a release. How did you handle it?",
+    "expected_keywords": ["risk assessment", "communication", "hotfix", "triage", "decision making"]
+  }
+]

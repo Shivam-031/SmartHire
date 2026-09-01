@@ -28,11 +28,11 @@ A step-by-step, phase-based roadmap for building the project within a ~4-week (2
 **Goal:** All the "content" the app needs exists before any logic is built on top of it.
 
 **Tasks:**
-- [ ] Write `skill_dictionary.json` — at least 150 skills with synonym mappings.
-- [ ] Write `question_bank.json` — 25–30 questions per role, across 5 roles, tagged by role + optional skill, each with `expected_keywords`.
-- [ ] Define "ideal skill set" per role (used later for ATS keyword matching).
-- [ ] Define SQLAlchemy models in `models.py` (User, Resume, InterviewSession, Question, Answer, ATSReport).
-- [ ] Run initial migration / `db.create_all()` and seed the Question table from `question_bank.json` via a one-off seed script.
+- [X] Write `skill_dictionary.json` — at least 150 skills with synonym mappings.
+- [X] Write `question_bank.json` — 25–30 questions per role, across 5 roles, tagged by role + optional skill, each with `expected_keywords`.
+- [X] Define "ideal skill set" per role (used later for ATS keyword matching).
+- [X] Define SQLAlchemy models in `models.py` (User, Resume, InterviewSession, Question, Answer, ATSReport).
+- [X] Run initial migration / `db.create_all()` and seed the Question table from `question_bank.json` via a one-off seed script.
 
 **Deliverable:** SQLite DB file with all tables created and Question table populated; JSON data files committed to repo.
 
