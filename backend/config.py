@@ -10,3 +10,4 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-12345')
     UPLOAD_FOLDER = os.path.join(BASE_DIR, 'backend', 'uploads')
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5MB
+    BASE_DIR = BASE_DIR
