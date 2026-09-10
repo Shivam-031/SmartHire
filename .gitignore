@@ -1,22 +1,93 @@
-# Python
+# ==============================================================================
+# SECRETS, API KEYS & CREDENTIALS
+# ==============================================================================
+.env
+.env.*
+*.env
+.env.local
+.env.*.local
+mcp_config.json
+*mcp*.json
+.mcp/
+credentials.json
+client_secret*.json
+serviceAccountKey*.json
+service-account*.json
+*.secret
+secrets.*
+secrets/
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+*.p12
+*.token
+tokens.json
+
+# ==============================================================================
+# SENSITIVE USER DATA & RESUME UPLOADS (PII)
+# ==============================================================================
+backend/uploads/*
+!backend/uploads/.gitkeep
+uploads/
+*.pdf
+*.docx
+*.doc
+
+# ==============================================================================
+# DATABASE & LOCAL INSTANCE STORAGE
+# ==============================================================================
+backend/instance/
+instance/
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+
+# ==============================================================================
+# LOGS & DIAGNOSTICS
+# ==============================================================================
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==============================================================================
+# PYTHON & ENVIRONMENT
+# ==============================================================================
 __pycache__/
 *.py[cod]
 *$py.class
 venv/
 .venv/
-instance/
-*.db
+env/
+ENV/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Node
+# ==============================================================================
+# NODE & FRONTEND BUILD
+# ==============================================================================
 node_modules/
+frontend/node_modules/
 dist/
+frontend/dist/
 .eslintcache
+.vite/
+frontend/node_modules/.vite/
 
-# Env
-.env
-.env.local
-.env.*.local
-
-# OS
+# ==============================================================================
+# IDE, OS & AI AGENT ARTIFACTS
+# ==============================================================================
+.claude/
+.vscode/
+.idea/
 .DS_Store
 Thumbs.db
+desktop.ini

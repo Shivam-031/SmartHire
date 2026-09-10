@@ -45,13 +45,13 @@ A step-by-step, phase-based roadmap for building the project within a ~4-week (2
 **Goal:** A user can upload a resume and get back extracted skills — the riskiest technical piece, so it's tackled early.
 
 **Tasks:**
-- [ ] Build `POST /api/resume/upload` route — file type/size validation, save to a temp path.
-- [ ] Implement `resume_parser.py`: PDF via `pdfplumber`, DOCX via `python-docx` (including tables).
-- [ ] Implement `has_tables` detection during PDF parsing.
-- [ ] Implement skill extraction via spaCy `PhraseMatcher` + synonym normalization.
-- [ ] Implement fallback: if extracted text < 100 words, return an error prompting manual text entry; build `POST /api/resume/manual-text`.
-- [ ] Build minimal React `ResumeUpload` component to test the full round trip (upload → see extracted skills on screen).
-- [ ] **Test on 8–10 real, varied resumes** (different formats, one with tables, one image-based/scanned) to see where extraction breaks.
+- [X] Build `POST /api/resume/upload` route — file type/size validation, save to a temp path.
+- [X] Implement `resume_parser.py`: PDF via `pdfplumber`, DOCX via `python-docx` (including tables).
+- [X] Implement `has_tables` detection during PDF parsing.
+- [X] Implement skill extraction via spaCy `PhraseMatcher` + synonym normalization.
+- [X] Implement fallback: if extracted text < 100 words, return an error prompting manual text entry; build `POST /api/resume/manual-text`.
+- [X] Build minimal React `ResumeUpload` component to test the full round trip (upload → see extracted skills on screen).
+- [X] **Test on 8–10 real, varied resumes** (different formats, one with tables, one image-based/scanned) to see where extraction breaks.
 
 **Deliverable:** Working upload flow, tested against real resume variety, with known failure modes documented.
 
@@ -64,11 +64,11 @@ A step-by-step, phase-based roadmap for building the project within a ~4-week (2
 **Goal:** A user can pick a role, get personalized questions, and answer them.
 
 **Tasks:**
-- [ ] Implement `question_selector.py` — merge role + resume skills, dedupe, cap at 10 questions.
-- [ ] Build `POST /api/interview/start` — creates `InterviewSession`, returns selected questions.
-- [ ] Build `RoleSelect` and `InterviewQA` React components — role dropdown, then question-by-question answer flow.
-- [ ] Wire frontend state so resume upload → role selection → interview questions flows without page reloads (React state or Context, not Redux).
-- [ ] Add loading and error states for each step.
+- [X] Implement `question_selector.py` — merge role + resume skills, dedupe, cap at 10 questions.
+- [X] Build `POST /api/interview/start` — creates `InterviewSession`, returns selected questions.
+- [X] Build `RoleSelect` and `InterviewQA` React components — role dropdown, then question-by-question answer flow.
+- [X] Wire frontend state so resume upload → role selection → interview questions flows without page reloads (React state or Context, not Redux).
+- [X] Add loading and error states for each step.
 
 **Deliverable:** End-to-end flow: select role → (optionally) upload resume → get a tailored question list on screen.
 
@@ -81,10 +81,10 @@ A step-by-step, phase-based roadmap for building the project within a ~4-week (2
 **Goal:** Submitted answers get real, useful feedback.
 
 **Tasks:**
-- [ ] Implement `scoring_engine.py` — relevance score (keyword/lemma/similarity matching against `expected_keywords`) and clarity score (filler words + sentence structure via `textstat`).
-- [ ] Calibrate thresholds: test on ~20 sample answers (mix of strong/weak) and tune scoring cutoffs until they roughly match your own judgment.
-- [ ] Build `POST /api/interview/answer` — stores the `Answer` row, returns scores + 1–2 improvement suggestions.
-- [ ] Build `FeedbackReport` component — shows per-question score and suggestions immediately after each answer.
+- [X] Implement `scoring_engine.py` — relevance score (keyword/lemma/similarity matching against `expected_keywords`) and clarity score (filler words + sentence structure via `textstat`).
+- [X] Calibrate thresholds: test on ~20 sample answers (mix of strong/weak) and tune scoring cutoffs until they roughly match your own judgment.
+- [X] Build `POST /api/interview/answer` — stores the `Answer` row, returns scores + 1–2 improvement suggestions.
+- [X] Build `FeedbackReport` component — shows per-question score and suggestions immediately after each answer.
 
 **Deliverable:** Full interview loop works: answer a question → see a score and suggestion within ~2 seconds.
 
@@ -97,11 +97,11 @@ A step-by-step, phase-based roadmap for building the project within a ~4-week (2
 **Goal:** Resume gets a heuristic ATS score with specific, actionable issues.
 
 **Tasks:**
-- [ ] Implement `ats_checker.py` with all six weighted checks (section headers, contact info, tables, keyword match, action-verb bullets, length).
-- [ ] Build `POST /api/ats/check` — returns `{ ats_score, issues[], disclaimer }`.
-- [ ] Build `ATSReport` React component — score display + list of specific issues (not vague labels).
-- [ ] Add the "heuristic estimate, not a certified score" disclaimer visibly in the UI.
-- [ ] Test against the same 8–10 resumes from Phase 2 and sanity-check the scores feel proportionate (a clean, well-formatted resume should score noticeably higher than a messy one).
+- [x] Implement `ats_checker.py` with all six weighted checks (section headers, contact info, tables, keyword match, action-verb bullets, length).
+- [x] Build `POST /api/ats/check` — returns `{ ats_score, issues[], disclaimer }`.
+- [x] Build `ATSReport` React component — score display + list of specific issues (not vague labels).
+- [x] Add the "heuristic estimate, not a certified score" disclaimer visibly in the UI.
+- [x] Test against the same 8–10 resumes from Phase 2 and sanity-check the scores feel proportionate (a clean, well-formatted resume should score noticeably higher than a messy one).
 
 **Deliverable:** Working ATS report, tested against real resume variety.
 
@@ -114,10 +114,10 @@ A step-by-step, phase-based roadmap for building the project within a ~4-week (2
 **Goal:** Everything ties together into a single exportable report, and past sessions are browsable.
 
 **Tasks:**
-- [ ] Implement `report_generator.py` — compile interview scores + ATS results into one structured report.
-- [ ] Build `GET /api/sessions/<id>/report.pdf` using `reportlab`.
-- [ ] Build `GET /api/sessions` and `GET /api/sessions/<id>` endpoints.
-- [ ] Build `SessionHistory` React component — list past sessions, click through to a read-only detail view.
+- [x] Implement `report_generator.py` — compile interview scores + ATS results into one structured report.
+- [x] Build `GET /api/sessions/<id>/report.pdf` using `reportlab`.
+- [x] Build `GET /api/sessions` and `GET /api/sessions/<id>` endpoints.
+- [x] Build `SessionHistory` React component — list past sessions, click through to a read-only detail view.
 
 **Deliverable:** Full report downloadable as PDF; session history browsable.
 
@@ -130,12 +130,12 @@ A step-by-step, phase-based roadmap for building the project within a ~4-week (2
 **Goal:** The whole app feels solid, not just individually-working pieces.
 
 **Tasks:**
-- [ ] Full click-through test of the entire user journey at least 5 times with different inputs.
-- [ ] Add proper loading spinners, empty states, and human-readable error messages everywhere (no raw stack traces reaching the UI).
-- [ ] Cross-check CORS config works against the actual frontend origin being used.
-- [ ] Handle edge cases: no resume uploaded (generic questions only), corrupt file upload, empty answer submitted.
-- [ ] Basic responsive check — does it look reasonable on a laptop screen and a phone-width browser window?
-- [ ] Clean up console warnings/errors in both frontend and backend logs.
+- [x] Full click-through test of the entire user journey at least 5 times with different inputs.
+- [x] Add proper loading spinners, empty states, and human-readable error messages everywhere (no raw stack traces reaching the UI).
+- [x] Cross-check CORS config works against the actual frontend origin being used.
+- [x] Handle edge cases: no resume uploaded (generic questions only), corrupt file upload, empty answer submitted.
+- [x] Basic responsive check — does it look reasonable on a laptop screen and a phone-width browser window?
+- [x] Clean up console warnings/errors in both frontend and backend logs.
 
 **Deliverable:** A demo-ready app with no obvious rough edges.
 
