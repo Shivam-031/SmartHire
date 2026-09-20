@@ -55,6 +55,7 @@ def check_ats():
                 issues = analysis['issues']
 
                 # Persist evaluation record into Mongo 'ats_reports' collection
+                # Persist evaluation record into Mongo 'ats_reports' collection and SQL 'ats_report' table
                 try:
                     mongo_db = get_db()
                     mongo_db.ats_reports.insert_one({
@@ -66,6 +67,17 @@ def check_ats():
                     })
                 except Exception:
                     pass
+
+                try:
+                    sql_ats = SQLATSReport(
+                        mongo_resume_id=str(doc.get('_id')),
+                        ats_score=ats_score,
+                        issues_list=issues
+                    )
+                    db.session.add(sql_ats)
+                    db.session.commit()
+                except Exception:
+                    db.session.rollback()
 
                 return jsonify({
                     "ats_score": ats_score,

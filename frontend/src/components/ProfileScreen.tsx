@@ -35,7 +35,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
       fetch('http://localhost:5000/api/profile', {
         headers: { Authorization: `Bearer ${token}` },
       })
-        .then((res) => res.json())
+        .then((res) => {
+          if (res.status === 401) {
+            logout();
+            throw new Error('Unauthorized session expired');
+          }
+          return res.json();
+        })
         .then((data) => {
           setProfileData({
             sessions: data.sessions || [],
@@ -49,7 +55,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         })
         .catch(() => setLoading(false));
     }
-  }, [token]);
+  }, [token, logout]);
 
   if (!isAuthenticated || !user) {
     return (

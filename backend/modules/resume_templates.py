@@ -212,6 +212,23 @@ def create_resume_pdf(resume_data, template_id=1):
             story.append(Paragraph(skill_text, body_style))
             story.append(Spacer(1, 2))
         story.append(Spacer(1, 6))
+        if all(isinstance(sk, str) for sk in skills):
+            items_str = ", ".join(skills)
+            story.append(Paragraph(f"<b>Core Competencies:</b> {items_str}", body_style))
+            story.append(Spacer(1, 4))
+        else:
+            for sk in skills:
+                if isinstance(sk, str):
+                    story.append(Paragraph(f"<b>Core:</b> {sk}", body_style))
+                    story.append(Spacer(1, 2))
+                elif isinstance(sk, dict):
+                    cat = sk.get('category') or 'Core'
+                    items = sk.get('items') or []
+                    items_str = ", ".join(items) if isinstance(items, list) else str(items)
+                    skill_text = f"<b>{cat}:</b> {items_str}"
+                    story.append(Paragraph(skill_text, body_style))
+                    story.append(Spacer(1, 2))
+            story.append(Spacer(1, 4))
 
     # 6. Projects
     if projects:
@@ -240,6 +257,26 @@ def create_resume_pdf(resume_data, template_id=1):
             if p_desc:
                 story.append(Paragraph(f"• {p_desc}", bullet_style))
             story.append(Spacer(1, 4))
+
+    # 7. Fallback for Empty Resume (no content yet)
+    if not summary.strip() and not experience and not education and not skills and not projects:
+        empty_notice = Table(
+            [[
+                Paragraph(
+                    "<b>Draft Candidate Profile</b><br/>"
+                    "No experience, education, or skill entries have been added to this candidate docket yet. "
+                    "Use the SmartHire in-app Resume Editor to populate your professional background and export a finalized PDF.",
+                    body_style
+                )
+            ]],
+            colWidths=[540]
+        )
+        empty_notice.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#F7F8F5')),
+            ('BOX', (0, 0), (-1, -1), 0.5, line_color),
+            ('PADDING', (0, 0), (-1, -1), 12),
+        ]))
+        story.append(empty_notice)
 
     doc.build(story)
     buffer.seek(0)

@@ -101,10 +101,15 @@ def start_interview():
         except Exception:
             m_res = col.find_one({'_id': mongo_resume_id})
         if m_res:
-            for sk_group in m_res.get('skills', []):
-                items = sk_group.get('items', [])
-                if isinstance(items, list):
-                    extracted_skills.extend(items)
+            for sk_item in m_res.get('skills', []):
+                if isinstance(sk_item, str):
+                    extracted_skills.append(sk_item)
+                elif isinstance(sk_item, dict):
+                    items = sk_item.get('items', [])
+                    if isinstance(items, list):
+                        extracted_skills.extend(items)
+                    elif isinstance(items, str):
+                        extracted_skills.append(items)
 
     # 3. Select Questions using field-aware Question Selector
     formatted_questions = select_questions(
@@ -215,6 +220,8 @@ def submit_mcq():
 @interview_bp.route('/answer', methods=['POST'])
 def submit_answer():
     data = request.get_json() or {}
+    if data.get('selected_option'):
+        return submit_mcq()
     session_id = data.get('session_id')
     question_id = str(data.get('question_id', ''))
     answer_text = data.get('answer_text', '')
@@ -428,6 +435,7 @@ def submit_mock_answer():
         'interviewer_remark': mock_turn['interviewer_remark'],
         'branch_type': mock_turn['branch_type'],
         'branch_question': mock_turn['branch_question'],
+        'next_question': mock_turn['branch_question'],
         'feedback': scoring_result
     }), 200
 
@@ -460,6 +468,7 @@ def get_transcript(session_id):
     return jsonify(transcript), 200
 
 @interview_bp.route('/complete', methods=['POST'])
+@interview_bp.route('/end', methods=['POST'])
 def complete_interview():
     data = request.get_json() or {}
     session_id = data.get('session_id')

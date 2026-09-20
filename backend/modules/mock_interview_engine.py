@@ -136,11 +136,14 @@ def init_mock_transcript(session_id, field='it', role='', persona_name=''):
     if existing:
         t_id = str(existing['_id'])
     else:
+        persona_obj = get_interviewer_persona(field)
         res = col.insert_one({
             'session_id': session_id,
             'field': field,
             'role': role,
             'persona_name': persona_name,
+            'persona_name': persona_name or persona_obj.get('name'),
+            'persona': persona_obj,
             'turns': [],
             'created_at': datetime.utcnow().isoformat(),
             'last_updated': datetime.utcnow().isoformat()

@@ -289,6 +289,19 @@ def grade_mcq_answer(selected_option, correct_option, explanation=""):
     """
     sel = (selected_option or '').strip().upper()
     corr = (correct_option or '').strip().upper()
+    if isinstance(selected_option, dict):
+        selected_option = selected_option.get('label') or selected_option.get('text') or ''
+    elif isinstance(selected_option, int):
+        # 0 -> 'A', 1 -> 'B', etc.
+        selected_option = chr(65 + selected_option) if 0 <= selected_option < 26 else str(selected_option)
+
+    if isinstance(correct_option, dict):
+        correct_option = correct_option.get('label') or correct_option.get('text') or ''
+    elif isinstance(correct_option, int):
+        correct_option = chr(65 + correct_option) if 0 <= correct_option < 26 else str(correct_option)
+
+    sel = (str(selected_option) if selected_option is not None else '').strip().upper()
+    corr = (str(correct_option) if correct_option is not None else '').strip().upper()
     is_correct = (sel == corr) if (sel and corr) else False
     score = 1.0 if is_correct else 0.0
 

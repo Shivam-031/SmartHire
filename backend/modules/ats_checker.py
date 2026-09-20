@@ -80,8 +80,11 @@ class ATSChecker:
         Converts a MongoDB structured resume document into formatted text
         suitable for ATS heuristic evaluation.
         """
+        if not doc:
+            return ""
         parts = []
         contact = doc.get('contact', {})
+        contact = doc.get('contact') or {}
         name = contact.get('name') or doc.get('title') or 'Candidate'
         parts.append(name)
 
@@ -141,6 +144,20 @@ class ATSChecker:
                 else:
                     items_str = str(items)
                 parts.append(f"{cat}: {items_str}")
+            if all(isinstance(sk, str) for sk in skills):
+                parts.append(", ".join(skills))
+            else:
+                for sk in skills:
+                    if isinstance(sk, str):
+                        parts.append(f"• {sk}")
+                    elif isinstance(sk, dict):
+                        cat = sk.get('category', 'Technical Skills')
+                        items = sk.get('items', [])
+                        if isinstance(items, list):
+                            items_str = ", ".join(items)
+                        else:
+                            items_str = str(items)
+                        parts.append(f"{cat}: {items_str}")
 
         projects = doc.get('projects', [])
         if projects:

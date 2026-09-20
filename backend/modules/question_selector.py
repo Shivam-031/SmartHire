@@ -70,6 +70,15 @@ def select_questions(field='it', role=None, resume_skills=None, limit=10, includ
     mcq_pool = [q for q in raw_candidates if q.get('question_type') == 'mcq']
     long_pool = [q for q in raw_candidates if q.get('question_type') != 'mcq']
 
+    # Edge Case: Empty MCQ bank for a specific skill or sub-role -> pull field-level MCQs
+    if include_mcq and not mcq_pool:
+        try:
+            field_mcqs = list(q_col.find({'field': field, 'question_type': 'mcq'}))
+            if field_mcqs:
+                mcq_pool.extend(field_mcqs)
+        except Exception:
+            pass
+
     # Skill matching score helper
     def skill_match_score(q_doc):
         q_skill = str(q_doc.get('skill_tag') or '').strip().lower()
@@ -93,6 +102,20 @@ def select_questions(field='it', role=None, resume_skills=None, limit=10, includ
     if len(selected) < limit and len(mcq_pool) > len([q for q in selected if q.get('question_type') == 'mcq']):
         extras = [q for q in mcq_pool if q not in selected]
         selected.extend(extras[:limit - len(selected)])
+
+    # If still below limit, backfill from field-wide questions
+    if len(selected) < limit:
+        try:
+            field_all = list(q_col.find({'field': field}))
+            selected_ids = {str(s.get('_id')) for s in selected}
+            for fq in field_all:
+                if str(fq.get('_id')) not in selected_ids:
+                    selected.append(fq)
+                    selected_ids.add(str(fq.get('_id')))
+                    if len(selected) >= limit:
+                        break
+        except Exception:
+            pass
 
     # Format return structure
     formatted = []

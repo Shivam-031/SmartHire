@@ -43,11 +43,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profileModalOpen, setProfileModalOpen] = useState(false);
 
   // Sync auth state to localStorage
+  // Sync auth state to localStorage (sync both smarthire_token and token keys)
   useEffect(() => {
     if (token) {
       localStorage.setItem('smarthire_token', token);
+      localStorage.setItem('token', token);
     } else {
       localStorage.removeItem('smarthire_token');
+      localStorage.removeItem('token');
     }
   }, [token]);
 
@@ -60,6 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user]);
 
   // Check token validity on mount
+  // Check token validity on mount (clears expired tokens gracefully)
   useEffect(() => {
     if (token) {
       fetch('http://localhost:5000/api/auth/me', {
@@ -67,6 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       })
         .then(res => {
           if (!res.ok) throw new Error('Token invalid');
+          if (!res.ok) throw new Error('Token invalid or expired');
           return res.json();
         })
         .then(data => {
@@ -76,6 +81,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Token expired or invalid
           setToken(null);
           setUser(null);
+          localStorage.removeItem('smarthire_token');
+          localStorage.removeItem('token');
+          localStorage.removeItem('smarthire_user');
         });
     }
   }, []);
@@ -128,6 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(null);
     setUser(null);
     localStorage.removeItem('smarthire_token');
+    localStorage.removeItem('token');
     localStorage.removeItem('smarthire_user');
   };
 

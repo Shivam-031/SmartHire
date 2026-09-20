@@ -66,6 +66,7 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [resumeData, setResumeData] = useState<StructuredResumeData>({
     title: 'Primary Resume',
     template_id: 1,
@@ -132,6 +133,7 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
 
   const handleSave = async () => {
     setSaving(true);
+    setSaveError(null);
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
@@ -150,9 +152,12 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
           if (onSaved) onSaved(data.id);
         }
         setTimeout(() => setSaveSuccess(false), 3000);
+      } else {
+        setSaveError(data.error || 'Failed to save resume document. Please verify candidate session.');
       }
-    } catch {
+    } catch (err: any) {
       setSaving(false);
+      setSaveError(err.message || 'Network error encountered while saving resume document.');
     }
   };
 
@@ -290,6 +295,21 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
           )}
         </div>
       </div>
+
+      {saveError && (
+        <div className="p-3.5 bg-[#FDF2F2] border border-[#F5C2C2] text-[#9E2A2B] text-xs rounded flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-2">
+            <span className="font-bold">Save Error:</span>
+            <span>{saveError}</span>
+          </div>
+          <button
+            onClick={() => setSaveError(null)}
+            className="text-[#9E2A2B] hover:text-[#7A1E1F] font-bold text-sm px-1"
+          >
+            &times;
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <div className="p-12 text-center text-xs text-[#5C6B60] bg-white border border-[#D2D5C9] rounded">

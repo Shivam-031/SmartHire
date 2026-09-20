@@ -220,15 +220,23 @@ def prefill_from_upload():
     return jsonify({'resume': prefilled}), 200
 
 @resume_editor_bp.route('/export-pdf', methods=['POST'])
+@resume_editor_bp.route('/export', methods=['GET', 'POST'])
+@resume_editor_bp.route('/export-pdf', methods=['GET', 'POST'])
+@resume_editor_bp.route('/export/pdf', methods=['GET', 'POST'])
+@resume_editor_bp.route('/editor/export/pdf', methods=['GET', 'POST'])
+@resume_editor_bp.route('/editor/export', methods=['GET', 'POST'])
 @optional_auth
 def export_pdf():
     data = request.get_json() or {}
+    data = request.get_json(silent=True) or {}
     resume_data = data.get('resume_data')
     template_id = int(data.get('template_id', 1))
+    template_id = int(request.args.get('template_id') or data.get('template_id', 1))
 
     col = get_resumes_col()
     if not resume_data:
         resume_id = data.get('resume_id')
+        resume_id = request.args.get('id') or request.args.get('resume_id') or data.get('resume_id') or data.get('id')
         if resume_id:
             try:
                 resume_data = col.find_one({'_id': ObjectId(resume_id)})
