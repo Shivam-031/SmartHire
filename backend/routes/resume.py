@@ -1,9 +1,10 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 from werkzeug.utils import secure_filename
 import os
 from backend.models import db, Resume, User
 from backend.config import Config
 from backend.modules.resume_parser import parser
+from backend.modules.auth import optional_auth
 
 resume_bp = Blueprint('resume', __name__)
 
@@ -19,16 +20,21 @@ def get_default_user_id():
     return user.id
 
 @resume_bp.route('/upload', methods=['POST'])
+@optional_auth
 def upload_resume():
     # 1. Validate User
-    user_id = request.form.get('user_id')
-    if not user_id:
-        user_id = get_default_user_id()
+    user = g.current_user
+    if user:
+        user_id = user.id
     else:
-        try:
-            user_id = int(user_id)
-        except ValueError:
-            return jsonify({"error": "Invalid user_id"}), 400
+        user_id = request.form.get('user_id')
+        if not user_id:
+            user_id = get_default_user_id()
+        else:
+            try:
+                user_id = int(user_id)
+            except ValueError:
+                return jsonify({"error": "Invalid user_id"}), 400
 
     # 2. Validate File
     if 'file' not in request.files:
@@ -80,21 +86,25 @@ def upload_resume():
         return jsonify({"error": str(e)}), 500
 
 @resume_bp.route('/manual-text', methods=['POST'])
+@optional_auth
 def manual_text():
     data = request.get_json()
     if not data or 'text' not in data:
         return jsonify({"error": "No text provided"}), 400
 
     text = data['text']
-    user_id = data.get('user_id')
-
-    if not user_id:
-        user_id = get_default_user_id()
+    user = g.current_user
+    if user:
+        user_id = user.id
     else:
-        try:
-            user_id = int(user_id)
-        except ValueError:
-            return jsonify({"error": "Invalid user_id"}), 400
+        user_id = data.get('user_id')
+        if not user_id:
+            user_id = get_default_user_id()
+        else:
+            try:
+                user_id = int(user_id)
+            except ValueError:
+                return jsonify({"error": "Invalid user_id"}), 400
 
     try:
         # Extract skills from manual text

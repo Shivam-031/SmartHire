@@ -1,12 +1,29 @@
 import React from 'react';
 import BrandWordmark from './BrandWordmark';
+import { useAuth } from '../context/AuthContext';
 
-export type DocketStep = 'role_select' | 'upload' | 'interview' | 'ats_check' | 'completed' | 'session_history' | 'session_detail';
+export type DocketStep =
+  | 'field_select'
+  | 'role_select'
+  | 'resume'
+  | 'resume_editor'
+  | 'template_picker'
+  | 'interview'
+  | 'ats_check'
+  | 'summary'
+  | 'completed'
+  | 'session_history'
+  | 'session_detail'
+  | 'profile'
+  | 'login'
+  | 'signup';
 
 interface DocketLayoutProps {
   currentStep: DocketStep;
+  targetField?: string;
   targetRole?: string;
   onNavigate: (step: DocketStep) => void;
+  canNavigateToField?: boolean;
   canNavigateToRole?: boolean;
   canNavigateToResume?: boolean;
   canNavigateToInterview?: boolean;
@@ -15,48 +32,71 @@ interface DocketLayoutProps {
   children: React.ReactNode;
 }
 
-export const DocketLayout = ({
+export const DocketLayout: React.FC<DocketLayoutProps> = ({
   currentStep,
+  targetField = 'it',
   targetRole = 'Frontend Developer',
   onNavigate,
+  canNavigateToField = true,
   canNavigateToRole = true,
   canNavigateToResume = true,
   canNavigateToInterview = false,
   canNavigateToATS = false,
   canNavigateToSummary = false,
   children,
-}: DocketLayoutProps) => {
+}) => {
+  const { user, isAuthenticated } = useAuth();
 
   const tabs = [
-    { id: 'role_select' as DocketStep, num: '01', label: 'Target Role', enabled: canNavigateToRole },
-    { id: 'upload' as DocketStep, num: '02', label: 'Candidate Resume', enabled: canNavigateToResume },
-    { id: 'interview' as DocketStep, num: '03', label: 'Interview Practice', enabled: canNavigateToInterview },
-    { id: 'ats_check' as DocketStep, num: '04', label: 'ATS Evaluation', enabled: canNavigateToATS },
-    { id: 'completed' as DocketStep, num: '05', label: 'Final Assessment', enabled: canNavigateToSummary },
+    { id: 'field_select' as DocketStep, num: '01', label: 'Field Track', enabled: canNavigateToField },
+    { id: 'role_select' as DocketStep, num: '02', label: 'Target Role', enabled: canNavigateToRole },
+    { id: 'resume' as DocketStep, num: '03', label: 'Candidate Resume', enabled: canNavigateToResume },
+    { id: 'interview' as DocketStep, num: '04', label: 'Oral Examination', enabled: canNavigateToInterview },
+    { id: 'ats_check' as DocketStep, num: '05', label: 'ATS Compatibility', enabled: canNavigateToATS },
+    { id: 'completed' as DocketStep, num: '06', label: 'Dossier Summary', enabled: canNavigateToSummary },
   ];
 
-  // Helper to determine if a step is "completed"
+  const order: DocketStep[] = ['field_select', 'role_select', 'resume', 'interview', 'ats_check', 'completed'];
+
+  const normalizeStepForTabs = (step: DocketStep): DocketStep => {
+    if (step === 'resume_editor' || step === 'template_picker') return 'resume';
+    if (step === 'summary' || step === 'session_history' || step === 'session_detail') return 'completed';
+    return step;
+  };
+
   const isCompleted = (tabId: DocketStep) => {
-    const order: DocketStep[] = ['role_select', 'upload', 'interview', 'ats_check', 'completed'];
-    const currentIndex = order.indexOf(currentStep);
+    const normalized = normalizeStepForTabs(currentStep);
+    const currentIndex = order.indexOf(normalized);
     const tabIndex = order.indexOf(tabId);
     return currentIndex > tabIndex;
   };
 
   const getSheetSubtitle = () => {
     switch (currentStep) {
+      case 'login':
+      case 'signup':
+        return 'Account & Authentication / Candidate Sign In & Profile Provisioning';
+      case 'profile':
+        return 'Candidate Profile / Career Track Calibration & Dossier Records';
+      case 'field_select':
+        return 'Sheet No. 01 / Target Career Discipline';
       case 'role_select':
-        return 'Sheet No. 01 / Target Role Selection';
-      case 'upload':
-        return 'Sheet No. 02 / Document Intake';
+        return 'Sheet No. 02 / Role Specification & Rubric Calibration';
+      case 'resume':
+        return 'Sheet No. 03 / Candidate Resume Dossier';
+      case 'resume_editor':
+        return 'Sheet No. 03 / Structured In-App Resume Editor';
+      case 'template_picker':
+        return 'Sheet No. 03 / PDF Export Template Picker';
       case 'interview':
-        return 'Sheet No. 03 / Structured Oral Examination';
+        return 'Sheet No. 04 / Structured Examination (Standard & Mock)';
       case 'ats_check':
-        return 'Sheet No. 04 / ATS Compatibility Audit';
+        return 'Sheet No. 05 / ATS Compatibility & Keyword Audit';
+      case 'summary':
       case 'completed':
       case 'session_history':
       case 'session_detail':
-        return 'Sheet No. 05 / Evaluator Dossier & Performance Rubric';
+        return 'Sheet No. 06 / Evaluator Dossier & Performance Record';
       default:
         return 'Candidate Intake Docket';
     }
@@ -78,13 +118,36 @@ export const DocketLayout = ({
           <span className="text-[#D2D5C9]">|</span>
           <span className="inline-flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-[#2F6F4E]" />
-            Target Track: <strong className="text-[#1A2E22] font-medium ml-1">{targetRole}</strong>
+            Track: <strong className="text-[#1A2E22] font-medium ml-1 uppercase">{targetField} · {targetRole}</strong>
           </span>
         </div>
-        <div className="flex items-center space-x-4 text-[#5C6B60]">
-          <span>Protocol Rev. 2.4.1</span>
+
+        {/* User Auth / Profile Badge */}
+        <div className="flex items-center space-x-3">
+          {isAuthenticated && user ? (
+            <button
+              onClick={() => onNavigate('profile')}
+              className="flex items-center gap-2 px-2.5 py-1 rounded bg-white border border-[#D2D5C9] hover:border-[#2F6F4E] transition-colors text-xs cursor-pointer shadow-2xs"
+              title="Open Candidate Profile View"
+            >
+              <div className="w-4 h-4 rounded-full bg-[#2F6F4E] text-white flex items-center justify-center font-bold text-[9px]">
+                {user.name.charAt(0).toUpperCase()}
+              </div>
+              <span className="text-[#1A2E22] font-medium">{user.name}</span>
+              <span className="text-[10px] text-[#5C6B60] font-score-mono">Profile &rarr;</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => onNavigate('login')}
+              className="px-3 py-1 rounded bg-white hover:bg-[#EAECE6] border border-[#D2D5C9] text-xs font-medium text-[#1A2E22] transition-colors cursor-pointer"
+              title="Open Authentication View"
+            >
+              Sign In / Account
+            </button>
+          )}
+
           <span className="text-[#D2D5C9]">|</span>
-          <span>System Status: <span className="text-[#2F6F4E] font-medium">Online</span></span>
+          <span className="text-[#5C6B60] hidden sm:inline">Rev. 2.4.1</span>
         </div>
       </header>
 
@@ -102,7 +165,7 @@ export const DocketLayout = ({
 
             <div className="space-y-1">
               <div className="text-[10px] font-score-mono text-[#5C6B60] mb-2 tracking-wider font-semibold">
-                DOCKET SECTIONS
+                DOCKET WORKFLOW
               </div>
 
               {tabs.map((tab) => {
@@ -147,13 +210,68 @@ export const DocketLayout = ({
                 );
               })}
             </div>
+
+            {/* Dedicated Screen Shortcuts */}
+            <div className="mt-5 pt-3 border-t border-[#D2D5C9]/70 space-y-1">
+              <div className="text-[10px] font-score-mono text-[#5C6B60] mb-2 tracking-wider font-semibold">
+                SCREEN SHORTCUTS
+              </div>
+              <button
+                onClick={() => onNavigate('resume_editor')}
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs transition-colors text-left ${
+                  currentStep === 'resume_editor'
+                    ? 'bg-white text-[#2F6F4E] font-semibold border border-[#D2D5C9]'
+                    : 'text-[#5C6B60] hover:text-[#1A2E22] hover:bg-[#E3E8DF]'
+                }`}
+              >
+                <span>Resume Editor</span>
+                <span className="text-[10px] font-score-mono">03A</span>
+              </button>
+              <button
+                onClick={() => onNavigate('template_picker')}
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs transition-colors text-left ${
+                  currentStep === 'template_picker'
+                    ? 'bg-white text-[#2F6F4E] font-semibold border border-[#D2D5C9]'
+                    : 'text-[#5C6B60] hover:text-[#1A2E22] hover:bg-[#E3E8DF]'
+                }`}
+              >
+                <span>Template Picker</span>
+                <span className="text-[10px] font-score-mono">03B</span>
+              </button>
+              <button
+                onClick={() => onNavigate('profile')}
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs transition-colors text-left ${
+                  currentStep === 'profile'
+                    ? 'bg-white text-[#2F6F4E] font-semibold border border-[#D2D5C9]'
+                    : 'text-[#5C6B60] hover:text-[#1A2E22] hover:bg-[#E3E8DF]'
+                }`}
+              >
+                <span>Candidate Profile</span>
+                <span className="text-[10px] font-score-mono">USER</span>
+              </button>
+              <button
+                onClick={() => onNavigate('login')}
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs transition-colors text-left ${
+                  currentStep === 'login' || currentStep === 'signup'
+                    ? 'bg-white text-[#2F6F4E] font-semibold border border-[#D2D5C9]'
+                    : 'text-[#5C6B60] hover:text-[#1A2E22] hover:bg-[#E3E8DF]'
+                }`}
+              >
+                <span>Auth & Access</span>
+                <span className="text-[10px] font-score-mono">AUTH</span>
+              </button>
+            </div>
           </div>
 
           {/* Bottom Sidebar Reference / Session History Link */}
-          <div className="mt-8 pt-4 hairline-t">
+          <div className="mt-6 pt-3 hairline-t">
             <button
               onClick={() => onNavigate('session_history')}
-              className="w-full flex items-center justify-between text-xs text-[#5C6B60] hover:text-[#1A2E22] py-2 px-2 rounded hover:bg-[#E3E8DF] transition-colors"
+              className={`w-full flex items-center justify-between text-xs py-2 px-2 rounded transition-colors ${
+                currentStep === 'session_history'
+                  ? 'bg-white text-[#2F6F4E] font-semibold border border-[#D2D5C9]'
+                  : 'text-[#5C6B60] hover:text-[#1A2E22] hover:bg-[#E3E8DF]'
+              }`}
             >
               <span className="flex items-center gap-2">
                 <svg className="w-4 h-4 text-[#5C6B60]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -165,8 +283,8 @@ export const DocketLayout = ({
             </button>
 
             <div className="mt-3 p-3 bg-white rounded border border-[#D2D5C9] text-[11px] text-[#5C6B60] leading-relaxed">
-              <span className="font-medium text-[#1A2E22] block mb-0.5">Evaluation Mode</span>
-              Standard technical interview rubric with real-time heuristic parsing.
+              <span className="font-medium text-[#1A2E22] block mb-0.5">Dual Database Active</span>
+              SQL relational records alongside MongoDB document collections with zero external LLM dependencies.
             </div>
           </div>
         </aside>
@@ -183,4 +301,3 @@ export const DocketLayout = ({
 };
 
 export default DocketLayout;
-

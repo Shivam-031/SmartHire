@@ -1,37 +1,74 @@
 import os
+import sys
+
+# Ensure root is in sys.path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from flask import Flask
 from backend.config import Config
-from backend.models import db, User, Question
+from backend.models import db, User, Resume, InterviewSession, Question
+from backend.mongo_db import init_mongo, get_mongo_db, is_using_mock
 
 def verify_db():
     app = Flask(__name__)
     app.config.from_object(Config)
+
+    # 1. Initialize Relational DB (SQLAlchemy)
     db.init_app(app)
 
+    # 2. Initialize Document DB (PyMongo / resilient mock)
+    mongo_db = init_mongo()
+
     with app.app_context():
-        print("--- Database Verification ---")
+        print("==================================================")
+        print("  SMARTHIRE DUAL DATABASE (SQL + MONGO) VERIFICATION")
+        print("==================================================")
 
-        # 1. Check User
-        user = User.query.first()
-        if user:
-            print(f"User found: {user.name} ({user.email})")
-        else:
-            print("User NOT found!")
+        # --- SQL DATABASE VERIFICATION ---
+        print("\n[1] SQLAlchemy (Relational Store - SQLite/PostgreSQL):")
+        try:
+            user_count = User.query.count()
+            resume_count = Resume.query.count()
+            session_count = InterviewSession.query.count()
+            q_count = Question.query.count()
+            first_user = User.query.first()
 
-        # 2. Check Total Questions
-        q_count = Question.query.count()
-        print(f"Total questions: {q_count}")
+            print(f"  [OK] Connected: {Config.SQLALCHEMY_DATABASE_URI}")
+            print(f"  [OK] Registered Users: {user_count} (Primary: {first_user.email if first_user else 'None'})")
+            print(f"  [OK] Saved Resumes: {resume_count}")
+            print(f"  [OK] Examination Sessions: {session_count}")
+            print(f"  [OK] SQL Questions: {q_count}")
+            sql_status = "HEALTHY"
+        except Exception as e:
+            print(f"  [FAIL] SQL Connection Error: {e}")
+            sql_status = "FAILED"
 
-        # 3. Check Role Distribution
-        roles = ["Backend Developer", "Frontend Developer", "Full Stack Developer", "Data Analyst", "QA / Test Engineer"]
-        for role in roles:
-            count = Question.query.filter_by(role=role).count()
-            print(f"Questions for {role}: {count}")
+        # --- MONGO DATABASE VERIFICATION ---
+        print("\n[2] PyMongo (Document Store - MongoDB):")
+        try:
+            mode_desc = "Resilient In-Memory Mock" if is_using_mock() else "Live MongoDB Service"
+            print(f"  [OK] Mode: {mode_desc} (Database: {Config.MONGO_DB_NAME})")
 
-        # 4. Check a specific question
-        sample_q = Question.query.first()
-        if sample_q:
-            print(f"Sample question: {sample_q.question_text[:50]}... (Role: {sample_q.role})")
+            q_col = mongo_db['questions']
+            skills_col = mongo_db['skills']
+            resumes_col = mongo_db['resumes']
+            transcripts_col = mongo_db['transcripts']
+
+            print(f"  [OK] 'questions' collection: {q_col.count_documents({})} documents")
+            print(f"  [OK] 'skills' collection: {skills_col.count_documents({})} documents")
+            print(f"  [OK] 'resumes' collection: {resumes_col.count_documents({})} documents")
+            print(f"  [OK] 'transcripts' collection: {transcripts_col.count_documents({})} documents")
+            mongo_status = "HEALTHY"
+        except Exception as e:
+            print(f"  [FAIL] MongoDB Connection Error: {e}")
+            mongo_status = "FAILED"
+
+        print("\n--------------------------------------------------")
+        print(f"SQL Database Status:   {sql_status}")
+        print(f"Mongo Database Status: {mongo_status}")
+        print("==================================================")
+        return sql_status == "HEALTHY" and mongo_status == "HEALTHY"
 
 if __name__ == "__main__":
-    verify_db()
+    success = verify_db()
+    sys.exit(0 if success else 1)

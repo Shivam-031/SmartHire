@@ -49,7 +49,12 @@ class ATSChecker:
         else:
             raise ValueError(f"Unsupported file type: {ext}")
 
-        # 2. Perform the 6 weighted checks
+        return self.analyze_text(text, has_tables=has_tables)
+
+    def analyze_text(self, text, has_tables=False):
+        """
+        Performs the 6 weighted heuristic checks on text.
+        """
         results = {
             "headers": self._check_headers(text),
             "contact": self._check_contact(text),
@@ -59,10 +64,8 @@ class ATSChecker:
             "length": self._check_length(text)
         }
 
-        # 3. Calculate final score
         total_score = sum(res['score'] for res in results.values())
 
-        # 4. Collect all issues
         all_issues = []
         for check_name, res in results.items():
             all_issues.extend(res['issues'])
@@ -71,6 +74,94 @@ class ATSChecker:
             "ats_score": round(total_score, 2),
             "issues": all_issues
         }
+
+    def resume_doc_to_text(self, doc):
+        """
+        Converts a MongoDB structured resume document into formatted text
+        suitable for ATS heuristic evaluation.
+        """
+        parts = []
+        contact = doc.get('contact', {})
+        name = contact.get('name') or doc.get('title') or 'Candidate'
+        parts.append(name)
+
+        contact_line = []
+        if contact.get('email'):
+            contact_line.append(contact.get('email'))
+        if contact.get('phone'):
+            contact_line.append(contact.get('phone'))
+        if contact.get('location'):
+            contact_line.append(contact.get('location'))
+        if contact.get('linkedin'):
+            lk = contact.get('linkedin')
+            contact_line.append(f"https://{lk}" if not lk.startswith('http') else lk)
+        if contact.get('portfolio'):
+            contact_line.append(contact.get('portfolio'))
+        if contact_line:
+            parts.append(" | ".join(contact_line))
+
+        summary = doc.get('summary', '')
+        if summary:
+            parts.append("\nSummary")
+            parts.append(summary)
+
+        experience = doc.get('experience', [])
+        if experience:
+            parts.append("\nExperience")
+            for exp in experience:
+                title = exp.get('title', '')
+                company = exp.get('company', '')
+                dates = exp.get('dates', '')
+                parts.append(f"{title} at {company} ({dates})")
+                bullets = exp.get('bullets', [])
+                if isinstance(bullets, str):
+                    bullets = [b.strip() for b in bullets.split('\n') if b.strip()]
+                for b in bullets:
+                    bullet_text = b if b.startswith(('•', '*', '-')) else f"• {b}"
+                    parts.append(bullet_text)
+
+        education = doc.get('education', [])
+        if education:
+            parts.append("\nEducation")
+            for edu in education:
+                degree = edu.get('degree', '')
+                school = edu.get('school', '')
+                year = edu.get('year', '')
+                gpa = edu.get('gpa', '')
+                parts.append(f"{degree}, {school} ({year}) {('GPA: ' + gpa) if gpa else ''}")
+
+        skills = doc.get('skills', [])
+        if skills:
+            parts.append("\nSkills")
+            for sk in skills:
+                cat = sk.get('category', 'Technical Skills')
+                items = sk.get('items', [])
+                if isinstance(items, list):
+                    items_str = ", ".join(items)
+                else:
+                    items_str = str(items)
+                parts.append(f"{cat}: {items_str}")
+
+        projects = doc.get('projects', [])
+        if projects:
+            parts.append("\nProjects")
+            for prj in projects:
+                p_title = prj.get('title', '')
+                p_tech = prj.get('technologies', '')
+                p_desc = prj.get('description', '')
+                p_link = prj.get('link', '')
+                parts.append(f"{p_title} ({p_tech}) {p_link}")
+                if p_desc:
+                    parts.append(f"• {p_desc}")
+
+        return "\n".join(parts)
+
+    def analyze_document(self, doc):
+        """
+        Analyzes a structured MongoDB resume document directly.
+        """
+        text = self.resume_doc_to_text(doc)
+        return self.analyze_text(text, has_tables=False)
 
     def _analyze_pdf(self, file_path):
         text_parts = []
@@ -165,8 +256,14 @@ class ATSChecker:
         verb_count = 0
         for line in bullet_lines:
             # Extract first word
-            first_word = line.split()[0].lower().strip('•*-◦ ')
-            if first_word in POWER_VERBS or nlp(first_word).lemma_ in POWER_VERBS:
+            words = line.split()
+            if not words:
+                continue
+            first_word = words[0].lower().strip('•*-◦ ')
+            if not first_word:
+                continue
+            token_lemma = nlp(first_word)[0].lemma_ if len(nlp(first_word)) > 0 else first_word
+            if first_word in POWER_VERBS or token_lemma in POWER_VERBS:
                 verb_count += 1
 
         score = (verb_count / len(bullet_lines)) * 20

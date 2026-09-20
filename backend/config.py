@@ -4,10 +4,24 @@ import os
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 class Config:
-    # Use absolute path for the SQLite database
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', f'sqlite:///{os.path.join(BASE_DIR, "backend", "instance", "app.db")}')
+    # SQL Database URI
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        'DATABASE_URL',
+        f'sqlite:///{os.path.join(BASE_DIR, "backend", "instance", "app.db")}'
+    )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-12345')
+
+    # MongoDB Configuration
+    MONGO_URI = os.environ.get('MONGO_URI', 'mongodb://localhost:27017/smarthire')
+    MONGO_DB_NAME = os.environ.get('MONGO_DB_NAME', 'smarthire')
+
+    # Security & JWT Configuration
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-secret-key-12345-editorial-worksheet-system-2026')
+    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'smarthire-jwt-secret-key-32-bytes-long-super-secure-token-12345')
+    JWT_EXPIRATION_DAYS = int(os.environ.get('JWT_EXPIRATION_DAYS', '7'))
+
+
+    # Uploads
     UPLOAD_FOLDER = os.path.join(BASE_DIR, 'backend', 'uploads')
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5MB
     BASE_DIR = BASE_DIR

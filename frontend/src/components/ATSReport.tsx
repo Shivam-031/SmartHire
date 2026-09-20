@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import LoadingSpinner from './LoadingSpinner';
+import { useAuth } from '../context/AuthContext';
 
 interface ATSIssue {
   type: string;
@@ -8,7 +9,8 @@ interface ATSIssue {
 }
 
 interface ATSReportProps {
-  resumeId: number;
+  resumeId?: number | null;
+  mongoResumeId?: string | null;
   targetRole?: string;
   onClose: () => void;
   onProceedToSummary?: () => void;
@@ -16,10 +18,12 @@ interface ATSReportProps {
 
 export const ATSReport: React.FC<ATSReportProps> = ({
   resumeId,
+  mongoResumeId,
   targetRole = 'Frontend Developer',
   onClose,
   onProceedToSummary,
 }) => {
+  const { token } = useAuth();
   const [report, setReport] = useState<{
     score: number;
     issues: ATSIssue[];
@@ -32,10 +36,20 @@ export const ATSReport: React.FC<ATSReportProps> = ({
     const fetchReport = async () => {
       setLoading(true);
       try {
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const payload: Record<string, any> = {};
+        if (mongoResumeId) {
+          payload['mongo_resume_id'] = mongoResumeId;
+        } else if (resumeId) {
+          payload['resume_id'] = resumeId;
+        }
+
         const response = await fetch('http://localhost:5000/api/ats/check', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ resume_id: resumeId }),
+          headers,
+          body: JSON.stringify(payload),
         });
 
         const data = await response.json();
@@ -54,7 +68,7 @@ export const ATSReport: React.FC<ATSReportProps> = ({
     };
 
     fetchReport();
-  }, [resumeId]);
+  }, [resumeId, mongoResumeId, token]);
 
   if (loading) {
     return (

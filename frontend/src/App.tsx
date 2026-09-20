@@ -1,109 +1,357 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import DocketLayout, { type DocketStep } from './components/DocketLayout';
-import ResumeUpload from './components/ResumeUpload';
+import FieldSelect from './components/FieldSelect';
 import RoleSelect from './components/RoleSelect';
+import ResumeContainer from './components/ResumeContainer';
 import InterviewQA from './components/InterviewQA';
 import ATSReport from './components/ATSReport';
 import SessionDetail from './components/SessionDetail';
 import SessionHistory from './components/SessionHistory';
+import AuthModal from './components/AuthModal';
+import UserProfile from './components/UserProfile';
+import InterviewModeModal from './components/InterviewModeModal';
+import AuthScreen from './components/AuthScreen';
+import ProfileScreen from './components/ProfileScreen';
 
-export const App = () => {
-  const [step, setStep] = useState<DocketStep>('upload');
-  const [targetRole, setTargetRole] = useState<string>('Frontend Developer');
-  const [resumeId, setResumeId] = useState<number | null>(null);
+// URL Hash to DocketStep mapping
+const HASH_MAP: Record<string, DocketStep> = {
+  '#/login': 'login',
+  '#/signup': 'signup',
+  '#/profile': 'profile',
+  '#/fields': 'field_select',
+  '#/field-select': 'field_select',
+  '#/roles': 'role_select',
+  '#/role-select': 'role_select',
+  '#/resume': 'resume',
+  '#/editor': 'resume_editor',
+  '#/resume-editor': 'resume_editor',
+  '#/templates': 'template_picker',
+  '#/template-picker': 'template_picker',
+  '#/interview': 'interview',
+  '#/ats': 'ats_check',
+  '#/ats-report': 'ats_check',
+  '#/summary': 'completed',
+  '#/completed': 'completed',
+  '#/history': 'session_history',
+};
+
+// DocketStep to primary URL hash mapping
+const STEP_TO_HASH: Record<DocketStep, string> = {
+  field_select: '#/fields',
+  role_select: '#/roles',
+  resume: '#/resume',
+  resume_editor: '#/editor',
+  template_picker: '#/templates',
+  interview: '#/interview',
+  ats_check: '#/ats',
+  summary: '#/summary',
+  completed: '#/summary',
+  session_history: '#/history',
+  session_detail: '#/summary',
+  profile: '#/profile',
+  login: '#/login',
+  signup: '#/signup',
+};
+
+const getInitialStep = (): DocketStep => {
+  const hash = window.location.hash.toLowerCase();
+  return HASH_MAP[hash] || 'field_select';
+};
+
+const AppContent = () => {
+  const { user } = useAuth();
+  const [step, setStep] = useState<DocketStep>(getInitialStep);
+  const [field, setField] = useState<string>(user?.target_field || 'it');
+  const [role, setRole] = useState<string>(user?.target_role || 'Frontend Developer');
+  const [sqlResumeId, setSqlResumeId] = useState<number | null>(null);
+  const [mongoResumeId, setMongoResumeId] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<number | null>(null);
-  const [sessionData, setSessionData] = useState<{ sessionId: number; questions: any[] } | null>(null);
-  const [, setTotalScore] = useState<number | null>(null);
+  const [sessionData, setSessionData] = useState<{
+    sessionId: number;
+    questions: any[];
+    persona?: any;
+    mode: 'standard' | 'mock';
+    field: string;
+  } | null>(null);
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
+  const [modeModalOpen, setModeModalOpen] = useState(false);
+  const [, setInterviewMode] = useState<'standard' | 'mock'>('standard');
 
-  const handleResumeUploaded = (id: number) => {
-    setResumeId(id);
-    setStep('role_select');
-  };
+  // Synchronize browser back/forward and hash changes
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.toLowerCase();
+      const mapped = HASH_MAP[hash];
+      if (mapped) {
+        setStep(mapped);
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
-  const handleRoleConfirmed = (newSessionId: number, questions: any[], role: string) => {
-    setTargetRole(role);
-    setSessionId(newSessionId);
-    setSessionData({ sessionId: newSessionId, questions });
-    setStep('interview');
-  };
-
-  const handleInterviewCompleted = (score: number) => {
-    setTotalScore(score);
-    if (sessionId) {
-      setSelectedSessionId(sessionId);
+  // Update hash when navigating to step
+  const navigateTo = (newStep: DocketStep) => {
+    setStep(newStep);
+    const targetHash = STEP_TO_HASH[newStep];
+    if (targetHash && window.location.hash !== targetHash) {
+      window.location.hash = targetHash;
     }
-    setStep('completed');
+  };
+
+  // Step 01 -> Step 02
+  const handleFieldConfirmed = () => {
+    navigateTo('role_select');
+  };
+
+  // Step 02 -> Step 03
+  const handleRoleConfirmed = (chosenRole: string) => {
+    setRole(chosenRole);
+    navigateTo('resume');
+  };
+
+  // Step 03: Resume interactions
+  const handleSqlResumeUploaded = (id: number) => {
+    setSqlResumeId(id);
+  };
+
+  const handleMongoResumeSaved = (id: string) => {
+    setMongoResumeId(id);
   };
 
   const handleATSCheckRequested = () => {
-    setStep('ats_check');
+    navigateTo('ats_check');
+  };
+
+  // Trigger Interview Start with mode
+  const initiateInterviewFlow = () => {
+    setModeModalOpen(true);
+  };
+
+  const handleModeSelected = async (chosenMode: 'standard' | 'mock') => {
+    setInterviewMode(chosenMode);
+    setModeModalOpen(false);
+
+    try {
+      const response = await fetch('http://localhost:5000/api/interview/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: user?.id || 1,
+          field: field,
+          role: role,
+          mode: chosenMode,
+          resume_id: sqlResumeId || null,
+          mongo_resume_id: mongoResumeId || null,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to initialize examination session');
+      }
+
+      setSessionId(data.session_id);
+      setSessionData({
+        sessionId: data.session_id,
+        questions: data.questions,
+        persona: data.persona,
+        mode: chosenMode,
+        field: field,
+      });
+      navigateTo('interview');
+    } catch (err: any) {
+      alert('Session start error: ' + err.message);
+    }
+  };
+
+  const handleInterviewCompleted = (_finalScore: number) => {
+    if (sessionId) {
+      setSelectedSessionId(sessionId);
+    }
+    navigateTo('completed');
   };
 
   const handleReset = () => {
-    setStep('upload');
-    setResumeId(null);
     setSessionId(null);
     setSessionData(null);
-    setTotalScore(null);
     setSelectedSessionId(null);
+    navigateTo('field_select');
   };
 
   return (
     <DocketLayout
       currentStep={step}
-      targetRole={targetRole}
-      onNavigate={(newStep) => setStep(newStep)}
+      targetField={field}
+      targetRole={role}
+      onNavigate={navigateTo}
+      canNavigateToField={true}
       canNavigateToRole={true}
       canNavigateToResume={true}
-      canNavigateToInterview={!!sessionData}
-      canNavigateToATS={!!resumeId}
-      canNavigateToSummary={!!sessionId || !!selectedSessionId}
+      canNavigateToInterview={true}
+      canNavigateToATS={true}
+      canNavigateToSummary={true}
     >
-      {step === 'upload' && (
-        <ResumeUpload
-          onUploadSuccess={handleResumeUploaded}
-          onATSCheckRequested={handleATSCheckRequested}
-          onSkip={() => setStep('role_select')}
+      {/* 00 Screen: Candidate Login & Signup */}
+      {(step === 'login' || step === 'signup') && (
+        <AuthScreen
+          initialMode={step === 'signup' ? 'signup' : 'login'}
+          onSuccess={() => navigateTo('profile')}
         />
       )}
 
+      {/* 00 Screen: Candidate Profile Dossier */}
+      {step === 'profile' && (
+        <ProfileScreen
+          onNavigateToFields={(newField) => {
+            setField(newField);
+            navigateTo('role_select');
+          }}
+          onNavigateToResumeEditor={() => navigateTo('resume_editor')}
+          onNavigateToTemplatePicker={(resId) => {
+            if (resId) setMongoResumeId(resId);
+            navigateTo('template_picker');
+          }}
+          onNavigateToSession={(sId) => {
+            setSelectedSessionId(sId);
+            navigateTo('session_detail');
+          }}
+          onStartNewSession={initiateInterviewFlow}
+          onNavigateToLogin={() => navigateTo('login')}
+        />
+      )}
+
+      {/* 01 Screen: Field Track Selection */}
+      {step === 'field_select' && (
+        <FieldSelect
+          selectedField={field}
+          onSelectField={(f) => {
+            setField(f);
+            if (f === 'it') setRole('Frontend Developer');
+            else if (f === 'management') setRole('Product Manager');
+            else if (f === 'law') setRole('Corporate Counsel');
+          }}
+          onProceedToRole={handleFieldConfirmed}
+        />
+      )}
+
+      {/* 02 Screen: Role Specification */}
       {step === 'role_select' && (
         <RoleSelect
-          resumeId={resumeId}
-          selectedRole={targetRole}
-          onInterviewStart={handleRoleConfirmed}
-          onBackToResume={() => setStep('upload')}
+          selectedField={field}
+          selectedRole={role}
+          resumeId={sqlResumeId}
+          onConfirmRole={handleRoleConfirmed}
+          onBackToField={() => navigateTo('field_select')}
         />
       )}
 
-      {step === 'interview' && sessionData && (
-        <InterviewQA
-          sessionId={sessionData.sessionId}
-          questions={sessionData.questions}
-          onComplete={handleInterviewCompleted}
+      {/* 03 Screen: Candidate Resume Dossier (Upload / In-App Editor / Template Picker) */}
+      {(step === 'resume' || step === 'resume_editor' || step === 'template_picker') && (
+        <ResumeContainer
+          sqlResumeId={sqlResumeId}
+          mongoResumeId={mongoResumeId}
+          initialSubTab={
+            step === 'resume_editor'
+              ? 'editor'
+              : step === 'template_picker'
+              ? 'templates'
+              : 'upload'
+          }
+          onSubTabChange={(tab) => {
+            if (tab === 'editor') navigateTo('resume_editor');
+            else if (tab === 'templates') navigateTo('template_picker');
+            else navigateTo('resume');
+          }}
+          onUploadSuccess={handleSqlResumeUploaded}
+          onMongoResumeSaved={handleMongoResumeSaved}
+          onATSCheckRequested={handleATSCheckRequested}
+          onProceedToInterview={initiateInterviewFlow}
         />
       )}
 
+      {/* 04 Screen: Structured Oral Examination & Mock Interview */}
+      {step === 'interview' && (
+        sessionData ? (
+          <InterviewQA
+            sessionId={sessionData.sessionId}
+            questions={sessionData.questions}
+            mode={sessionData.mode}
+            field={sessionData.field}
+            persona={sessionData.persona}
+            onComplete={handleInterviewCompleted}
+          />
+        ) : (
+          <div className="bg-white p-8 rounded border border-[#D2D5C9] shadow-xs text-left max-w-2xl mx-auto space-y-6">
+            <div className="border-b border-[#D2D5C9] pb-4">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#2F6F4E]" />
+                <span className="text-[10px] font-score-mono uppercase text-[#5C6B60] tracking-wider font-semibold">
+                  SHEET 04 // EXAMINATION INITIALIZATION
+                </span>
+              </div>
+              <h2 className="font-serif text-lg font-semibold text-[#1A2E22]">
+                Oral Examination & Mock Interview Ready
+              </h2>
+              <p className="text-xs text-[#5C6B60] mt-1">
+                Calibrated for track <strong className="text-[#1A2E22] uppercase">{field}</strong> targeting position <strong className="text-[#1A2E22]">{role}</strong>.
+              </p>
+            </div>
+
+            <div className="p-4 bg-[#F7F8F5] border border-[#D2D5C9] rounded text-xs space-y-2">
+              <div className="flex items-center justify-between text-[11px] font-score-mono text-[#5C6B60]">
+                <span>EXAMINATION FORMAT:</span>
+                <span className="font-semibold text-[#1A2E22]">MCQ Concepts + Scripted Behavioral & Technical Questions</span>
+              </div>
+              <div className="flex items-center justify-between text-[11px] font-score-mono text-[#5C6B60]">
+                <span>EVALUATION CRITERIA:</span>
+                <span className="font-semibold text-[#1A2E22]">
+                  {field === 'it' ? 'Code Correctness & Keyword Precision' : field === 'management' ? 'SAR Framework & Structural Clarity' : 'IRAC Legal Reasoning & Analysis'}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
+              <button
+                type="button"
+                onClick={() => navigateTo('resume')}
+                className="text-xs text-[#5C6B60] hover:text-[#1A2E22]"
+              >
+                &larr; Return to Resume Dossier
+              </button>
+              <button
+                type="button"
+                onClick={initiateInterviewFlow}
+                className="px-6 py-2.5 bg-[#2F6F4E] text-white rounded text-xs font-medium hover:bg-[#25583E] transition-colors cursor-pointer shadow-xs"
+              >
+                Select Mode & Begin Examination &rarr;
+              </button>
+            </div>
+          </div>
+        )
+      )}
+
+      {/* 05 Screen: ATS Compatibility Audit */}
       {step === 'ats_check' && (
         <ATSReport
-          resumeId={resumeId || 1}
-          targetRole={targetRole}
-          onClose={() => setStep('upload')}
-          onProceedToSummary={
-            sessionId ? () => setStep('completed') : () => setStep('role_select')
-          }
+          resumeId={sqlResumeId}
+          mongoResumeId={mongoResumeId}
+          targetRole={role}
+          onClose={() => navigateTo('resume')}
+          onProceedToSummary={() => navigateTo('completed')}
         />
       )}
 
-      {step === 'completed' && (sessionId || selectedSessionId) && (
+      {/* 06 Screen: Dossier Summary & Final Assessment */}
+      {(step === 'completed' || step === 'summary') && (
         <SessionDetail
           sessionId={selectedSessionId || sessionId || 1}
-          onBack={() => setStep('session_history')}
+          onBack={() => navigateTo('session_history')}
           onNewSession={handleReset}
           onSelectPastSession={(id) => {
             setSelectedSessionId(id);
-            setStep('session_detail');
+            navigateTo('session_detail');
           }}
         />
       )}
@@ -112,21 +360,49 @@ export const App = () => {
         <SessionHistory
           onSelectSession={(id) => {
             setSelectedSessionId(id);
-            setStep('session_detail');
+            navigateTo('session_detail');
           }}
-          onBack={() => setStep('upload')}
+          onBack={() => navigateTo('field_select')}
         />
       )}
 
-      {step === 'session_detail' && selectedSessionId && (
+      {step === 'session_detail' && (
         <SessionDetail
-          sessionId={selectedSessionId}
-          onBack={() => setStep('session_history')}
+          sessionId={selectedSessionId || sessionId || 1}
+          onBack={() => navigateTo('session_history')}
           onNewSession={handleReset}
           onSelectPastSession={(id) => setSelectedSessionId(id)}
         />
       )}
+
+      {/* Global Modals for Quick In-Place Access */}
+      <AuthModal />
+      <UserProfile
+        onSelectSession={(id) => {
+          setSelectedSessionId(id);
+          navigateTo('session_detail');
+        }}
+        onNavigateToField={(newField) => {
+          setField(newField);
+          navigateTo('role_select');
+        }}
+      />
+      <InterviewModeModal
+        isOpen={modeModalOpen}
+        field={field}
+        role={role}
+        onSelectMode={handleModeSelected}
+        onClose={() => setModeModalOpen(false)}
+      />
     </DocketLayout>
+  );
+};
+
+export const App = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 };
 
