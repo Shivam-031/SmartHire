@@ -27,7 +27,8 @@ SITUATION_MARKERS = [
 ]
 ACTION_MARKERS = [
     'i decided to', 'i implemented', 'i led', 'i coordinated', 'my strategy',
-    'we initiated', 'i organized', 'took the initiative', 'action i took', 'i spoke with'
+    'i initiated', 'we initiated', 'i organized', 'took the initiative', 'action i took',
+    'i spoke with', 'i established', 'i developed', 'i created', 'i managed', 'i resolved'
 ]
 RESULT_MARKERS = [
     'resulted in', 'outcome was', 'achieved', 'increased', 'decreased',
@@ -68,10 +69,17 @@ def calculate_clarity(answer_text):
     if not words:
         return 0.0, ["Answer contains no recognizable words."]
 
-    # 1. Readability (Flesch Reading Ease)
+    # 1. Readability (Flesch Reading Ease calibrated for professional interviews)
     try:
         readability = textstat.flesch_reading_ease(text)
-        readability_score = min(1.0, max(0.0, (readability - 25) / 75))
+        if readability >= 50:
+            readability_score = min(1.0, 0.85 + (readability - 50) * 0.003)
+        elif readability >= 30:
+            readability_score = 0.72 + (readability - 30) * 0.0065
+        elif readability >= 10:
+            readability_score = 0.55 + (readability - 10) * 0.0085
+        else:
+            readability_score = max(0.35, 0.45 + readability * 0.01)
     except Exception:
         readability_score = 0.75
 
@@ -98,6 +106,7 @@ def calculate_clarity(answer_text):
 def calculate_it_scoring(answer_text, expected_keywords):
     """
     IT Rubric: Keyword Match (45%), Concept Completeness (35%), Communication Clarity (20%).
+    Emphasis: Code correctness, technical terms, system design.
     """
     words_text = answer_text.lower()
     matched_keywords = []
@@ -121,21 +130,29 @@ def calculate_it_scoring(answer_text, expected_keywords):
 
     clarity_score, clarity_suggestions = calculate_clarity(answer_text)
 
-    # Weighting: 45% KW, 35% Concept, 20% Clarity
+    # Weighting: 45% KW Precision, 35% Concept Depth, 20% Clarity
     overall = (kw_score * 0.45) + (concept_score * 0.35) + (clarity_score * 0.20)
     overall = round(max(0.0, min(1.0, overall)), 2)
 
     suggestions = []
     if missing_keywords:
         suggestions.append(f"Incorporate core technical terms: {', '.join(missing_keywords[:3])}.")
+    if kw_score < 0.5:
+        suggestions.append("Reference concrete implementation primitives, syntax, or architectural components.")
     suggestions.extend(clarity_suggestions)
 
     return {
         'field': 'it',
+        'rubric_name': 'Code & Concept Precision',
         'overall_score': overall,
         'relevance_score': round(kw_score, 2),
         'clarity_score': clarity_score,
         'concept_score': round(concept_score, 2),
+        'rubric_dimensions': {
+            'keyword_precision': round(kw_score, 2),
+            'concept_depth': round(concept_score, 2),
+            'communication_clarity': clarity_score
+        },
         'matched_keywords': matched_keywords,
         'missing_keywords': missing_keywords,
         'suggestions': suggestions[:3]
@@ -144,6 +161,7 @@ def calculate_it_scoring(answer_text, expected_keywords):
 def calculate_management_scoring(answer_text, expected_keywords):
     """
     Management Rubric: SAR Structure (40%), Communication Clarity (35%), Domain Relevance (25%).
+    Emphasis: Situation framing, Action taken, Result quantified.
     """
     lower_text = answer_text.lower()
 
@@ -175,19 +193,32 @@ def calculate_management_scoring(answer_text, expected_keywords):
 
     suggestions = []
     if not has_action:
-        suggestions.append("Explicitly state your personal leadership action (e.g., 'I initiated...', 'I resolved...').")
+        suggestions.append("Explicitly state your personal leadership action (e.g., 'I initiated...', 'I led...', 'I resolved...').")
     if not has_result:
         suggestions.append("Quantify the tangible business impact or metric achieved (e.g., '% improvement', 'delivered on schedule').")
+    if not has_situation and len(tokenize_words(lower_text)) < 25:
+        suggestions.append("Frame the context: clearly outline the initial business challenge or operational bottleneck.")
     if missing_keywords:
         suggestions.append(f"Consider addressing leadership themes: {', '.join(missing_keywords[:2])}.")
     suggestions.extend(clarity_suggestions)
 
     return {
         'field': 'management',
+        'rubric_name': 'SAR Leadership & Situational Clarity',
         'overall_score': overall,
         'sar_score': round(sar_score, 2),
         'clarity_score': clarity_score,
         'relevance_score': round(relevance_score, 2),
+        'sar_breakdown': {
+            'has_situation': has_situation,
+            'has_action': has_action,
+            'has_result': has_result
+        },
+        'rubric_dimensions': {
+            'sar_framework': round(sar_score, 2),
+            'communication_clarity': clarity_score,
+            'domain_leadership': round(relevance_score, 2)
+        },
         'matched_keywords': matched_keywords,
         'missing_keywords': missing_keywords,
         'suggestions': suggestions[:3]

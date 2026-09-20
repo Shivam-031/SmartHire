@@ -1,11 +1,13 @@
 from flask import Blueprint, request, jsonify, g
 from bson import ObjectId
 from backend.models import db, User, Resume, InterviewSession, Question, Answer
-from backend.mongo_db import get_questions_col, get_transcripts_col
+from backend.mongo_db import get_questions_col, get_transcripts_col, get_resumes_col
 from backend.modules.scoring_engine import evaluate_answer_by_field, grade_mcq_answer
+from backend.modules.question_selector import select_questions
 from backend.modules.mock_interview_engine import (
     get_interviewer_persona, get_next_mock_turn,
-    record_transcript_turn, get_session_transcript
+    record_transcript_turn, get_session_transcript,
+    init_mock_transcript
 )
 from backend.modules.auth import optional_auth
 
@@ -68,7 +70,6 @@ def start_interview():
 
     db_user = db.session.get(User, user_id) if hasattr(db.session, 'get') else User.query.get(user_id)
     if not db_user:
-        # Fallback to first user in database
         db_user = User.query.first()
         if db_user:
             user_id = db_user.id
@@ -87,57 +88,53 @@ def start_interview():
     db.session.add(session)
     db.session.commit()
 
-    # 2. Select Questions from MongoDB
-    q_col = get_questions_col()
-    cursor = list(q_col.find({'field': field, 'role': role}))
-    if not cursor:
-        # Fallback to any questions matching field
-        cursor = list(q_col.find({'field': field}))
-    if not cursor:
-        # Fallback to SQL questions
-        sql_qs = Question.query.filter_by(role=role).all()
-        if not sql_qs:
-            sql_qs = Question.query.all()
-        cursor = [
-            {
-                '_id': str(q.id),
-                'field': field,
-                'role': role,
-                'question_type': 'long_answer',
-                'question_text': q.question_text,
-                'expected_keywords': q.expected_keywords or []
-            }
-            for q in sql_qs
-        ]
+    # 2. Extract skills from linked resume if available
+    extracted_skills = []
+    if resume_id:
+        sql_res = Resume.query.get(resume_id)
+        if sql_res and sql_res.extracted_skills:
+            extracted_skills = sql_res.extracted_skills
+    elif mongo_resume_id:
+        col = get_resumes_col()
+        try:
+            m_res = col.find_one({'_id': ObjectId(mongo_resume_id)})
+        except Exception:
+            m_res = col.find_one({'_id': mongo_resume_id})
+        if m_res:
+            for sk_group in m_res.get('skills', []):
+                items = sk_group.get('items', [])
+                if isinstance(items, list):
+                    extracted_skills.extend(items)
 
-    formatted_questions = []
-    for doc in cursor:
-        q_id = str(doc.get('_id'))
-        formatted_questions.append({
-            'id': q_id,
-            'field': doc.get('field', field),
-            'role': doc.get('role', role),
-            'skill_tag': doc.get('skill_tag', ''),
-            'question_type': doc.get('question_type', 'long_answer'),
-            'focus_dimension': doc.get('focus_dimension', ''),
-            'question_text': doc.get('question_text', ''),
-            'options': doc.get('options', []),
-            'expected_keywords': doc.get('expected_keywords', []),
-            'follow_ups': doc.get('follow_ups', {})
-        })
+    # 3. Select Questions using field-aware Question Selector
+    formatted_questions = select_questions(
+        field=field,
+        role=role,
+        resume_skills=extracted_skills,
+        limit=10,
+        include_mcq=True
+    )
 
     persona = get_interviewer_persona(field)
+
+    transcript_id = None
+    if mode == 'mock':
+        transcript_id = init_mock_transcript(session.id, field=field, role=role, persona_name=persona['name'])
 
     return jsonify({
         'session_id': session.id,
         'field': field,
         'role': role,
         'mode': mode,
+        'mongo_transcript_id': transcript_id or session.mongo_transcript_id,
         'persona': persona,
+        'interviewer_opening': persona.get('opening', ''),
         'questions': formatted_questions
     }), 201
 
 @interview_bp.route('/submit-mcq', methods=['POST'])
+@interview_bp.route('/mcq/answer', methods=['POST'])
+@optional_auth
 def submit_mcq():
     data = request.get_json() or {}
     session_id = data.get('session_id')
@@ -307,13 +304,132 @@ def submit_answer():
         record_transcript_turn(session.id, turn_data)
 
     return jsonify({
+        'field': field,
+        'rubric_name': scoring_result.get('rubric_name'),
         'overall_score': overall,
         'relevance_score': relevance,
         'clarity_score': clarity,
+        'concept_score': scoring_result.get('concept_score'),
+        'sar_score': scoring_result.get('sar_score'),
+        'sar_breakdown': scoring_result.get('sar_breakdown'),
+        'rubric_dimensions': scoring_result.get('rubric_dimensions', {}),
         'matched_keywords': scoring_result.get('matched_keywords', []),
         'missing_keywords': scoring_result.get('missing_keywords', []),
         'suggestions': scoring_result.get('suggestions', [])
     }), 201
+
+@interview_bp.route('/mock/start', methods=['POST'])
+@optional_auth
+def start_mock_interview():
+    """
+    Build Spec 3.5 & Section 6: Start a Mock Interview session (mode = 'mock').
+    """
+    data = request.get_json() or {}
+    data['mode'] = 'mock'
+    return start_interview()
+
+@interview_bp.route('/mock/answer', methods=['POST'])
+@optional_auth
+def submit_mock_answer():
+    """
+    Build Spec 3.5 & Section 6: Submit an answer; returns score, canned interviewer remark, and next question (branching).
+    """
+    data = request.get_json() or {}
+    session_id = data.get('session_id')
+    question_id = str(data.get('question_id', ''))
+    answer_text = data.get('answer_text', '')
+    field_override = data.get('field')
+
+    if not all([session_id, question_id, answer_text]):
+        return jsonify({"error": "Missing required fields: session_id, question_id, and answer_text"}), 400
+
+    try:
+        session_id = int(session_id)
+    except ValueError:
+        return jsonify({"error": "Invalid session_id"}), 400
+
+    session = InterviewSession.query.get(session_id)
+    if not session:
+        return jsonify({"error": "Interview session not found"}), 404
+
+    # 1. Fetch expected keywords & follow-ups from MongoDB (or SQL)
+    expected_keywords = []
+    question_text = ''
+    follow_up_rules = {}
+    q_col = get_questions_col()
+    doc = None
+    try:
+        doc = q_col.find_one({'_id': ObjectId(question_id)})
+    except Exception:
+        doc = q_col.find_one({'_id': question_id})
+
+    if doc:
+        expected_keywords = doc.get('expected_keywords', [])
+        question_text = doc.get('question_text', '')
+        follow_up_rules = doc.get('follow_ups', {})
+    else:
+        try:
+            sql_q = Question.query.get(int(question_id))
+            if sql_q:
+                expected_keywords = sql_q.expected_keywords or []
+                question_text = sql_q.question_text
+        except Exception:
+            pass
+
+    field = field_override or session.field or 'it'
+    scoring_result = evaluate_answer_by_field(field, answer_text, expected_keywords)
+    overall = scoring_result.get('overall_score', 0.5)
+
+    # 2. Determine next turn remark and branching question
+    mock_turn = get_next_mock_turn(field, overall, follow_up_rules)
+
+    # 3. Save to SQL Answer table
+    sql_qid = None
+    try:
+        cand_id = int(question_id)
+        if Question.query.get(cand_id):
+            sql_qid = cand_id
+    except Exception:
+        pass
+    if sql_qid is None:
+        first_q = Question.query.first()
+        sql_qid = first_q.id if first_q else 1
+
+    answer = Answer(
+        session_id=session.id,
+        question_id=sql_qid,
+        mongo_question_id=str(question_id),
+        question_type='long_answer',
+        answer_text=answer_text,
+        relevance_score=scoring_result.get('relevance_score', 0.5),
+        clarity_score=scoring_result.get('clarity_score', 0.5)
+    )
+    db.session.add(answer)
+    db.session.commit()
+
+    # 4. Record turn to MongoDB transcript
+    turn_data = {
+        'turn_index': Answer.query.filter_by(session_id=session.id).count(),
+        'question_id': question_id,
+        'question_text': question_text,
+        'question_type': 'long_answer',
+        'interviewer_remark': mock_turn['interviewer_remark'],
+        'user_answer': answer_text,
+        'score': overall,
+        'suggestions': scoring_result.get('suggestions', []),
+        'field': field,
+        'role': session.role
+    }
+    record_transcript_turn(session.id, turn_data)
+
+    return jsonify({
+        'session_id': session.id,
+        'score': overall,
+        'interviewer_remark': mock_turn['interviewer_remark'],
+        'branch_type': mock_turn['branch_type'],
+        'branch_question': mock_turn['branch_question'],
+        'feedback': scoring_result
+    }), 200
 
 @interview_bp.route('/mock/turn', methods=['POST'])
 def mock_interview_turn():
@@ -332,10 +448,15 @@ def mock_interview_turn():
     return jsonify(mock_turn), 200
 
 @interview_bp.route('/transcript/<int:session_id>', methods=['GET'])
+@interview_bp.route('/transcript/<session_id>', methods=['GET'])
 def get_transcript(session_id):
-    transcript = get_session_transcript(session_id)
+    try:
+        sid = int(session_id)
+    except Exception:
+        sid = session_id
+    transcript = get_session_transcript(sid)
     if not transcript:
-        return jsonify({'session_id': session_id, 'turns': []}), 200
+        return jsonify({'session_id': sid, 'turns': []}), 200
     return jsonify(transcript), 200
 
 @interview_bp.route('/complete', methods=['POST'])
