@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ResumeUpload from './ResumeUpload';
 import ResumeEditor from './ResumeEditor';
 import ResumeTemplatePicker from './ResumeTemplatePicker';
@@ -22,11 +22,11 @@ export const ResumeContainer: React.FC<ResumeContainerProps> = ({
   onATSCheckRequested,
   onProceedToInterview,
   initialSubTab = 'upload',
-  onSubTabChange
+  onSubTabChange,
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<'upload' | 'editor' | 'templates'>(initialSubTab);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (initialSubTab && initialSubTab !== activeSubTab) {
       setActiveSubTab(initialSubTab);
     }
@@ -38,60 +38,58 @@ export const ResumeContainer: React.FC<ResumeContainerProps> = ({
   };
 
   return (
-    <div className="space-y-6 text-left">
-      {/* Sub-tab Navigation Pill Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#D2D5C9] pb-3">
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-score-mono uppercase text-[#5C6B60] tracking-wider font-semibold">
-            SHEET 03 // RESUME DOSSIER:
+    <div className="max-w-5xl mx-auto space-y-6 text-left animate-fadeIn">
+      {/* Sub-tab Navigation Pill Bar (Stitch Screen 06) */}
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#E5E7EB]">
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#6B7078]">
+            STAGE 03 // RESUME DOSSIER:
           </span>
-          <div className="flex bg-[#EEF0EA] p-0.5 rounded border border-[#D2D5C9]">
+          <div className="flex bg-[#F1F2F4] p-1 rounded-xl border border-[#E5E7EB] font-sans text-xs">
             <button
               type="button"
               onClick={() => handleTabChange('upload')}
-              className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+              className={`px-3.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
                 activeSubTab === 'upload'
-                  ? 'bg-white text-[#1A2E22] font-semibold shadow-xs border border-[#D2D5C9]'
-                  : 'text-[#5C6B60] hover:text-[#1A2E22]'
+                  ? 'bg-white text-[#17181C] font-semibold shadow-xs'
+                  : 'text-[#6B7078] hover:text-[#17181C]'
               }`}
             >
-              01 Upload Document (PDF/DOCX)
+              01 Document Upload
             </button>
             <button
               type="button"
               onClick={() => handleTabChange('editor')}
-              className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+              className={`px-3.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
                 activeSubTab === 'editor'
-                  ? 'bg-white text-[#1A2E22] font-semibold shadow-xs border border-[#D2D5C9]'
-                  : 'text-[#5C6B60] hover:text-[#1A2E22]'
+                  ? 'bg-white text-[#17181C] font-semibold shadow-xs'
+                  : 'text-[#6B7078] hover:text-[#17181C]'
               }`}
             >
-              02 Structured In-App Editor
+              02 In-App Editor
             </button>
             <button
               type="button"
               onClick={() => handleTabChange('templates')}
-              className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+              className={`px-3.5 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
                 activeSubTab === 'templates'
-                  ? 'bg-white text-[#1A2E22] font-semibold shadow-xs border border-[#D2D5C9]'
-                  : 'text-[#5C6B60] hover:text-[#1A2E22]'
+                  ? 'bg-white text-[#17181C] font-semibold shadow-xs'
+                  : 'text-[#6B7078] hover:text-[#17181C]'
               }`}
             >
-              03 PDF Export Templates
+              03 PDF Export
             </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onProceedToInterview}
-            className="text-xs text-[#2F6F4E] font-medium hover:underline flex items-center gap-1"
-          >
-            <span>Skip to Oral Examination</span>
-            <span>&rarr;</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onProceedToInterview}
+          className="text-xs font-mono text-[#2E6FF2] font-semibold hover:underline flex items-center gap-1 cursor-pointer"
+        >
+          <span>Skip to Live Examination</span>
+          <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+        </button>
       </div>
 
       {/* Sub-view Content */}
@@ -99,10 +97,11 @@ export const ResumeContainer: React.FC<ResumeContainerProps> = ({
         <ResumeUpload
           onUploadSuccess={(id) => {
             onUploadSuccess(id);
-            setActiveSubTab('editor'); // Suggest opening editor after upload
+            setActiveSubTab('editor');
           }}
           onATSCheckRequested={onATSCheckRequested}
           onSkip={onProceedToInterview}
+          onOpenEditor={() => handleTabChange('editor')}
         />
       )}
 
@@ -127,4 +126,3 @@ export const ResumeContainer: React.FC<ResumeContainerProps> = ({
 };
 
 export default ResumeContainer;
-

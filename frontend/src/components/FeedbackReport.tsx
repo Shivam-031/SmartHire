@@ -7,83 +7,76 @@ interface FeedbackReportProps {
   onContinue: () => void;
 }
 
-const FeedbackReport: React.FC<FeedbackReportProps> = ({
+export const FeedbackReport: React.FC<FeedbackReportProps> = ({
   relevanceScore,
   clarityScore,
   suggestions,
   onContinue,
 }) => {
-  const getScoreColor = (score: number) => {
-    if (score >= 0.8) return '#28a745'; // Green
-    if (score >= 0.5) return '#ffc107'; // Yellow
-    return '#dc3545'; // Red
-  };
+  const relPct = Math.round(relevanceScore * 100);
+  const claPct = Math.round(clarityScore * 100);
 
   return (
-    <div style={{
-      maxWidth: '600px',
-      margin: '2rem auto',
-      padding: '2rem',
-      backgroundColor: '#f8f9fa',
-      border: '1px solid #dee2e6',
-      borderRadius: '12px',
-      fontFamily: 'sans-serif',
-      textAlign: 'left'
-    }}>
-      <h3 style={{ textAlign: 'center', marginBottom: '1.5rem' }}>Instant Feedback</h3>
-
-      <div style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <span>Technical Relevance</span>
-          <span style={{ fontWeight: 'bold' }}>{(relevanceScore * 100).toFixed(0)}%</span>
+    <div className="max-w-[640px] mx-auto p-6 sm:p-8 bg-white border border-[#D2D5C9] rounded shadow-xs text-left">
+      <div className="border-b border-[#D2D5C9] pb-4 mb-6">
+        <div className="text-[10px] font-mono text-[#5C6B60] uppercase tracking-wider">
+          EXAMINER INTAKE ASSESSMENT
         </div>
-        <div style={{ height: '12px', backgroundColor: '#e9ecef', borderRadius: '6px', overflow: 'hidden', marginBottom: '1.5rem' }}>
-          <div style={{
-            width: `${relevanceScore * 100}%`,
-            height: '100%',
-            backgroundColor: getScoreColor(relevanceScore),
-            transition: 'width 0.5s ease-in-out'
-          }} />
+        <h3 className="font-serif text-2xl font-semibold text-[#1A2E22] mt-0.5">
+          Instant Turn Evaluation
+        </h3>
+      </div>
+
+      <div className="space-y-4 mb-6">
+        <div>
+          <div className="flex items-center justify-between text-xs font-mono mb-1.5">
+            <span className="text-[#1A2E22] font-semibold">Technical Precision &amp; Keyword Match</span>
+            <span className="font-bold text-[#2F6F4E]">{relPct}%</span>
+          </div>
+          <div className="w-full h-2 bg-[#EEF0EA] rounded-full overflow-hidden border border-[#D2D5C9]/60">
+            <div
+              className="h-full bg-[#2F6F4E] rounded-full transition-all duration-300"
+              style={{ width: `${relPct}%` }}
+            />
+          </div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-          <span>Communication Clarity</span>
-          <span style={{ fontWeight: 'bold' }}>{(clarityScore * 100).toFixed(0)}%</span>
-        </div>
-        <div style={{ height: '12px', backgroundColor: '#e9ecef', borderRadius: '6px', overflow: 'hidden' }}>
-          <div style={{
-            width: `${clarityScore * 100}%`,
-            height: '100%',
-            backgroundColor: getScoreColor(clarityScore),
-            transition: 'width 0.5s ease-in-out'
-          }} />
+        <div>
+          <div className="flex items-center justify-between text-xs font-mono mb-1.5">
+            <span className="text-[#1A2E22] font-semibold">Structural Clarity &amp; Framework Cohesion</span>
+            <span className="font-bold text-[#B08D2F]">{claPct}%</span>
+          </div>
+          <div className="w-full h-2 bg-[#EEF0EA] rounded-full overflow-hidden border border-[#D2D5C9]/60">
+            <div
+              className="h-full bg-[#B08D2F] rounded-full transition-all duration-300"
+              style={{ width: `${claPct}%` }}
+            />
+          </div>
         </div>
       </div>
 
-      <div style={{ marginBottom: '2rem' }}>
-        <h4 style={{ marginBottom: '0.8rem' }}>Tips for Improvement:</h4>
-        <ul style={{ paddingLeft: '1.2rem', lineHeight: '1.6' }}>
-          {suggestions.map((s, i) => (
-            <li key={i} style={{ marginBottom: '0.5rem' }}>{s}</li>
-          ))}
-        </ul>
-      </div>
+      {suggestions && suggestions.length > 0 && (
+        <div className="mb-6 p-4 bg-[#F4F6F1] border border-[#D2D5C9] rounded">
+          <h4 className="font-mono text-[11px] uppercase font-bold text-[#2F6F4E] mb-2">
+            Rubric Remediation Notes:
+          </h4>
+          <ul className="space-y-1.5 text-xs text-[#5C6B60] font-sans">
+            {suggestions.map((s, i) => (
+              <li key={i} className="flex items-start gap-2">
+                <span className="text-[#2F6F4E] font-bold">·</span>
+                <span className="leading-relaxed">{s}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-      <div style={{ textAlign: 'center' }}>
+      <div className="border-t border-[#D2D5C9] pt-4 flex justify-end">
         <button
           onClick={onContinue}
-          style={{
-            padding: '0.8rem 2rem',
-            fontSize: '1rem',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontWeight: 'bold'
-          }}
+          className="px-6 py-2.5 rounded bg-[#2F6F4E] hover:bg-[#265a3f] text-white text-xs font-mono font-medium transition-colors shadow-xs cursor-pointer"
         >
-          Continue to Next Question
+          Continue to Next Question &rarr;
         </button>
       </div>
     </div>

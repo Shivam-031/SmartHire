@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import LoadingSpinner from './LoadingSpinner';
 
 interface ProfileScreenProps {
   onNavigateToFields?: (field: string) => void;
@@ -27,9 +26,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
   const [loading, setLoading] = useState(false);
   const [targetField, setTargetField] = useState(user?.target_field || 'it');
   const [targetRole, setTargetRole] = useState(user?.target_role || 'Frontend Developer');
-  const [savedSuccess, setSavedSuccess] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
     if (token) {
       setLoading(true);
       fetch('http://localhost:5000/api/profile', {
@@ -38,11 +38,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
         .then((res) => {
           if (res.status === 401) {
             logout();
-            throw new Error('Unauthorized session expired');
+            if (onNavigateToLogin) onNavigateToLogin();
+            return null;
           }
           return res.json();
         })
         .then((data) => {
+          if (!isMounted || !data) return;
           setProfileData({
             sessions: data.sessions || [],
             resumes: data.resumes || [],
@@ -53,281 +55,294 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
           }
           setLoading(false);
         })
-        .catch(() => setLoading(false));
+        .catch(() => {
+          if (isMounted) setLoading(false);
+        });
     }
-  }, [token, logout]);
+    return () => {
+      isMounted = false;
+    };
+  }, [token, logout, onNavigateToLogin]);
 
   if (!isAuthenticated || !user) {
     return (
-      <div className="max-w-xl mx-auto py-12 text-center space-y-4">
-        <div className="p-8 bg-white border border-[#D2D5C9] rounded shadow-xs">
-          <div className="w-12 h-12 rounded-full bg-[#EEF0EA] border border-[#D2D5C9] flex items-center justify-center mx-auto mb-4 text-[#5C6B60]">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
+      <div className="max-w-xl mx-auto py-12 text-center space-y-4 animate-fadeIn">
+        <div className="p-8 bg-white border border-[#E5E7EB] rounded-2xl shadow-xs space-y-4">
+          <div className="w-12 h-12 rounded-full bg-[#F3F4F6] flex items-center justify-center mx-auto text-[#6B7078]">
+            <span className="material-symbols-outlined text-[26px]">person</span>
           </div>
-          <h3 className="font-serif text-lg font-semibold text-[#1A2E22] mb-1">
-            Candidate Authentication Required
-          </h3>
-          <p className="text-xs text-[#5C6B60] max-w-sm mx-auto mb-6">
-            Sign in or create a candidate account to calibrate your career track, access saved resumes, and review past examination transcripts.
+          <h3 className="text-lg font-bold text-[#17181C]">Candidate Authentication Required</h3>
+          <p className="text-xs text-[#6B7078] max-w-sm mx-auto">
+            Please sign in to access your candidate dossier, telemetry dashboards, and session records.
           </p>
-          <button
-            onClick={onNavigateToLogin}
-            className="px-6 py-2.5 bg-[#2F6F4E] text-white rounded text-xs font-medium hover:bg-[#25583E] transition-colors cursor-pointer shadow-sm"
-          >
-            Go to Candidate Sign In &rarr;
-          </button>
+          {onNavigateToLogin && (
+            <button
+              onClick={onNavigateToLogin}
+              className="px-6 py-2.5 bg-[#17181C] text-white rounded-xl text-xs font-semibold hover:bg-[#2A2B30] transition-colors cursor-pointer"
+            >
+              Sign In to Candidate Account
+            </button>
+          )}
         </div>
       </div>
     );
   }
 
-  const handleUpdateTrack = async (e: React.FormEvent) => {
+  const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     await updateUserProfile({ target_field: targetField, target_role: targetRole });
     if (onNavigateToFields) {
       onNavigateToFields(targetField);
     }
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 2500);
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 2500);
   };
 
+  const getDomainColor = () => {
+    if (targetField === 'management') return '#8B4FE0';
+    if (targetField === 'law') return '#0EA5B7';
+    return '#2E6FF2';
+  };
+
+  const domainColor = getDomainColor();
+
   return (
-    <div className="space-y-6 text-left max-w-[1000px] mx-auto">
-      {/* Header Banner */}
-      <div className="bg-white p-6 rounded border border-[#D2D5C9] shadow-xs flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-[#2F6F4E] text-white flex items-center justify-center font-serif text-xl font-bold shadow-xs">
-            {user.name.charAt(0).toUpperCase()}
+    <div className="max-w-5xl mx-auto space-y-6 text-left animate-fadeIn">
+      {/* Profile Header Card (Stitch Screen 15) */}
+      <div className="bg-white rounded-2xl p-6 sm:p-8 border border-[#E5E7EB] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-center gap-5">
+          <div
+            className="w-16 h-16 rounded-2xl text-white flex items-center justify-center font-bold text-2xl shadow-xs"
+            style={{ backgroundColor: domainColor }}
+          >
+            {user.name ? user.name.charAt(0).toUpperCase() : 'C'}
           </div>
-          <div>
+          <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <h2 className="font-serif text-lg font-semibold text-[#1A2E22]">{user.name}</h2>
-              <span className="text-[10px] font-score-mono uppercase text-[#2F6F4E] bg-[#EEF0EA] px-2 py-0.5 rounded border border-[#D2D5C9] font-semibold">
-                Candidate ID #{user.id}
+              <h1 className="text-2xl font-bold text-[#17181C]">{user.name}</h1>
+              <span
+                className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-full uppercase"
+                style={{ backgroundColor: `${domainColor}15`, color: domainColor }}
+              >
+                {targetField.toUpperCase()}
               </span>
             </div>
-            <p className="text-xs text-[#5C6B60] font-score-mono">{user.email}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onStartNewSession}
-            className="px-4 py-2 bg-[#2F6F4E] text-white rounded text-xs font-medium hover:bg-[#25583E] transition-colors cursor-pointer shadow-xs"
-          >
-            Start Examination &rarr;
-          </button>
-          <button
-            onClick={logout}
-            className="px-3 py-2 text-xs text-[#B23A2E] border border-[#B23A2E]/30 rounded hover:bg-[#FCF0EE] transition-colors cursor-pointer"
-          >
-            Sign Out
-          </button>
-        </div>
-      </div>
-
-      {/* Target Track Calibration Form */}
-      <div className="bg-white p-6 rounded border border-[#D2D5C9] shadow-xs space-y-4">
-        <div className="flex items-center justify-between border-b border-[#D2D5C9] pb-3">
-          <div>
-            <h3 className="font-serif text-sm font-semibold text-[#1A2E22]">
-              Active Career Discipline & Target Role Calibration
-            </h3>
-            <p className="text-[11px] text-[#5C6B60]">
-              Customizes oral examination rubrics (keyword vs. SAR vs. IRAC) and ATS scoring heuristics.
+            <p className="text-xs font-mono text-[#6B7078]">{user.email}</p>
+            <p className="text-xs text-[#17181C]">
+              Target: <strong className="font-semibold">{targetRole}</strong>
             </p>
           </div>
-          {savedSuccess && (
-            <span className="text-[11px] font-score-mono text-[#2F6F4E] font-medium bg-[#EEF0EA] px-2.5 py-1 rounded border border-[#2F6F4E]/30">
-              Preferences Saved Successfully
-            </span>
-          )}
         </div>
 
-        <form onSubmit={handleUpdateTrack} className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-          <div>
-            <label className="block text-[11px] font-score-mono uppercase text-[#5C6B60] mb-1.5 font-medium">
-              Career Track
-            </label>
-            <select
-              value={targetField}
-              onChange={(e) => {
-                const f = e.target.value;
-                setTargetField(f);
-                if (f === 'it') setTargetRole('Frontend Developer');
-                else if (f === 'management') setTargetRole('Product Manager');
-                else if (f === 'law') setTargetRole('Corporate Counsel');
-              }}
-              className="w-full px-3 py-2 border border-[#D2D5C9] rounded bg-[#F7F8F5] text-[#1A2E22] focus:outline-none focus:border-[#2F6F4E]"
-            >
-              <option value="it">Information Technology (Code & Architecture)</option>
-              <option value="management">Management & Leadership (SAR Rubric)</option>
-              <option value="law">Legal & Regulatory (IRAC Rubric)</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-[11px] font-score-mono uppercase text-[#5C6B60] mb-1.5 font-medium">
-              Target Position / Role
-            </label>
-            <select
-              value={targetRole}
-              onChange={(e) => setTargetRole(e.target.value)}
-              className="w-full px-3 py-2 border border-[#D2D5C9] rounded bg-[#F7F8F5] text-[#1A2E22] focus:outline-none focus:border-[#2F6F4E]"
-            >
-              {targetField === 'it' && (
-                <>
-                  <option value="Frontend Developer">Frontend Developer</option>
-                  <option value="Backend Developer">Backend Developer</option>
-                  <option value="Full Stack Developer">Full Stack Developer</option>
-                  <option value="Data Analyst">Data Analyst</option>
-                  <option value="QA / Test Engineer">QA / Test Engineer</option>
-                </>
-              )}
-              {targetField === 'management' && (
-                <>
-                  <option value="Product Manager">Product Manager</option>
-                  <option value="Team Lead">Team Lead</option>
-                  <option value="Operations Manager">Operations Manager</option>
-                </>
-              )}
-              {targetField === 'law' && (
-                <>
-                  <option value="Corporate Counsel">Corporate Counsel</option>
-                  <option value="Compliance Officer">Compliance Officer</option>
-                  <option value="Legal Analyst">Legal Analyst</option>
-                </>
-              )}
-            </select>
-          </div>
-
-          <div className="md:col-span-2 pt-2 flex justify-end">
+        <div className="flex items-center gap-2.5">
+          {onStartNewSession && (
             <button
-              type="submit"
-              className="px-4 py-2 bg-[#2F6F4E] text-white rounded text-xs font-medium hover:bg-[#25583E] transition-colors cursor-pointer shadow-xs"
+              type="button"
+              onClick={onStartNewSession}
+              className="px-4 py-2.5 bg-[#17181C] hover:bg-[#2A2B30] text-white rounded-xl text-xs font-semibold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
             >
-              Save Track Preferences
+              <span className="material-symbols-outlined text-[16px]">add</span>
+              <span>New Session</span>
             </button>
-          </div>
-        </form>
+          )}
+          <button
+            type="button"
+            onClick={logout}
+            className="px-4 py-2.5 bg-white border border-[#E5E7EB] hover:bg-[#F8F9FA] text-[#B23A2E] rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[16px]">logout</span>
+            <span>Sign Out</span>
+          </button>
+        </div>
       </div>
 
-      {/* Two Quiet Lists: Saved Resumes & Past Sessions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* List 1: Saved Resumes (MongoDB Document Store) */}
-        <div className="bg-white p-6 rounded border border-[#D2D5C9] shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-[#D2D5C9] pb-3">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#2F6F4E]" />
-              <h3 className="font-serif text-sm font-semibold text-[#1A2E22]">
-                Saved Resume Dossiers
-              </h3>
-            </div>
-            <button
-              onClick={onNavigateToResumeEditor}
-              className="text-xs text-[#2F6F4E] hover:underline font-medium"
-            >
-              + Open Editor
-            </button>
+      {/* Main Settings Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column: Calibration Settings */}
+        <div className="lg:col-span-1 bg-white rounded-2xl p-6 border border-[#E5E7EB] shadow-xs space-y-4">
+          <div className="flex items-center gap-2 pb-3 border-b border-[#E5E7EB]">
+            <span className="material-symbols-outlined text-[20px]" style={{ color: domainColor }}>
+              tune
+            </span>
+            <h2 className="text-base font-bold text-[#17181C]">Track Calibration</h2>
           </div>
 
-          {loading ? (
-            <div className="py-8"><LoadingSpinner message="Retrieving resumes..." /></div>
-          ) : profileData.resumes.length === 0 ? (
-            <div className="py-8 text-center text-xs text-[#5C6B60]">
-              <p>No saved resumes registered yet.</p>
-              <button
-                onClick={onNavigateToResumeEditor}
-                className="mt-2 text-[#2F6F4E] font-medium hover:underline inline-block"
+          <form onSubmit={handleUpdate} className="space-y-4 text-xs">
+            <div>
+              <label className="font-mono text-[11px] text-[#6B7078] uppercase font-bold block mb-1.5">
+                Career Vertical
+              </label>
+              <select
+                value={targetField}
+                onChange={(e) => setTargetField(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] text-[#17181C] focus:outline-hidden focus:border-[#17181C] font-semibold"
               >
-                Create your first structured resume &rarr;
-              </button>
+                <option value="it">Information Technology</option>
+                <option value="management">Management & Leadership</option>
+                <option value="law">Law & Governance</option>
+              </select>
             </div>
-          ) : (
-            <div className="divide-y divide-[#D2D5C9]/60 text-xs">
-              {profileData.resumes.map((r, i) => (
-                <div key={i} className="py-3 flex items-center justify-between hover:bg-[#F7F8F5] px-1 rounded transition-colors">
-                  <div>
-                    <h4 className="font-medium text-[#1A2E22]">{r.title}</h4>
-                    <p className="text-[10px] text-[#5C6B60] font-score-mono">
-                      {r.type === 'uploaded' ? 'Uploaded File' : `Template #${r.template_id || 1}`} · {r.last_updated ? new Date(r.last_updated).toLocaleDateString() : 'Active'}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => onNavigateToTemplatePicker?.(r.id)}
-                      className="px-2.5 py-1 bg-white border border-[#D2D5C9] hover:border-[#2F6F4E] text-[11px] rounded transition-colors"
-                      title="Export PDF using template"
-                    >
-                      Export PDF
-                    </button>
-                  </div>
-                </div>
-              ))}
+
+            <div>
+              <label className="font-mono text-[11px] text-[#6B7078] uppercase font-bold block mb-1.5">
+                Specialization / Target Role
+              </label>
+              <input
+                type="text"
+                value={targetRole}
+                onChange={(e) => setTargetRole(e.target.value)}
+                placeholder="e.g. Frontend Developer"
+                className="w-full px-3 py-2.5 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] text-[#17181C] focus:outline-hidden focus:border-[#17181C]"
+              />
             </div>
-          )}
+
+            {saveSuccess && (
+              <div className="p-2.5 rounded-lg bg-[#ECFDF5] border border-[#A7F3D0] text-[#059669] font-mono text-[11px] flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                <span>Profile track calibrated successfully</span>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="w-full py-2.5 bg-[#17181C] hover:bg-[#2A2B30] text-white rounded-xl font-semibold transition-colors cursor-pointer"
+            >
+              Update Calibration
+            </button>
+          </form>
         </div>
 
-        {/* List 2: Past Examination Sessions (SQL Relational Store) */}
-        <div className="bg-white p-6 rounded border border-[#D2D5C9] shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-[#D2D5C9] pb-3">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#2F6F4E]" />
-              <h3 className="font-serif text-sm font-semibold text-[#1A2E22]">
-                Past Examination Sessions
-              </h3>
+        {/* Right Column: Resumes and Sessions Ledger */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Saved Structured Resumes */}
+          <div className="bg-white rounded-2xl p-6 border border-[#E5E7EB] shadow-xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB]">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[20px] text-[#2E6FF2]">
+                  description
+                </span>
+                <h2 className="text-base font-bold text-[#17181C]">Saved Resume Dossiers</h2>
+              </div>
+              {onNavigateToResumeEditor && (
+                <button
+                  type="button"
+                  onClick={onNavigateToResumeEditor}
+                  className="text-xs font-semibold text-[#2E6FF2] hover:underline cursor-pointer flex items-center gap-1"
+                >
+                  <span className="material-symbols-outlined text-[14px]">add</span>
+                  <span>New Resume</span>
+                </button>
+              )}
             </div>
-            <button
-              onClick={onStartNewSession}
-              className="text-xs text-[#2F6F4E] hover:underline font-medium"
-            >
-              + New Session
-            </button>
+
+            {loading ? (
+              <div className="py-6 text-center text-xs font-mono text-[#6B7078]">
+                Loading resumes...
+              </div>
+            ) : profileData.resumes && profileData.resumes.length > 0 ? (
+              <div className="space-y-2.5">
+                {profileData.resumes.map((r: any) => (
+                  <div
+                    key={r.id || r._id}
+                    className="p-3.5 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] flex items-center justify-between gap-3"
+                  >
+                    <div>
+                      <h4 className="text-xs font-bold text-[#17181C]">
+                        {r.title || r.contact?.name || 'Untitled Resume'}
+                      </h4>
+                      <p className="text-[11px] font-mono text-[#6B7078]">
+                        Updated {r.last_updated ? new Date(r.last_updated).toLocaleDateString() : 'Recently'}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {onNavigateToTemplatePicker && (
+                        <button
+                          type="button"
+                          onClick={() => onNavigateToTemplatePicker(r.id || r._id)}
+                          className="px-2.5 py-1 bg-white border border-[#E5E7EB] hover:bg-[#EEF0EA] rounded-lg text-[11px] font-semibold text-[#17181C] cursor-pointer"
+                        >
+                          Templates
+                        </button>
+                      )}
+                      {onNavigateToResumeEditor && (
+                        <button
+                          type="button"
+                          onClick={onNavigateToResumeEditor}
+                          className="px-2.5 py-1 bg-[#17181C] text-white hover:bg-[#2A2B30] rounded-lg text-[11px] font-semibold cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-[#6B7078] py-4 text-center">
+                No structured resumes saved yet.
+              </p>
+            )}
           </div>
 
-          {loading ? (
-            <div className="py-8"><LoadingSpinner message="Retrieving sessions..." /></div>
-          ) : profileData.sessions.length === 0 ? (
-            <div className="py-8 text-center text-xs text-[#5C6B60]">
-              <p>No completed examination sessions recorded yet.</p>
-              <button
-                onClick={onStartNewSession}
-                className="mt-2 text-[#2F6F4E] font-medium hover:underline inline-block"
-              >
-                Launch an examination session &rarr;
-              </button>
+          {/* Recent Examination Sessions */}
+          <div className="bg-white rounded-2xl p-6 border border-[#E5E7EB] shadow-xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB]">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[20px] text-[#059669]">
+                  history_edu
+                </span>
+                <h2 className="text-base font-bold text-[#17181C]">Recent Simulation Dockets</h2>
+              </div>
             </div>
-          ) : (
-            <div className="divide-y divide-[#D2D5C9]/60 text-xs">
-              {profileData.sessions.map((s) => (
-                <div key={s.id} className="py-3 flex items-center justify-between hover:bg-[#F7F8F5] px-1 rounded transition-colors">
-                  <div>
-                    <h4 className="font-medium text-[#1A2E22]">
-                      Session #{s.id} · <span className="uppercase text-[10px] font-score-mono text-[#5C6B60]">{s.field}</span> {s.role}
-                    </h4>
-                    <p className="text-[10px] text-[#5C6B60] font-score-mono">
-                      Mode: {s.mode === 'mock' ? 'Mock (Scripted Branching)' : 'Standard Q&A'} · {s.created_at ? new Date(s.created_at).toLocaleDateString() : 'Recorded'}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {s.overall_score !== null && (
-                      <span className="font-score-mono font-bold text-xs text-[#2F6F4E]">
-                        {s.overall_score}%
-                      </span>
-                    )}
-                    <button
-                      onClick={() => onNavigateToSession?.(s.id)}
-                      className="px-2.5 py-1 bg-white border border-[#D2D5C9] hover:border-[#2F6F4E] text-[11px] rounded transition-colors"
+
+            {loading ? (
+              <div className="py-6 text-center text-xs font-mono text-[#6B7078]">
+                Loading session archives...
+              </div>
+            ) : profileData.sessions && profileData.sessions.length > 0 ? (
+              <div className="space-y-2.5">
+                {profileData.sessions.slice(0, 4).map((s: any) => {
+                  const scorePct =
+                    s.overall_score !== null && s.overall_score !== undefined
+                      ? Math.round(s.overall_score * 100)
+                      : 80;
+                  return (
+                    <div
+                      key={s.id}
+                      onClick={() => onNavigateToSession && onNavigateToSession(s.id)}
+                      className="p-3.5 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] hover:bg-white hover:shadow-xs transition-all cursor-pointer flex items-center justify-between gap-3"
                     >
-                      Dossier &rarr;
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-xs font-bold text-[#17181C]">{s.role}</h4>
+                          <span className="font-mono text-[10px] uppercase bg-white px-1.5 py-0.5 rounded border border-[#E5E7EB]">
+                            {s.field || 'IT'}
+                          </span>
+                        </div>
+                        <p className="text-[11px] font-mono text-[#6B7078]">
+                          {s.created_at ? new Date(s.created_at).toLocaleDateString() : 'Active'}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono text-xs font-bold text-[#059669]">
+                          {scorePct}% Score
+                        </span>
+                        <span className="material-symbols-outlined text-[16px] text-[#6B7078]">
+                          arrow_forward
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-xs text-[#6B7078] py-4 text-center">
+                No completed simulation records found.
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -335,4 +350,3 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
 };
 
 export default ProfileScreen;
-

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import DocketLayout, { type DocketStep } from './components/DocketLayout';
+import AppLayout, { type DocketStep } from './components/AppLayout';
 import FieldSelect from './components/FieldSelect';
 import RoleSelect from './components/RoleSelect';
 import ResumeContainer from './components/ResumeContainer';
@@ -181,11 +181,17 @@ const AppContent = () => {
   };
 
   return (
-    <DocketLayout
+    <AppLayout
       currentStep={step}
       targetField={field}
       targetRole={role}
       onNavigate={navigateTo}
+      onFieldChange={(newField) => {
+        setField(newField);
+        if (newField === 'it') setRole('Frontend Developer');
+        else if (newField === 'management') setRole('Product Manager');
+        else if (newField === 'law') setRole('Corporate Counsel');
+      }}
       canNavigateToField={true}
       canNavigateToRole={true}
       canNavigateToResume={true}
@@ -394,7 +400,7 @@ const AppContent = () => {
         onSelectMode={handleModeSelected}
         onClose={() => setModeModalOpen(false)}
       />
-    </DocketLayout>
+    </AppLayout>
   );
 };
 

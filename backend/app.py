@@ -28,6 +28,21 @@ app.config.from_object(Config)
 # Initialize Relational Database (SQLAlchemy)
 db.init_app(app)
 
+# Ensure database tables and columns exist
+with app.app_context():
+    db.create_all()
+    try:
+        from sqlalchemy import text
+        with db.engine.connect() as conn:
+            existing_cols = [r[1] for r in conn.execute(text("PRAGMA table_info(user)")).fetchall()]
+            if 'google_id' not in existing_cols:
+                conn.execute(text("ALTER TABLE user ADD COLUMN google_id VARCHAR(255)"))
+            if 'avatar_url' not in existing_cols:
+                conn.execute(text("ALTER TABLE user ADD COLUMN avatar_url VARCHAR(500)"))
+            conn.commit()
+    except Exception:
+        pass
+
 # Initialize Document Database (PyMongo / resilient mongomock)
 init_mongo()
 

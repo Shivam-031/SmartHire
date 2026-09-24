@@ -1,6 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import BrandWordmark from './BrandWordmark';
+
+declare global {
+  interface Window {
+    google?: {
+      accounts?: {
+        id?: {
+          initialize: (config: any) => void;
+          prompt: (notification?: any) => void;
+          renderButton: (parent: HTMLElement, options: any) => void;
+        };
+      };
+    };
+  }
+}
 
 interface AuthScreenProps {
   initialMode?: 'login' | 'signup';
@@ -11,28 +25,105 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   initialMode = 'login',
   onSuccess,
 }) => {
-  const { login, signup } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(initialMode === 'signup');
+  const { login, signup, loginWithGoogle } = useAuth();
+  const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [targetField, setTargetField] = useState('it');
   const [targetRole, setTargetRole] = useState('Frontend Developer');
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [devGoogleModal, setDevGoogleModal] = useState(false);
+  const [devGoogleEmail, setDevGoogleEmail] = useState('alex.developer@gmail.com');
+  const [devGoogleName, setDevGoogleName] = useState('Alex Rivera');
+  const googleBtnContainerRef = useRef<HTMLDivElement>(null);
+
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+  // Initialize official Google Identity Services if client ID is provided
+  useEffect(() => {
+    if (googleClientId && window.google?.accounts?.id) {
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: async (response: any) => {
+          if (response.credential) {
+            setGoogleLoading(true);
+            const res = await loginWithGoogle(response.credential, targetField, targetRole);
+            setGoogleLoading(false);
+            if (res.success) {
+              onSuccess?.();
+            } else {
+              setError(res.error || 'Google authentication failed.');
+            }
+          }
+        },
+      });
+
+      if (googleBtnContainerRef.current) {
+        window.google.accounts.id.renderButton(googleBtnContainerRef.current, {
+          theme: 'outline',
+          size: 'large',
+          width: 380,
+          text: 'continue_with',
+          shape: 'rectangular',
+        });
+      }
+    }
+  }, [googleClientId, targetField, targetRole, loginWithGoogle, onSuccess]);
+
+  const handleGoogleClick = async () => {
+    setError(null);
+    if (googleClientId && window.google?.accounts?.id) {
+      // Trigger native Google One Tap or prompt
+      window.google.accounts.id.prompt();
+    } else {
+      // Development mode modal / instant Google auth
+      setDevGoogleModal(true);
+    }
+  };
+
+  const handleDevGoogleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setGoogleLoading(true);
+    setDevGoogleModal(false);
+
+    // Create a base64 JWT-structured token that the backend verifies
+    const header = btoa(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
+    const payload = btoa(
+      JSON.stringify({
+        iss: 'https://accounts.google.com',
+        sub: 'google-dev-' + Date.now(),
+        email: devGoogleEmail.trim().toLowerCase(),
+        email_verified: true,
+        name: devGoogleName.trim() || 'Google Candidate',
+        picture: 'https://lh3.googleusercontent.com/a/default-user',
+      })
+    );
+    const mockGoogleCredential = `${header}.${payload}.dev_signature`;
+
+    const res = await loginWithGoogle(mockGoogleCredential, targetField, targetRole);
+    setGoogleLoading(false);
+    if (res.success) {
+      onSuccess?.();
+    } else {
+      setError(res.error || 'Google sign-in could not be completed.');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
-    if (isSignUp) {
+    if (mode === 'signup') {
       const res = await signup(name, email, password, targetField, targetRole);
       setLoading(false);
       if (res.success) {
         onSuccess?.();
       } else {
-        setError(res.error || 'Failed to create account.');
+        setError(res.error || 'Failed to create candidate account.');
       }
     } else {
       const res = await login(email, password);
@@ -40,191 +131,297 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
       if (res.success) {
         onSuccess?.();
       } else {
-        setError(res.error || 'Invalid credentials.');
+        setError(res.error || 'Invalid email or password.');
       }
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center py-6 px-4">
-      <div className="w-full max-w-[420px] bg-white border border-[#D2D5C9] shadow-sm rounded overflow-hidden text-left">
-        {/* Card Header */}
-        <div className="bg-[#EEF0EA] px-6 py-4 hairline-b flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <BrandWordmark />
-            <span className="text-[10px] font-score-mono uppercase text-[#5C6B60] tracking-wider border border-[#D2D5C9] px-1.5 py-0.5 rounded bg-white font-medium">
-              AUTH & ACCESS
-            </span>
-          </div>
-        </div>
+    <div className="max-w-md mx-auto my-6 p-6 sm:p-8 bg-white border border-[#E5E7EB] rounded-2xl shadow-sm text-left animate-fadeIn space-y-6">
+      <div className="text-center space-y-2">
+        <BrandWordmark className="mx-auto" />
+        <h1 className="text-2xl font-bold tracking-tight text-[#17181C]">
+          {mode === 'login' ? 'Candidate Sign In' : 'Candidate Registration'}
+        </h1>
+        <p className="text-xs text-[#6B7078]">
+          {mode === 'login'
+            ? 'Access your telemetry dashboards, mock transcripts, and ATS reports.'
+            : 'Initialize your personalized career track, rubric generators, and dossier.'}
+        </p>
+      </div>
 
-        {/* Tab Switcher */}
-        <div className="flex hairline-b bg-white">
-          <button
-            type="button"
-            onClick={() => { setIsSignUp(false); setError(null); }}
-            className={`flex-1 py-3 text-xs font-medium text-center transition-colors ${
-              !isSignUp
-                ? 'border-b-2 border-[#2F6F4E] text-[#1A2E22] font-semibold bg-[#F7F8F5]'
-                : 'text-[#5C6B60] hover:text-[#1A2E22]'
-            }`}
-          >
-            Candidate Sign In
-          </button>
-          <button
-            type="button"
-            onClick={() => { setIsSignUp(true); setError(null); }}
-            className={`flex-1 py-3 text-xs font-medium text-center transition-colors ${
-              isSignUp
-                ? 'border-b-2 border-[#2F6F4E] text-[#1A2E22] font-semibold bg-[#F7F8F5]'
-                : 'text-[#5C6B60] hover:text-[#1A2E22]'
-            }`}
-          >
-            Create Docket Account
-          </button>
-        </div>
+      {/* Mode Switcher Tabs */}
+      <div className="flex bg-[#F1F2F4] p-1 rounded-xl border border-[#E5E7EB] text-xs font-semibold">
+        <button
+          type="button"
+          onClick={() => {
+            setMode('login');
+            setError(null);
+          }}
+          className={`flex-1 py-2 rounded-lg transition-all cursor-pointer ${
+            mode === 'login' ? 'bg-white text-[#17181C] shadow-xs' : 'text-[#6B7078]'
+          }`}
+        >
+          Sign In
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setMode('signup');
+            setError(null);
+          }}
+          className={`flex-1 py-2 rounded-lg transition-all cursor-pointer ${
+            mode === 'signup' ? 'bg-white text-[#17181C] shadow-xs' : 'text-[#6B7078]'
+          }`}
+        >
+          Create Account
+        </button>
+      </div>
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs">
-          {error && (
-            <div className="p-3 bg-[#FCF0EE] border border-[#B23A2E]/30 rounded text-[#B23A2E] flex items-start gap-2 text-[11px] leading-relaxed">
-              <span className="font-bold">Error:</span>
-              <span>{error}</span>
-            </div>
+      {error && (
+        <div className="p-3 rounded-xl bg-[#FEF2F2] border border-[#FECACA] text-[#B23A2E] text-xs font-mono flex items-center gap-2">
+          <span className="material-symbols-outlined text-[16px]">error</span>
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* Primary Google Authentication Button */}
+      <div className="space-y-3">
+        <button
+          type="button"
+          onClick={handleGoogleClick}
+          disabled={googleLoading}
+          className="w-full py-2.5 px-4 bg-white hover:bg-[#F8F9FA] text-[#17181C] border border-[#E5E7EB] hover:border-[#D1D5DB] rounded-xl font-medium text-xs shadow-xs transition-all flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50"
+        >
+          {googleLoading ? (
+            <div className="w-4 h-4 border-2 border-[#17181C] border-t-transparent rounded-full animate-spin"></div>
+          ) : (
+            <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+              <path
+                fill="#4285F4"
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              />
+              <path
+                fill="#34A853"
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+              />
+              <path
+                fill="#EA4335"
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+              />
+            </svg>
           )}
+          <span className="font-semibold text-xs text-[#17181C]">
+            {mode === 'login' ? 'Continue with Google' : 'Sign up with Google'}
+          </span>
+        </button>
 
-          {isSignUp && (
+        {/* Hidden container for native Google GIS button if client ID active */}
+        <div ref={googleBtnContainerRef} className="hidden"></div>
+
+        {/* Divider */}
+        <div className="relative flex py-1 items-center">
+          <div className="flex-grow border-t border-[#E5E7EB]"></div>
+          <span className="shrink mx-3 text-[10px] font-mono uppercase text-[#9CA3AF] tracking-wider">
+            or continue with email
+          </span>
+          <div className="flex-grow border-t border-[#E5E7EB]"></div>
+        </div>
+      </div>
+
+      {/* Email / Password Form */}
+      <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+        {mode === 'signup' && (
+          <div>
+            <label className="font-mono text-[11px] uppercase font-bold text-[#6B7078] block mb-1">
+              Full Name
+            </label>
+            <input
+              type="text"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Alex Rivera"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] text-[#17181C] focus:outline-hidden focus:border-[#2E6FF2]"
+            />
+          </div>
+        )}
+
+        <div>
+          <label className="font-mono text-[11px] uppercase font-bold text-[#6B7078] block mb-1">
+            Email Address
+          </label>
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="alex.rivera@example.com"
+            className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] text-[#17181C] focus:outline-hidden focus:border-[#2E6FF2]"
+          />
+        </div>
+
+        <div>
+          <label className="font-mono text-[11px] uppercase font-bold text-[#6B7078] block mb-1">
+            Password
+          </label>
+          <input
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] text-[#17181C] focus:outline-hidden focus:border-[#2E6FF2]"
+          />
+        </div>
+
+        {mode === 'signup' && (
+          <>
             <div>
-              <label className="block text-[11px] font-medium text-[#1A2E22] mb-1 font-score-mono uppercase tracking-wider">
-                Full Legal Name
+              <label className="font-mono text-[11px] uppercase font-bold text-[#6B7078] block mb-1">
+                Target Career Track
+              </label>
+              <select
+                value={targetField}
+                onChange={(e) => {
+                  setTargetField(e.target.value);
+                  if (e.target.value === 'management') setTargetRole('Product Manager');
+                  else if (e.target.value === 'law') setTargetRole('Corporate Counsel');
+                  else setTargetRole('Frontend Developer');
+                }}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] text-[#17181C] focus:outline-hidden focus:border-[#2E6FF2] font-semibold"
+              >
+                <option value="it">Information Technology (Systems & Code)</option>
+                <option value="management">Management & Leadership (Strategy & PRDs)</option>
+                <option value="law">Law & Governance (Contracts & Regulatory)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="font-mono text-[11px] uppercase font-bold text-[#6B7078] block mb-1">
+                Initial Target Specialization
               </label>
               <input
                 type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="e.g. Dr. Alex Mercer"
-                className="w-full px-3 py-2 border border-[#D2D5C9] rounded bg-[#F7F8F5] text-[#1A2E22] focus:outline-none focus:border-[#2F6F4E] focus:bg-white text-xs transition-colors"
+                value={targetRole}
+                onChange={(e) => setTargetRole(e.target.value)}
+                placeholder="e.g. Frontend Developer"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] text-[#17181C] focus:outline-hidden focus:border-[#2E6FF2]"
               />
             </div>
+          </>
+        )}
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full py-3 bg-[#17181C] hover:bg-[#2A2B30] text-white rounded-xl font-semibold tracking-wide transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 mt-2"
+        >
+          {loading ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <span>Authenticating...</span>
+            </>
+          ) : (
+            <>
+              <span>{mode === 'login' ? 'Sign In to Workspace' : 'Create Candidate Account'}</span>
+              <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+            </>
           )}
+        </button>
+      </form>
 
-          <div>
-            <label className="block text-[11px] font-medium text-[#1A2E22] mb-1 font-score-mono uppercase tracking-wider">
-              Institutional / Corporate Email
-            </label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="candidate@organization.com"
-              className="w-full px-3 py-2 border border-[#D2D5C9] rounded bg-[#F7F8F5] text-[#1A2E22] focus:outline-none focus:border-[#2F6F4E] focus:bg-white text-xs transition-colors"
-            />
-          </div>
-
-          <div>
-            <label className="block text-[11px] font-medium text-[#1A2E22] mb-1 font-score-mono uppercase tracking-wider">
-              Access Credential (Password)
-            </label>
-            <input
-              type="password"
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••••••"
-              className="w-full px-3 py-2 border border-[#D2D5C9] rounded bg-[#F7F8F5] text-[#1A2E22] focus:outline-none focus:border-[#2F6F4E] focus:bg-white text-xs transition-colors font-mono"
-            />
-            <p className="text-[10px] text-[#5C6B60] mt-1 font-score-mono">
-              Requirement: Minimum 6 alphanumeric characters.
-            </p>
-          </div>
-
-          {isSignUp && (
-            <div className="pt-2 border-t border-[#D2D5C9] space-y-3">
-              <div>
-                <label className="block text-[11px] font-medium text-[#1A2E22] mb-1 font-score-mono uppercase tracking-wider">
-                  Target Career Discipline
-                </label>
-                <select
-                  value={targetField}
-                  onChange={(e) => {
-                    const f = e.target.value;
-                    setTargetField(f);
-                    if (f === 'it') setTargetRole('Frontend Developer');
-                    else if (f === 'management') setTargetRole('Product Manager');
-                    else if (f === 'law') setTargetRole('Corporate Counsel');
-                  }}
-                  className="w-full px-3 py-2 border border-[#D2D5C9] rounded bg-[#F7F8F5] text-[#1A2E22] focus:outline-none focus:border-[#2F6F4E] focus:bg-white text-xs transition-colors"
-                >
-                  <option value="it">Information Technology (Code, Architecture & Design)</option>
-                  <option value="management">Management & Leadership (SAR Rubric, Strategy)</option>
-                  <option value="law">Legal & Regulatory (IRAC Rubric, Compliance)</option>
-                </select>
+      {/* Dev Instant Google Sign-In Modal (when no Google Cloud Client ID is configured) */}
+      {devGoogleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-lg max-w-sm w-full p-6 space-y-4 text-left">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                  />
+                </svg>
+                <h3 className="text-sm font-bold text-[#17181C]">Google Authentication</h3>
               </div>
-
-              <div>
-                <label className="block text-[11px] font-medium text-[#1A2E22] mb-1 font-score-mono uppercase tracking-wider">
-                  Target Role Calibration
-                </label>
-                <select
-                  value={targetRole}
-                  onChange={(e) => setTargetRole(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#D2D5C9] rounded bg-[#F7F8F5] text-[#1A2E22] focus:outline-none focus:border-[#2F6F4E] focus:bg-white text-xs transition-colors"
-                >
-                  {targetField === 'it' && (
-                    <>
-                      <option value="Frontend Developer">Frontend Developer</option>
-                      <option value="Backend Developer">Backend Developer</option>
-                      <option value="Full Stack Developer">Full Stack Developer</option>
-                      <option value="Data Analyst">Data Analyst</option>
-                      <option value="QA / Test Engineer">QA / Test Engineer</option>
-                    </>
-                  )}
-                  {targetField === 'management' && (
-                    <>
-                      <option value="Product Manager">Product Manager</option>
-                      <option value="Team Lead">Team Lead</option>
-                      <option value="Operations Manager">Operations Manager</option>
-                    </>
-                  )}
-                  {targetField === 'law' && (
-                    <>
-                      <option value="Corporate Counsel">Corporate Counsel</option>
-                      <option value="Compliance Officer">Compliance Officer</option>
-                      <option value="Legal Analyst">Legal Analyst</option>
-                    </>
-                  )}
-                </select>
-              </div>
+              <button
+                type="button"
+                onClick={() => setDevGoogleModal(false)}
+                className="text-[#6B7078] hover:text-[#17181C] text-sm"
+              >
+                ✕
+              </button>
             </div>
-          )}
 
-          <div className="pt-3">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-2.5 px-4 bg-[#2F6F4E] text-white rounded font-medium hover:bg-[#25583E] transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-sm text-xs"
-            >
-              {loading ? (
-                <span>Authenticating with server...</span>
-              ) : isSignUp ? (
-                <span>Create account</span>
-              ) : (
-                <span>Log in</span>
-              )}
-            </button>
+            <p className="text-xs text-[#6B7078]">
+              Select or confirm your Google candidate profile to authenticate and initialize your session:
+            </p>
+
+            <form onSubmit={handleDevGoogleSubmit} className="space-y-3 text-xs">
+              <div>
+                <label className="font-mono text-[10px] uppercase font-bold text-[#6B7078] block mb-1">
+                  Google Candidate Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={devGoogleName}
+                  onChange={(e) => setDevGoogleName(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] text-[#17181C]"
+                />
+              </div>
+
+              <div>
+                <label className="font-mono text-[10px] uppercase font-bold text-[#6B7078] block mb-1">
+                  Google Email Address
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={devGoogleEmail}
+                  onChange={(e) => setDevGoogleEmail(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] text-[#17181C]"
+                />
+              </div>
+
+              <div className="pt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDevGoogleModal(false)}
+                  className="flex-1 py-2 rounded-xl border border-[#E5E7EB] text-xs font-semibold text-[#6B7078] hover:bg-[#F8F9FA]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2 rounded-xl bg-[#17181C] hover:bg-[#2A2B30] text-white text-xs font-semibold"
+                >
+                  Sign In with Google
+                </button>
+              </div>
+            </form>
           </div>
-        </form>
-
-        <div className="bg-[#EEF0EA] px-6 py-3 hairline-t text-center text-[10px] text-[#5C6B60]">
-          Secured with SHA-256 / Bcrypt salted credentials and stateless JWT session keys.
         </div>
-      </div>
+      )}
     </div>
   );
 };
 
 export default AuthScreen;
-

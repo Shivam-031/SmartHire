@@ -11,6 +11,8 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=True)
     target_field = db.Column(db.String(50), default='it')
     target_role = db.Column(db.String(100), default='Frontend Developer')
+    google_id = db.Column(db.String(255), nullable=True)
+    avatar_url = db.Column(db.String(500), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -24,6 +26,8 @@ class User(db.Model):
             'email': self.email,
             'target_field': self.target_field or 'it',
             'target_role': self.target_role or 'Frontend Developer',
+            'google_id': self.google_id,
+            'avatar_url': self.avatar_url,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 

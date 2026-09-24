@@ -6,6 +6,8 @@ export interface User {
   email: string;
   target_field: string;
   target_role: string;
+  google_id?: string;
+  avatar_url?: string;
   created_at?: string;
 }
 
@@ -15,6 +17,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signup: (name: string, email: string, password: string, target_field?: string, target_role?: string) => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogle: (credential: string, target_field?: string, target_role?: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   updateUserProfile: (data: Partial<User>) => Promise<void>;
   authModalOpen: boolean;
@@ -132,6 +135,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const loginWithGoogle = async (
+    credential: string,
+    target_field = 'it',
+    target_role = 'Frontend Developer'
+  ) => {
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential, target_field, target_role }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || 'Google authentication failed' };
+      }
+      setToken(data.token);
+      setUser(data.user);
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Unable to connect to authentication server' };
+    }
+  };
+
   const logout = () => {
     setToken(null);
     setUser(null);
@@ -168,6 +194,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated: !!token && !!user,
         login,
         signup,
+        loginWithGoogle,
         logout,
         updateUserProfile,
         authModalOpen,

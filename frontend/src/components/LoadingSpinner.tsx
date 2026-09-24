@@ -1,33 +1,19 @@
 import React from 'react';
 
-const LoadingSpinner: React.FC<{ message?: string }> = ({ message }) => {
+interface LoadingSpinnerProps {
+  message?: string;
+  size?: 'sm' | 'md' | 'lg';
+}
+
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ message, size = 'md' }) => {
+  const sizeClass = size === 'sm' ? 'w-5 h-5 border-2' : size === 'lg' ? 'w-10 h-10 border-3' : 'w-7 h-7 border-2';
+
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '2rem',
-      fontFamily: 'sans-serif'
-    }}>
-      <div style={{
-        width: '40px',
-        height: '40px',
-        border: '4px solid #f3f3f3',
-        borderTop: '4px solid #3498db',
-        borderRadius: '50%',
-        animation: 'spin 1s linear infinite',
-        marginBottom: '1rem'
-      }} />
-      {message && <p style={{ color: '#666' }}>{message}</p>}
-      <style>
-        {`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}
-      </style>
+    <div className="flex flex-col items-center justify-center p-3 text-center">
+      <div className={`${sizeClass} border-[#D2D5C9] border-t-[#2F6F4E] rounded-full animate-spin`} />
+      {message && (
+        <p className="text-xs font-mono text-[#5C6B60] mt-2.5 max-w-xs">{message}</p>
+      )}
     </div>
   );
 };
