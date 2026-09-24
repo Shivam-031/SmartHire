@@ -1,7 +1,11 @@
 import os
+from dotenv import load_dotenv
 
 # Get the project root directory (one level up from this file)
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+load_dotenv(os.path.join(BASE_DIR, '.env'))
+load_dotenv(os.path.join(BASE_DIR, 'backend', '.env'))
 
 class Config:
     # SQL Database URI
@@ -20,6 +24,11 @@ class Config:
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'smarthire-jwt-secret-key-32-bytes-long-super-secure-token-12345')
     JWT_EXPIRATION_DAYS = int(os.environ.get('JWT_EXPIRATION_DAYS', '7'))
 
+    # Google OAuth 2.0 Client ID
+    GOOGLE_CLIENT_ID = os.environ.get(
+        'GOOGLE_CLIENT_ID',
+        '228003091405-8p3lrjrfg1mo4nal0sru1417j95hqgef.apps.googleusercontent.com'
+    )
 
     # Uploads
     UPLOAD_FOLDER = os.path.join(BASE_DIR, 'backend', 'uploads')

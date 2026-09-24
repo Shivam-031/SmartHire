@@ -1,10 +1,12 @@
 from flask import Blueprint, request, jsonify, g
 from backend.models import db, User
 from backend.modules.auth import hash_password, check_password, generate_jwt, require_auth
+from backend.config import Config
+from google.oauth2 import id_token as google_id_token
+from google.auth.transport import requests as google_requests
 import re
 import requests
 import json
-import base64
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -86,41 +88,44 @@ def google_auth():
         return jsonify({'error': 'Google credential token is required.'}), 400
 
     google_info = None
+    client_id = Config.GOOGLE_CLIENT_ID
 
-    # 1. Verify against Google's tokeninfo API (standard for Google Identity Services)
+    # 1. Primary verification: Cryptographic RSA signature check via Google's public JWK certificates
     try:
-        resp = requests.get(f'https://oauth2.googleapis.com/tokeninfo?id_token={credential}', timeout=4)
-        if resp.status_code == 200:
-            google_info = resp.json()
-    except Exception:
-        pass
-
-    # 2. If tokeninfo verification didn't succeed (e.g. dev/simulated credential or offline test)
-    if not google_info or 'email' not in google_info:
-        # Check if credential is a JWT-like string we can parse
+        google_info = google_id_token.verify_oauth2_token(
+            credential,
+            google_requests.Request(),
+            client_id
+        )
+    except Exception as verify_err:
+        # 2. Secondary verification: Official Google tokeninfo API endpoint
         try:
-            parts = credential.split('.')
-            if len(parts) >= 2:
-                padded = parts[1] + '=' * (-len(parts[1]) % 4)
-                decoded = base64.urlsafe_b64decode(padded.decode('ascii') if isinstance(padded, bytes) else padded).decode('utf-8')
-                parsed = json.loads(decoded)
-                if 'email' in parsed:
-                    google_info = parsed
+            resp = requests.get(
+                f'https://oauth2.googleapis.com/tokeninfo?id_token={credential}',
+                timeout=5
+            )
+            if resp.status_code == 200:
+                data_info = resp.json()
+                if data_info.get('aud') == client_id:
+                    google_info = data_info
         except Exception:
             pass
 
-    # 3. If credential is direct JSON payload (dev mock mode)
-    if not google_info or 'email' not in google_info:
-        try:
-            if credential.startswith('{'):
-                parsed = json.loads(credential)
-                if 'email' in parsed:
-                    google_info = parsed
-        except Exception:
-            pass
+    # Strictly reject any unverified, forged, or unauthenticated tokens
+    if not google_info or not isinstance(google_info, dict):
+        return jsonify({
+            'error': 'Google token verification failed. The provided token is invalid, expired, or was not signed by Google.'
+        }), 401
 
-    if not google_info or 'email' not in google_info:
-        return jsonify({'error': 'Invalid or unverified Google credential.'}), 401
+    # Verify issuer is Google
+    iss = google_info.get('iss', '')
+    if iss not in ['accounts.google.com', 'https://accounts.google.com']:
+        return jsonify({'error': 'Token issuer is not accounts.google.com.'}), 401
+
+    # Verify email is confirmed by Google
+    email_verified = google_info.get('email_verified')
+    if str(email_verified).lower() not in ['true', '1']:
+        return jsonify({'error': 'Google account email is not verified.'}), 401
 
     email = google_info.get('email', '').strip().lower()
     name = google_info.get('name') or google_info.get('given_name') or email.split('@')[0].capitalize()
@@ -131,6 +136,7 @@ def google_auth():
         return jsonify({'error': 'Google account email could not be verified.'}), 400
 
     # Match existing user or provision a new user account
+    is_new_user = False
     user = User.query.filter_by(email=email).first()
     if user:
         if not user.google_id and google_id:
@@ -139,6 +145,7 @@ def google_auth():
             user.avatar_url = avatar_url
         db.session.commit()
     else:
+        is_new_user = True
         user = User(
             name=name,
             email=email,
@@ -153,9 +160,10 @@ def google_auth():
 
     token = generate_jwt(user.id, user.email)
     return jsonify({
-        'message': 'Google authentication successful.',
+        'message': 'Account created and calibrated via Google.' if is_new_user else 'Google authentication successful.',
         'token': token,
-        'user': user.to_dict()
-    }), 200
+        'user': user.to_dict(),
+        'is_new_user': is_new_user
+    }), 201 if is_new_user else 200
 
 
