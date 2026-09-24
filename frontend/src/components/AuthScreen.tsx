@@ -81,7 +81,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           },
           auto_select: false,
           cancel_on_tap_outside: false,
-          use_fedcm_for_prompt: true,
+          itp_support: true,
         });
 
         // 2. Render Google's native button directly
