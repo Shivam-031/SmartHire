@@ -74,6 +74,72 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     };
   }, []);
 
+  // Sticky header scroll status, progress bar, and active section spy
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [activeSection, setActiveSection] = useState<string>('hero');
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      setIsScrolled(scrollY > 20);
+
+      const winHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (winHeight > 0) {
+        setScrollProgress(Math.min(100, Math.max(0, (scrollY / winHeight) * 100)));
+      }
+
+      const sections = ['hero', 'tracks', 'cockpit', 'ats-scanner', 'features', 'pricing'];
+      for (const sectionId of sections) {
+        const el = document.getElementById(sectionId);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= 160 && rect.bottom >= 160) {
+            setActiveSection(sectionId);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // IntersectionObserver for smooth sliding reveal animations on scroll
+  useEffect(() => {
+    const elements = document.querySelectorAll('.saas-reveal');
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('saas-visible');
+          }
+        });
+      },
+      { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
+    );
+
+    elements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
+  // Direct smooth navigation with navbar offset compensation
+  const handleDirectNav = (e: React.MouseEvent, sectionId: string) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const navOffset = 84;
+      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({
+        top: Math.max(0, elementPosition - navOffset),
+        behavior: 'smooth',
+      });
+    }
+  };
+
   const previewData = {
     it: {
       tag: 'IT SYSTEMS',
@@ -185,12 +251,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* Main content wrapper positioned above canvas */}
       <div className="relative z-10 flex flex-col min-h-screen">
-        {/* 1. LIQUID GLASS NAVBAR (Sticky Floating Pill) */}
-        <header className="sticky top-6 z-50 px-4 sm:px-6 w-full">
-          <nav className="liquid-glass-nav flex items-center justify-between mx-auto transition-all">
-            {/* Left: "Fluxo" / SmartHire Logo (purple stacked squares + text) */}
+        {/* 1. LIQUID GLASS NAVBAR (Sticky Floating Dock with Smooth Compaction) */}
+        <header
+          className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+            isScrolled
+              ? 'pt-2.5 pb-2.5 px-3 sm:px-6 bg-[#030303]/60 backdrop-blur-md border-b border-white/[0.06] shadow-[0_10px_30px_rgba(0,0,0,0.5)]'
+              : 'pt-5 pb-2 px-4 sm:px-6 bg-transparent'
+          }`}
+        >
+          <nav
+            className={`liquid-glass-nav flex items-center justify-between mx-auto transition-all duration-300 relative overflow-hidden ${
+              isScrolled ? 'is-stuck' : ''
+            }`}
+          >
+            {/* Ambient Top Glow Progress Bar */}
             <div
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="absolute bottom-0 left-0 h-[2px] bg-gradient-to-r from-[#7c3aed] via-[#3b82f6] to-[#ec4899] transition-all duration-150 pointer-events-none rounded-full"
+              style={{ width: `${scrollProgress}%`, opacity: isScrolled ? 0.95 : 0 }}
+            />
+
+            {/* Left: SmartHire Logo (purple stacked squares + text) */}
+            <div
+              onClick={(e) => handleDirectNav(e, 'hero')}
               className="flex items-center gap-3 cursor-pointer select-none group"
             >
               <svg className="w-8 h-8 shrink-0 transition-transform duration-300 group-hover:scale-105" viewBox="0 0 32 32" fill="none">
@@ -206,13 +288,29 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
             </div>
 
-            {/* Center: Desktop Navigation Links (with dropdown chevrons) */}
-            <div className="hidden lg:flex items-center gap-7 text-sm font-medium text-[#a1a1aa]">
-              <a href="#features" className="hover:text-white transition-colors">
+            {/* Center: Desktop Navigation Links (with direct smooth navigation & active indicator) */}
+            <div className="hidden lg:flex items-center gap-2 text-sm font-medium">
+              <a
+                href="#features"
+                onClick={(e) => handleDirectNav(e, 'features')}
+                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer ${
+                  activeSection === 'features'
+                    ? 'text-white bg-white/10 shadow-xs'
+                    : 'text-[#a1a1aa] hover:text-white hover:bg-white/5'
+                }`}
+              >
                 Features
               </a>
 
-              <a href="#tracks" className="hover:text-white transition-colors flex items-center gap-1.5 group">
+              <a
+                href="#tracks"
+                onClick={(e) => handleDirectNav(e, 'tracks')}
+                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 group ${
+                  activeSection === 'tracks'
+                    ? 'text-white bg-white/10 shadow-xs'
+                    : 'text-[#a1a1aa] hover:text-white hover:bg-white/5'
+                }`}
+              >
                 <span>Solutions</span>
                 <svg
                   className="w-3.5 h-3.5 text-[#71717a] group-hover:text-white transition-transform duration-200 group-hover:translate-y-0.5"
@@ -227,11 +325,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </svg>
               </a>
 
-              <a href="#pricing" className="hover:text-white transition-colors">
+              <a
+                href="#pricing"
+                onClick={(e) => handleDirectNav(e, 'pricing')}
+                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer ${
+                  activeSection === 'pricing'
+                    ? 'text-white bg-white/10 shadow-xs'
+                    : 'text-[#a1a1aa] hover:text-white hover:bg-white/5'
+                }`}
+              >
                 Pricing
               </a>
 
-              <a href="#cockpit" className="hover:text-white transition-colors flex items-center gap-1.5 group">
+              <a
+                href="#cockpit"
+                onClick={(e) => handleDirectNav(e, 'cockpit')}
+                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 group ${
+                  activeSection === 'cockpit'
+                    ? 'text-white bg-white/10 shadow-xs'
+                    : 'text-[#a1a1aa] hover:text-white hover:bg-white/5'
+                }`}
+              >
                 <span>Resources</span>
                 <svg
                   className="w-3.5 h-3.5 text-[#71717a] group-hover:text-white transition-transform duration-200 group-hover:translate-y-0.5"
@@ -246,7 +360,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </svg>
               </a>
 
-              <a href="#ats-scanner" className="hover:text-white transition-colors">
+              <a
+                href="#ats-scanner"
+                onClick={(e) => handleDirectNav(e, 'ats-scanner')}
+                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer ${
+                  activeSection === 'ats-scanner'
+                    ? 'text-white bg-white/10 shadow-xs'
+                    : 'text-[#a1a1aa] hover:text-white hover:bg-white/5'
+                }`}
+              >
                 Changelog
               </a>
             </div>
@@ -309,47 +431,47 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* 2. MOBILE MENU DRAWER */}
           {mobileMenuOpen && (
             <div
-              className="lg:hidden absolute left-4 right-4 top-[calc(80px+24px)] rounded-3xl p-6 space-y-4 shadow-2xl transition-all"
+              className="lg:hidden absolute left-4 right-4 top-[calc(100%+8px)] rounded-3xl p-6 space-y-4 shadow-2xl transition-all"
               style={{
-                background: 'rgba(10, 10, 15, 0.85)',
-                backdropFilter: 'blur(16px) saturate(180%)',
-                WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                boxShadow: '0 4px 30px rgba(0, 0, 0, 0.3)',
+                background: 'rgba(10, 10, 15, 0.95)',
+                backdropFilter: 'blur(20px) saturate(190%)',
+                WebkitBackdropFilter: 'blur(20px) saturate(190%)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                boxShadow: '0 12px 40px rgba(0, 0, 0, 0.6)',
               }}
             >
               <div className="flex flex-col space-y-3 text-sm font-medium text-[#a1a1aa]">
                 <a
                   href="#features"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={(e) => handleDirectNav(e, 'features')}
                   className="hover:text-white py-1.5 transition-colors"
                 >
                   Features
                 </a>
                 <a
                   href="#tracks"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={(e) => handleDirectNav(e, 'tracks')}
                   className="hover:text-white py-1.5 transition-colors"
                 >
                   Solutions
                 </a>
                 <a
                   href="#pricing"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={(e) => handleDirectNav(e, 'pricing')}
                   className="hover:text-white py-1.5 transition-colors"
                 >
                   Pricing
                 </a>
                 <a
                   href="#cockpit"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={(e) => handleDirectNav(e, 'cockpit')}
                   className="hover:text-white py-1.5 transition-colors"
                 >
                   Resources
                 </a>
                 <a
                   href="#ats-scanner"
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={(e) => handleDirectNav(e, 'ats-scanner')}
                   className="hover:text-white py-1.5 transition-colors"
                 >
                   Changelog
@@ -383,7 +505,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </header>
 
         {/* 3. HERO SECTION */}
-        <section className="pt-20 sm:pt-28 pb-16 px-4 sm:px-6 flex flex-col items-center text-center max-w-5xl mx-auto w-full">
+        <section id="hero" className="saas-reveal pt-20 sm:pt-28 pb-16 px-4 sm:px-6 flex flex-col items-center text-center max-w-5xl mx-auto w-full">
           {/* Badge */}
           <div
             className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium text-[#a1a1aa] mb-8 cursor-pointer hover:border-white/20 transition-all shadow-sm"
@@ -431,6 +553,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             {/* Secondary: Book a demo */}
             <a
               href="#ats-scanner"
+              onClick={(e) => handleDirectNav(e, 'ats-scanner')}
               className="btn-glass w-full sm:w-auto px-7 py-4 text-sm font-medium flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>Book a demo</span>
@@ -469,7 +592,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
         {/* 4. SOCIAL PROOF SECTION */}
         <section
-          className="w-full max-w-6xl mx-auto px-4 sm:px-6 mt-10"
+          id="social-proof"
+          className="saas-reveal w-full max-w-6xl mx-auto px-4 sm:px-6 mt-10"
           style={{
             borderTop: '1px solid rgba(255, 255, 255, 0.05)',
             padding: '40px 0 80px',
@@ -542,7 +666,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         {/* 5. INTERACTIVE SMART-HIRE CAPABILITIES IN LIQUID GLASS */}
 
         {/* SECTION A: DISCIPLINARY CAREER TRACKS */}
-        <section id="tracks" className="py-20 px-4 sm:px-6 max-w-6xl mx-auto w-full">
+        <section id="tracks" className="saas-reveal py-20 px-4 sm:px-6 max-w-6xl mx-auto w-full">
           <div className="text-center max-w-2xl mx-auto space-y-3 mb-14">
             <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#c084fc]">
               SOLUTIONS // THREE CALIBRATED VERTICALS
@@ -713,7 +837,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </section>
 
         {/* SECTION B: INTERACTIVE AI EXAMINER COCKPIT */}
-        <section id="cockpit" className="py-16 px-4 sm:px-6 max-w-5xl mx-auto w-full">
+        <section id="cockpit" className="saas-reveal py-16 px-4 sm:px-6 max-w-5xl mx-auto w-full">
           <div
             className="rounded-3xl overflow-hidden shadow-2xl transition-all"
             style={{
@@ -854,7 +978,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </section>
 
         {/* SECTION C: DETERMINISTIC ATS SCANNER */}
-        <section id="ats-scanner" className="py-16 px-4 sm:px-6 max-w-5xl mx-auto w-full">
+        <section id="ats-scanner" className="saas-reveal py-16 px-4 sm:px-6 max-w-5xl mx-auto w-full">
           <div
             className="rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl"
             style={{
@@ -982,7 +1106,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </section>
 
         {/* SECTION D: BENTO GRID FEATURES */}
-        <section id="features" className="py-20 px-4 sm:px-6 max-w-6xl mx-auto w-full">
+        <section id="features" className="saas-reveal py-20 px-4 sm:px-6 max-w-6xl mx-auto w-full">
           <div className="text-center max-w-2xl mx-auto space-y-3 mb-14">
             <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#60a5fa]">
               SYSTEM ADVANTAGES
@@ -1050,7 +1174,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </section>
 
         {/* SECTION E: BOTTOM EPIC CALL TO ACTION BANNER */}
-        <section id="pricing" className="py-24 px-4 sm:px-6 max-w-4xl mx-auto w-full text-center">
+        <section id="pricing" className="saas-reveal py-24 px-4 sm:px-6 max-w-4xl mx-auto w-full text-center">
           <div
             className="rounded-3xl p-10 sm:p-14 space-y-6 shadow-2xl relative overflow-hidden"
             style={{
@@ -1101,19 +1225,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           style={{ background: 'rgba(3, 3, 3, 0.8)' }}
         >
           <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#71717a]">
-            <div className="flex items-center gap-2.5">
-              <svg className="w-5 h-5 shrink-0" viewBox="0 0 32 32" fill="none">
+            <div
+              onClick={(e) => handleDirectNav(e, 'hero')}
+              className="flex items-center gap-2.5 cursor-pointer group select-none"
+            >
+              <svg className="w-5 h-5 shrink-0 transition-transform group-hover:scale-110" viewBox="0 0 32 32" fill="none">
                 <rect x="4" y="4" width="16" height="16" rx="4" fill="#7c3aed" />
                 <rect x="12" y="12" width="16" height="16" rx="4" fill="#8b5cf6" fillOpacity="0.85" />
               </svg>
-              <span className="text-white font-semibold">SmartHire Prep</span>
+              <span className="text-white font-semibold group-hover:text-[#c084fc] transition-colors">SmartHire Prep</span>
               <span className="text-[#71717a] font-mono">• Dark SaaS Edition</span>
             </div>
 
             <div className="flex items-center gap-6">
-              <a href="#features" className="hover:text-white transition-colors">Features</a>
-              <a href="#tracks" className="hover:text-white transition-colors">Solutions</a>
-              <a href="#ats-scanner" className="hover:text-white transition-colors">ATS Scanner</a>
+              <a href="#features" onClick={(e) => handleDirectNav(e, 'features')} className="hover:text-white transition-colors cursor-pointer">Features</a>
+              <a href="#tracks" onClick={(e) => handleDirectNav(e, 'tracks')} className="hover:text-white transition-colors cursor-pointer">Solutions</a>
+              <a href="#ats-scanner" onClick={(e) => handleDirectNav(e, 'ats-scanner')} className="hover:text-white transition-colors cursor-pointer">ATS Scanner</a>
               <button
                 type="button"
                 onClick={() => onNavigate('field_select')}
