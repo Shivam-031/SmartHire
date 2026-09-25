@@ -74,6 +74,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     };
   }, []);
 
+  // Direct smooth navigation
+  const handleDirectNav = (e: React.MouseEvent, sectionId: string) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   const previewData = {
     it: {
       tag: 'IT SYSTEMS',
@@ -169,22 +181,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   const currentAts = atsSamples[atsSampleType];
 
-  const handleDirectNav = (
-    e: React.MouseEvent<HTMLElement>,
-    targetId: string
-  ) => {
-    e.preventDefault();
-    setMobileMenuOpen(false);
-    const elem = document.getElementById(targetId);
-    if (elem) {
-      elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-[#030303] text-white font-sans antialiased selection:bg-[#7c3aed]/30 selection:text-white relative">
+    <div className="min-h-screen bg-[#030303] text-white font-sans antialiased selection:bg-[#7c3aed]/30 selection:text-white relative overflow-x-hidden">
       {/* 3D Animated Background Canvas (TubesCursor) */}
       <canvas
         id="canvas"
@@ -199,10 +197,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* Main content wrapper positioned above canvas */}
       <div className="relative z-10 flex flex-col min-h-screen">
-        {/* 1. LIQUID GLASS NAVBAR (Sticky Floating Pill) */}
-        <header className="sticky top-6 z-50 px-4 sm:px-6 w-full">
+        {/* 1. LIQUID GLASS NAVBAR (Floating Pill, Non-Sticky) */}
+        <header className="relative z-50 pt-6 px-4 sm:px-6 w-full">
           <nav className="liquid-glass-nav flex items-center justify-between mx-auto transition-all">
-            {/* Left: "Fluxo" / SmartHire Logo (purple stacked squares + text) */}
+            {/* Left: SmartHire Logo (purple stacked squares + text) */}
             <div
               onClick={(e) => handleDirectNav(e, 'hero')}
               className="flex items-center gap-3 cursor-pointer select-none group"
@@ -343,7 +341,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* 2. MOBILE MENU DRAWER */}
           {mobileMenuOpen && (
             <div
-              className="lg:hidden absolute left-4 right-4 top-[calc(80px+12px)] rounded-3xl p-6 space-y-4 shadow-2xl transition-all"
+              className="lg:hidden absolute left-4 right-4 top-[calc(80px+36px)] rounded-3xl p-6 space-y-4 shadow-2xl transition-all"
               style={{
                 background: 'rgba(10, 10, 15, 0.95)',
                 backdropFilter: 'blur(16px) saturate(180%)',
