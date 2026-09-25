@@ -13,9 +13,15 @@ import UserProfile from './components/UserProfile';
 import InterviewModeModal from './components/InterviewModeModal';
 import AuthScreen from './components/AuthScreen';
 import ProfileScreen from './components/ProfileScreen';
+import LandingPage from './components/LandingPage';
 
 // URL Hash to DocketStep mapping
 const HASH_MAP: Record<string, DocketStep> = {
+  '': 'landing',
+  '#/': 'landing',
+  '#/landing': 'landing',
+  '#/home': 'landing',
+  '#/overview': 'landing',
   '#/login': 'login',
   '#/signup': 'signup',
   '#/profile': 'profile',
@@ -38,6 +44,7 @@ const HASH_MAP: Record<string, DocketStep> = {
 
 // DocketStep to primary URL hash mapping
 const STEP_TO_HASH: Record<DocketStep, string> = {
+  landing: '#/',
   field_select: '#/fields',
   role_select: '#/roles',
   resume: '#/resume',
@@ -56,7 +63,7 @@ const STEP_TO_HASH: Record<DocketStep, string> = {
 
 const getInitialStep = (): DocketStep => {
   const hash = window.location.hash.toLowerCase();
-  return HASH_MAP[hash] || 'field_select';
+  return HASH_MAP[hash] || 'landing';
 };
 
 const AppContent = () => {
@@ -179,6 +186,24 @@ const AppContent = () => {
     setSelectedSessionId(null);
     navigateTo('field_select');
   };
+
+  if (step === 'landing') {
+    return (
+      <>
+        <LandingPage
+          onNavigate={navigateTo}
+          onSelectTrack={(f, r) => {
+            setField(f);
+            if (r) setRole(r);
+            else if (f === 'it') setRole('Frontend Developer');
+            else if (f === 'management') setRole('Product Manager');
+            else if (f === 'law') setRole('Corporate Counsel');
+          }}
+        />
+        <AuthModal />
+      </>
+    );
+  }
 
   return (
     <AppLayout

@@ -3,6 +3,7 @@ import BrandWordmark from './BrandWordmark';
 import { useAuth } from '../context/AuthContext';
 
 export type DocketStep =
+  | 'landing'
   | 'field_select'
   | 'role_select'
   | 'resume'
@@ -98,7 +99,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-white border-b border-[#E5E7EB] shadow-[0_1px_8px_rgba(0,0,0,0.03)] px-4 sm:px-6 flex items-center justify-between gap-4">
         {/* Left: Brand & Track Indicator */}
         <div className="flex items-center gap-4 sm:gap-6">
-          <BrandWordmark onClick={() => onNavigate('field_select')} />
+          <BrandWordmark onClick={() => onNavigate('landing')} />
 
           <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full border border-[#E5E7EB] bg-[#F8F9FA]">
             <span className="w-2 h-2 rounded-full" style={{ backgroundColor: domain.color }}></span>
@@ -111,6 +112,16 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
 
         {/* Center: Primary Navigation Tabs (Desktop) */}
         <nav className="hidden xl:flex items-center gap-1.5 p-1 rounded-lg bg-[#F1F2F4] text-xs font-medium">
+          <button
+            onClick={() => onNavigate('landing')}
+            className={`px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+              currentStep === 'landing'
+                ? 'bg-white text-[#17181C] font-semibold shadow-xs'
+                : 'text-[#6B7078] hover:text-[#17181C]'
+            }`}
+          >
+            Overview
+          </button>
           <button
             onClick={() => onNavigate('field_select')}
             className={`px-3 py-1.5 rounded-md transition-all cursor-pointer ${
