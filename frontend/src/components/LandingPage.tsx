@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import BrandWordmark from './BrandWordmark';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { type DocketStep } from './AppLayout';
 
@@ -13,42 +12,101 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onSelectTrack,
 }) => {
   const { user, isAuthenticated } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activePreviewTrack, setActivePreviewTrack] = useState<'it' | 'management' | 'law'>('it');
-
-  // Interactive ATS Demo state
   const [atsSampleType, setAtsSampleType] = useState<'it' | 'mgmt' | 'law'>('it');
+
+  // Initialize 3D TubesCursor from CDN using runtime dynamic function import
+  useEffect(() => {
+    let isMounted = true;
+    let appInstance: any = null;
+
+    const initTubes = async () => {
+      try {
+        const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+        if (!canvas) return;
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Use runtime new Function to load CDN ES module natively without bundler resolution issues
+        const loadModule = new Function('url', 'return import(url)');
+        const module = await loadModule(
+          'https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js'
+        );
+        const TubesCursor = module.default || module;
+
+        if (isMounted && typeof TubesCursor === 'function') {
+          appInstance = TubesCursor(canvas, {
+            tubes: {
+              colors: ['#ff008a', '#8b5cf6', '#3b82f6', '#ffffff'],
+              lights: {
+                intensity: 50,
+                colors: ['#ff008a', '#8b5cf6', '#3b82f6', '#ffffff'],
+              },
+            },
+          });
+        }
+      } catch (err) {
+        console.warn('TubesCursor 3D background notice:', err);
+      }
+    };
+
+    initTubes();
+
+    const handleResize = () => {
+      const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+      if (canvas) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener('resize', handleResize);
+      try {
+        if (appInstance && typeof appInstance.dispose === 'function') {
+          appInstance.dispose();
+        }
+      } catch (_) {}
+    };
+  }, []);
 
   const previewData = {
     it: {
       tag: 'IT SYSTEMS',
       role: 'Frontend Developer & Systems Engineer',
-      color: '#2E6FF2',
-      bgLight: '#DAE2FF',
-      bgSurface: '#F0F4FF',
-      border: '#BFDBFE',
-      question: 'Explain how React 19 concurrent features (such as useDeferredValue and Actions) optimize main thread execution compared to debouncing.',
-      answerSnippet: 'useDeferredValue integrates directly with React concurrent scheduler to keep input events responsive while deferring non-urgent re-renders...',
+      color: '#3b82f6',
+      badgeBorder: '#3b82f6',
+      question:
+        'Explain how React 19 concurrent features (such as useDeferredValue and Actions) optimize main thread execution compared to traditional debouncing.',
+      answerSnippet:
+        'useDeferredValue integrates directly with the React 19 concurrent scheduler to keep high-priority input events responsive while deferring non-urgent virtual DOM re-renders without artificial timer delays...',
       examinerName: 'Marcus Vance',
       examinerTitle: 'Principal Systems Architect',
       score: '9.2 / 10',
-      feedback: 'Excellent architectural precision. Candidate correctly identified scheduler priority queues over arbitrary timer delays.',
+      feedback:
+        'Exceptional architectural precision. Candidate accurately separated event-loop scheduler priority queues from standard task-queue timer delays.',
       rubric: 'Technical Precision & Concurrency Architecture',
       atsScore: 92,
-      keywords: ['React 19', 'TypeScript', 'Concurrent Mode', 'Virtual DOM', 'Performance Profiling'],
+      keywords: ['React 19', 'TypeScript', 'Concurrent Mode', 'Scheduler Queue', 'DOM Reconciliation'],
     },
     management: {
-      tag: 'MANAGEMENT & LEADERSHIP',
+      tag: 'MANAGEMENT & STRATEGY',
       role: 'Senior Product Manager & Strategy Lead',
-      color: '#8B4FE0',
-      bgLight: '#EDDCFF',
-      bgSurface: '#F7F0FF',
-      border: '#E9D5FF',
-      question: 'When engineering velocity slows due to legacy technical debt, how do you defend allocating 30% of a sprint to debt instead of high-visibility roadmap features?',
-      answerSnippet: 'I frame technical debt in terms of business risk, release cycle degradation, and customer SLA exposure with quantifiable impact models...',
+      color: '#8b5cf6',
+      badgeBorder: '#8b5cf6',
+      question:
+        'When engineering velocity degrades due to legacy technical debt, how do you defend allocating 30% of a sprint to debt rather than high-visibility roadmap features?',
+      answerSnippet:
+        'I frame technical debt strictly around commercial risk, release velocity degradation, and customer SLA breach exposure, quantifying refactoring ROI against customer churn...',
       examinerName: 'Eleanor Hayes',
       examinerTitle: 'VP of Product & Strategic Growth',
       score: '8.8 / 10',
-      feedback: 'Strong executive framing. Candidate effectively linked refactoring sprints to customer churn reduction and developer retention.',
+      feedback:
+        'Strong executive framing. Candidate effectively converted engineering refactoring into business risk mitigation and measurable retention metrics.',
       rubric: 'Executive Communication & Business Trade-offs',
       atsScore: 89,
       keywords: ['Product Roadmap', 'Stakeholder Alignment', 'KPI Modeling', 'Sprint Allocation', 'Technical Debt'],
@@ -56,16 +114,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     law: {
       tag: 'LAW & GOVERNANCE',
       role: 'Corporate Legal Counsel & Compliance Officer',
-      color: '#0EA5B7',
-      bgLight: '#CCF2F6',
-      bgSurface: '#EDFAFC',
-      border: '#BAE6FD',
-      question: 'How do you negotiate an uncapped liability clause in a SaaS Enterprise MSA when the prospective enterprise client mandates strict indemnity for data breaches?',
-      answerSnippet: 'I counter with a super-cap tied to a multiple of trailing 12-month contract value while establishing carve-outs for willful misconduct...',
+      color: '#60a5fa',
+      badgeBorder: '#60a5fa',
+      question:
+        'How do you negotiate an uncapped liability clause in a SaaS Enterprise MSA when the prospective enterprise client mandates strict indemnity for data incidents?',
+      answerSnippet:
+        'I counter with a tiered super-cap tied to a 3x multiple of trailing 12-month contract value while carving out gross negligence and willful misconduct...',
       examinerName: 'Victoria Hastings',
       examinerTitle: 'General Counsel & Governance Director',
       score: '9.4 / 10',
-      feedback: 'Masterful contractual risk mitigation. Candidate provided commercially viable liability tiers without compromising regulatory exposure.',
+      feedback:
+        'Masterful contractual risk calibration. Candidate protected balance-sheet liability without stalling commercial deal momentum.',
       rubric: 'Statutory Compliance & Risk Mitigation',
       atsScore: 94,
       keywords: ['MSA Negotiation', 'Limitation of Liability', 'GDPR/CCPA Compliance', 'Indemnification', 'Risk Mitigation'],
@@ -83,7 +142,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   const atsSamples = {
     it: {
-      title: 'Senior Frontend Engineer Resume',
+      title: 'Senior Frontend Engineer Dossier',
       score: 92,
       matchGrade: 'High ATS Pass Probability',
       matched: ['React.js', 'TypeScript', 'Tailwind CSS', 'Next.js', 'State Architecture', 'CI/CD Pipeline', 'RESTful APIs'],
@@ -91,7 +150,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       summary: 'Clean hierarchical formatting, optimal keyword density, strict reverse-chronological layout.',
     },
     mgmt: {
-      title: 'Product Operations Director Resume',
+      title: 'Product Operations Director Dossier',
       score: 88,
       matchGrade: 'Strong Recruiter Match',
       matched: ['Product Strategy', 'Cross-Functional Leadership', 'Sprint Planning', 'Metrics & OKRs', 'User Research'],
@@ -99,7 +158,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       summary: 'Quantified accomplishments present across all sections. Good structural header fidelity.',
     },
     law: {
-      title: 'Corporate Legal Counsel Resume',
+      title: 'Corporate Legal Counsel Dossier',
       score: 95,
       matchGrade: 'Exceptional Compliance Rating',
       matched: ['Contract Negotiation', 'Regulatory Compliance', 'Corporate Governance', 'Risk Auditing', 'Due Diligence'],
@@ -111,124 +170,278 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const currentAts = atsSamples[atsSampleType];
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-[#17181C] font-sans antialiased selection:bg-[#2E6FF2]/20 selection:text-[#17181C]">
-      {/* 1. STICKY TOP NAVIGATION BAR */}
-      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-[#E5E7EB] transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-6">
-            <BrandWordmark
-              subtitle="Career Intelligence Suite"
+    <div className="min-h-screen bg-[#030303] text-white font-sans antialiased selection:bg-[#7c3aed]/30 selection:text-white relative overflow-x-hidden">
+      {/* 3D Animated Background Canvas (TubesCursor) */}
+      <canvas
+        id="canvas"
+        className="fixed inset-0 w-full h-full pointer-events-none"
+        style={{ zIndex: 0 }}
+      />
+
+      {/* Ambient background glows */}
+      <div className="fixed top-[-100px] left-[10%] w-[500px] h-[500px] rounded-full bg-[#7c3aed]/12 blur-[140px] pointer-events-none" />
+      <div className="fixed top-[40%] right-[-100px] w-[500px] h-[500px] rounded-full bg-[#3b82f6]/10 blur-[150px] pointer-events-none" />
+      <div className="fixed bottom-[-100px] left-[30%] w-[600px] h-[600px] rounded-full bg-[#8b5cf6]/10 blur-[160px] pointer-events-none" />
+
+      {/* Main content wrapper positioned above canvas */}
+      <div className="relative z-10 flex flex-col min-h-screen">
+        {/* 1. LIQUID GLASS NAVBAR (Sticky Floating Pill) */}
+        <header className="sticky top-6 z-50 px-4 sm:px-6 w-full">
+          <nav className="liquid-glass-nav flex items-center justify-between mx-auto transition-all">
+            {/* Left: "Fluxo" / SmartHire Logo (purple stacked squares + text) */}
+            <div
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            />
-            <div className="hidden lg:flex items-center gap-1 text-xs font-semibold text-[#6B7078]">
-              <a
-                href="#tracks"
-                className="px-3 py-1.5 rounded-lg hover:text-[#17181C] hover:bg-[#F1F2F4] transition-colors"
-              >
-                Career Tracks
-              </a>
-              <a
-                href="#features"
-                className="px-3 py-1.5 rounded-lg hover:text-[#17181C] hover:bg-[#F1F2F4] transition-colors"
-              >
-                Platform Features
-              </a>
-              <a
-                href="#ats-scanner"
-                className="px-3 py-1.5 rounded-lg hover:text-[#17181C] hover:bg-[#F1F2F4] transition-colors"
-              >
-                ATS Intelligence
-              </a>
-              <a
-                href="#how-it-works"
-                className="px-3 py-1.5 rounded-lg hover:text-[#17181C] hover:bg-[#F1F2F4] transition-colors"
-              >
-                How It Works
-              </a>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {isAuthenticated ? (
-              <button
-                type="button"
-                onClick={() => onNavigate('profile')}
-                className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#17181C] hover:bg-[#2A2B30] text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
-              >
-                <span>Workspace ({user?.name?.split(' ')[0] || 'Candidate'})</span>
-                <span className="material-symbols-outlined text-[15px]">arrow_forward</span>
-              </button>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={() => onNavigate('login')}
-                  className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-[#17181C] hover:bg-[#F1F2F4] transition-colors cursor-pointer"
-                >
-                  Sign In
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onNavigate('field_select')}
-                  className="px-4 py-2 rounded-xl bg-[#17181C] hover:bg-[#2A2B30] text-white text-xs font-semibold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
-                >
-                  <span>Launch Free Practice</span>
-                  <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
-
-      {/* 2. HERO SECTION */}
-      <section className="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28 border-b border-[#E5E7EB] bg-linear-to-b from-white via-white to-[#F8F9FA]">
-        {/* Subtle decorative background grids */}
-        <div className="absolute inset-0 bg-[radial-gradient(#E5E7EB_1px,transparent_1px)] [background-size:24px_24px] opacity-60 pointer-events-none"></div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="max-w-3xl mx-auto text-center space-y-6">
-            {/* Eyebrow badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#F0F4FF] border border-[#BFDBFE] text-[#2E6FF2] text-xs font-semibold tracking-wide animate-fadeIn">
-              <span className="w-2 h-2 rounded-full bg-[#2E6FF2] animate-pulse"></span>
-              <span>Next-Generation Career Preparation & Examination Suite</span>
-            </div>
-
-            {/* Main Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#17181C] leading-[1.12]">
-              Master the Interview.{' '}
-              <span className="bg-linear-to-r from-[#2E6FF2] via-[#8B4FE0] to-[#0EA5B7] bg-clip-text text-transparent">
-                Beat the ATS.
-              </span>{' '}
-              Accelerate Your Career.
-            </h1>
-
-            {/* Subtitle */}
-            <p className="text-base sm:text-lg text-[#6B7078] max-w-2xl mx-auto leading-relaxed">
-              An enterprise-grade career preparation suite calibrated for{' '}
-              <span className="font-semibold text-[#17181C]">IT Systems</span>,{' '}
-              <span className="font-semibold text-[#17181C]">Executive Management</span>, and{' '}
-              <span className="font-semibold text-[#17181C]">Legal Governance</span>. Practice dynamic
-              persona-driven mock interviews, pass rigorous ATS algorithms, and track your telemetry across sessions.
-            </p>
-
-            {/* CTA Group */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => onNavigate('field_select')}
-                className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-[#17181C] hover:bg-[#2A2B30] text-white text-sm font-semibold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer group"
-              >
-                <span>Launch Career Practice Free</span>
-                <span className="material-symbols-outlined text-[16px] group-hover:translate-x-0.5 transition-transform">
-                  arrow_forward
+              className="flex items-center gap-3 cursor-pointer select-none group"
+            >
+              <svg className="w-8 h-8 shrink-0 transition-transform duration-300 group-hover:scale-105" viewBox="0 0 32 32" fill="none">
+                <rect x="4" y="4" width="16" height="16" rx="4" fill="#7c3aed" />
+                <rect x="12" y="12" width="16" height="16" rx="4" fill="#8b5cf6" fillOpacity="0.85" />
+                <rect x="8" y="8" width="16" height="16" rx="4" stroke="#ffffff" strokeOpacity="0.3" strokeWidth="1.5" />
+              </svg>
+              <div className="flex items-baseline gap-1.5">
+                <span className="font-bold text-xl tracking-tight text-white">SmartHire</span>
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#7c3aed]/20 text-[#c084fc] border border-[#7c3aed]/30 font-mono hidden sm:inline">
+                  PRO
                 </span>
-              </button>
+              </div>
+            </div>
 
+            {/* Center: Desktop Navigation Links (with dropdown chevrons) */}
+            <div className="hidden lg:flex items-center gap-7 text-sm font-medium text-[#a1a1aa]">
+              <a href="#features" className="hover:text-white transition-colors">
+                Features
+              </a>
+
+              <a href="#tracks" className="hover:text-white transition-colors flex items-center gap-1.5 group">
+                <span>Solutions</span>
+                <svg
+                  className="w-3.5 h-3.5 text-[#71717a] group-hover:text-white transition-transform duration-200 group-hover:translate-y-0.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </a>
+
+              <a href="#pricing" className="hover:text-white transition-colors">
+                Pricing
+              </a>
+
+              <a href="#cockpit" className="hover:text-white transition-colors flex items-center gap-1.5 group">
+                <span>Resources</span>
+                <svg
+                  className="w-3.5 h-3.5 text-[#71717a] group-hover:text-white transition-transform duration-200 group-hover:translate-y-0.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </a>
+
+              <a href="#ats-scanner" className="hover:text-white transition-colors">
+                Changelog
+              </a>
+            </div>
+
+            {/* Right: Actions */}
+            <div className="flex items-center gap-4">
+              {isAuthenticated ? (
+                <button
+                  type="button"
+                  onClick={() => onNavigate('profile')}
+                  className="btn-glass px-5 py-2 text-xs font-semibold flex items-center gap-2 cursor-pointer shadow-sm"
+                >
+                  <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
+                  <span>Workspace ({user?.name?.split(' ')[0] || 'Candidate'})</span>
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('login')}
+                    className="text-sm font-medium text-[#a1a1aa] hover:text-white transition-colors cursor-pointer hidden sm:inline px-2 py-1"
+                  >
+                    Log in
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => onNavigate('field_select')}
+                    className="btn-gradient-primary px-5 py-2.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-[0_0_20px_rgba(139,92,246,0.35)] hover:shadow-[0_0_25px_rgba(139,92,246,0.55)] transition-all"
+                  >
+                    <span>Start for free</span>
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                </>
+              )}
+
+              {/* Mobile Hamburger Toggle Button */}
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="lg:hidden p-2 text-[#a1a1aa] hover:text-white cursor-pointer"
+                aria-label="Toggle Navigation Menu"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {mobileMenuOpen ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                  )}
+                </svg>
+              </button>
+            </div>
+          </nav>
+
+          {/* 2. MOBILE MENU DRAWER */}
+          {mobileMenuOpen && (
+            <div
+              className="lg:hidden absolute left-4 right-4 top-[calc(80px+24px)] rounded-3xl p-6 space-y-4 shadow-2xl transition-all"
+              style={{
+                background: 'rgba(10, 10, 15, 0.85)',
+                backdropFilter: 'blur(16px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                boxShadow: '0 4px 30px rgba(0, 0, 0, 0.3)',
+              }}
+            >
+              <div className="flex flex-col space-y-3 text-sm font-medium text-[#a1a1aa]">
+                <a
+                  href="#features"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="hover:text-white py-1.5 transition-colors"
+                >
+                  Features
+                </a>
+                <a
+                  href="#tracks"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="hover:text-white py-1.5 transition-colors"
+                >
+                  Solutions
+                </a>
+                <a
+                  href="#pricing"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="hover:text-white py-1.5 transition-colors"
+                >
+                  Pricing
+                </a>
+                <a
+                  href="#cockpit"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="hover:text-white py-1.5 transition-colors"
+                >
+                  Resources
+                </a>
+                <a
+                  href="#ats-scanner"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="hover:text-white py-1.5 transition-colors"
+                >
+                  Changelog
+                </a>
+              </div>
+
+              <div className="pt-4 border-t border-white/10 flex flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onNavigate('login');
+                  }}
+                  className="w-full py-2.5 rounded-full btn-glass text-xs font-semibold text-white cursor-pointer"
+                >
+                  Log in
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onNavigate('field_select');
+                  }}
+                  className="w-full py-2.5 rounded-full btn-gradient-primary text-xs font-semibold text-white cursor-pointer"
+                >
+                  Start for free ->
+                </button>
+              </div>
+            </div>
+          )}
+        </header>
+
+        {/* 3. HERO SECTION */}
+        <section className="pt-20 sm:pt-28 pb-16 px-4 sm:px-6 flex flex-col items-center text-center max-w-5xl mx-auto w-full">
+          {/* Badge */}
+          <div
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium text-[#a1a1aa] mb-8 cursor-pointer hover:border-white/20 transition-all shadow-sm"
+            style={{
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+            }}
+            onClick={() => onNavigate('field_select')}
+          >
+            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#7c3aed] text-white">
+              New
+            </span>
+            <span>AI Assistant is now live -></span>
+          </div>
+
+          {/* Headline (H1): font-size: 4.5rem; line-height: 1.1; font-weight: 700 */}
+          <h1 className="text-[2.2rem] sm:text-[3rem] md:text-[3.8rem] lg:text-[4.5rem] font-bold tracking-tight text-white leading-[1.1] max-w-4xl">
+            The all-in-one platform
+            <br />
+            to scale your{' '}
+            <span className="gradient-text-highlights">
+              SaaS
+            </span>
+          </h1>
+
+          {/* Subheadline (P): font-size: 1.25rem; max-width: 600px; color: #a1a1aa; */}
+          <p className="mt-6 text-base sm:text-xl text-[#a1a1aa] max-w-[600px] mx-auto leading-relaxed">
+            Build, launch, and grow your SaaS faster with powerful tools, beautiful analytics, and AI that works for you.
+          </p>
+
+          {/* CTA Buttons */}
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
+            {/* Primary: Start for free -> */}
+            <button
+              type="button"
+              onClick={() => onNavigate('field_select')}
+              className="btn-gradient-primary w-full sm:w-auto px-8 py-4 text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_30px_rgba(139,92,246,0.35)] hover:shadow-[0_0_35px_rgba(139,92,246,0.6)]"
+            >
+              <span>Start for free</span>
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+
+            {/* Secondary: Book a demo */}
+            <a
+              href="#ats-scanner"
+              className="btn-glass w-full sm:w-auto px-7 py-4 text-sm font-medium flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span>Book a demo</span>
+            </a>
+
+            {/* Google OAuth Direct GIS Integration */}
+            {!isAuthenticated && (
               <button
                 type="button"
                 onClick={() => onNavigate('login')}
-                className="w-full sm:w-auto px-5 py-3.5 rounded-xl bg-white hover:bg-[#F8F9FA] text-[#17181C] border border-[#E5E7EB] hover:border-[#D1D5DB] text-sm font-semibold shadow-xs transition-all flex items-center justify-center gap-2.5 cursor-pointer"
+                className="btn-glass w-full sm:w-auto px-6 py-4 text-sm font-medium flex items-center justify-center gap-2.5 cursor-pointer text-[#a1a1aa] hover:text-white"
               >
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                   <path
@@ -250,51 +463,285 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </svg>
                 <span>Continue with Google</span>
               </button>
-            </div>
+            )}
+          </div>
+        </section>
 
-            {/* Quick Metrics Bar */}
-            <div className="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl mx-auto border-t border-[#E5E7EB]/80 text-left">
-              <div>
-                <p className="font-mono text-xl sm:text-2xl font-bold text-[#17181C]">3 Disciplines</p>
-                <p className="text-xs text-[#6B7078]">IT, Management, Law</p>
+        {/* 4. SOCIAL PROOF SECTION */}
+        <section
+          className="w-full max-w-6xl mx-auto px-4 sm:px-6 mt-10"
+          style={{
+            borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+            padding: '40px 0 80px',
+          }}
+        >
+          {/* Header & Review Badge */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 text-center sm:text-left">
+            <p className="text-xs font-medium uppercase tracking-wider text-[#71717a]">
+              Trusted by 10,000+ teams worldwide
+            </p>
+
+            {/* Reviews: 5 yellow SVG stars + text */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                {[...Array(5)].map((_, i) => (
+                  <svg key={i} className="w-4 h-4 fill-[#EAB308]" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
               </div>
-              <div>
-                <p className="font-mono text-xl sm:text-2xl font-bold text-[#2E6FF2]">100% Heuristic</p>
-                <p className="text-xs text-[#6B7078]">Deterministic ATS Engine</p>
-              </div>
-              <div>
-                <p className="font-mono text-xl sm:text-2xl font-bold text-[#8B4FE0]">AI Personas</p>
-                <p className="text-xs text-[#6B7078]">Branching Mock Examiners</p>
-              </div>
-              <div>
-                <p className="font-mono text-xl sm:text-2xl font-bold text-[#0EA5B7]">Vector PDF</p>
-                <p className="text-xs text-[#6B7078]">Instant Dossier Exports</p>
-              </div>
+              <span className="text-xs font-semibold text-white">5.0/5</span>
+              <span className="text-xs text-[#71717a]">from 1,200+ reviews</span>
             </div>
           </div>
 
-          {/* 3. INTERACTIVE HERO COCKPIT PREVIEW */}
-          <div className="mt-14 max-w-4xl mx-auto bg-white rounded-2xl border border-[#E5E7EB] shadow-xl overflow-hidden text-left transition-all">
-            {/* Cockpit Window Header */}
-            <div className="bg-[#F8F9FA] px-4 py-3 border-b border-[#E5E7EB] flex items-center justify-between flex-wrap gap-3">
+          {/* Logos Row: Linear, Loom, Remix, Raycast, Tailwind CSS (gap 48px, opacity 0.6 hover: 1) */}
+          <div className="flex flex-wrap items-center justify-center lg:justify-between gap-8 lg:gap-12">
+            {/* Linear Logo */}
+            <div className="flex items-center gap-2.5 opacity-60 hover:opacity-100 transition-opacity duration-300 cursor-pointer">
+              <svg className="h-6 w-6" viewBox="0 0 100 100" fill="currentColor">
+                <path d="M1.229 64.91a48.77 48.77 0 0 1-.229-4.71c0-26.95 21.85-48.8 48.8-48.8 1.58 0 3.14.08 4.69.23L4.72 61.39a48.4 48.4 0 0 1-3.491 3.52zm8.01 10.36L69.49 15.02A48.66 48.66 0 0 1 88.58 35.13L24.6 98.74a48.71 48.71 0 0 1-15.361-13.47zM35.09 98.77l63.68-63.68c.81 3.12 1.23 6.38 1.23 9.71 0 26.95-21.85 48.8-48.8 48.8-5.61 0-10.97-.95-16.11-2.83zm59.68-69.2L70.4 5.2a48.7 48.7 0 0 1 24.37 24.37zM49.8 0C22.297 0 0 22.297 0 49.8s22.297 49.8 49.8 49.8 49.8-22.297 49.8-49.8S77.303 0 49.8 0z" />
+              </svg>
+              <span className="font-semibold text-lg tracking-tight">Linear</span>
+            </div>
+
+            {/* Loom Logo */}
+            <div className="flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity duration-300 cursor-pointer">
+              <svg className="h-6 w-6" viewBox="0 0 40 40" fill="currentColor">
+                <path d="M19.78 0c-4.32 0-8.1 2.37-10.1 5.92L0 22.68l9.68 16.78c2 3.54 5.78 5.92 10.1 5.92 4.32 0 8.1-2.38 10.1-5.92l9.68-16.78L29.88 5.92C27.88 2.37 24.1 0 19.78 0zm0 8.04c2.19 0 3.96 1.77 3.96 3.96v7.35l6.36 3.67c1.9 1.1 2.55 3.53 1.46 5.43-1.1 1.9-3.53 2.55-5.43 1.46L19.78 26.24v7.35c0 2.19-1.77 3.96-3.96 3.96-2.19 0-3.96-1.77-3.96-3.96v-7.35l-6.36 3.67c-1.9 1.1-4.34.44-5.43-1.46-1.1-1.9-.44-4.34 1.46-5.43l6.36-3.67v-7.35c0-2.19 1.77-3.96 3.96-3.96z" />
+              </svg>
+              <span className="font-semibold text-lg tracking-tight">loom</span>
+            </div>
+
+            {/* Remix Logo */}
+            <div className="flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity duration-300 cursor-pointer">
+              <svg className="h-6 w-6" viewBox="0 0 36 36" fill="currentColor">
+                <path d="M10 5h10.8c6.9 0 11.7 4.2 11.7 10.4 0 4.6-2.8 8.1-7 9.6l8.2 10h-6.8l-7.4-9.3H15.2V35H10V5zm5.2 15.6h5.3c3.8 0 6.3-2.1 6.3-5.3 0-3.2-2.5-5.3-6.3-5.3h-5.3v10.6z" />
+              </svg>
+              <span className="font-semibold text-lg tracking-tight">Remix</span>
+            </div>
+
+            {/* Raycast Logo */}
+            <div className="flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity duration-300 cursor-pointer">
+              <svg className="h-6 w-6" viewBox="0 0 36 36" fill="currentColor">
+                <path d="M18.8 6.2l-3.5 3.5 7.1 7.1-7.1 7.1 3.5 3.5 10.6-10.6L18.8 6.2zm-12 10.6L17.4 6.2l-3.5-3.5L3.3 13.3c-2 2-2 5.2 0 7.2l10.6 10.6 3.5-3.5-10.6-10.8z" />
+              </svg>
+              <span className="font-semibold text-lg tracking-tight">Raycast</span>
+            </div>
+
+            {/* Tailwind CSS Logo */}
+            <div className="flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity duration-300 cursor-pointer">
+              <svg className="h-6 w-7" viewBox="0 0 32 32" fill="currentColor">
+                <path d="M16 8c-4.4 0-7.2 2.2-8.4 6.6 1.8-2.2 3.8-3 6-2.4 1.3.3 2.2 1.3 3.2 2.3C18.4 16.2 20.6 18 26 18c4.4 0 7.2-2.2 8.4-6.6-1.8 2.2-3.8 3-6 2.4-1.3-.3-2.2-1.3-3.2-2.3C23.6 9.8 21.4 8 16 8zM8 18c-4.4 0-7.2 2.2-8.4 6.6 1.8-2.2 3.8-3 6-2.4 1.3.3 2.2 1.3 3.2 2.3C10.4 26.2 12.6 28 18 28c4.4 0 7.2-2.2 8.4-6.6-1.8 2.2-3.8 3-6 2.4-1.3-.3-2.2-1.3-3.2-2.3C15.6 19.8 13.4 18 8 18z" />
+              </svg>
+              <span className="font-semibold text-lg tracking-tight">tailwindcss</span>
+            </div>
+          </div>
+        </section>
+
+        {/* 5. INTERACTIVE SMART-HIRE CAPABILITIES IN LIQUID GLASS */}
+
+        {/* SECTION A: DISCIPLINARY CAREER TRACKS */}
+        <section id="tracks" className="py-20 px-4 sm:px-6 max-w-6xl mx-auto w-full">
+          <div className="text-center max-w-2xl mx-auto space-y-3 mb-14">
+            <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#c084fc]">
+              SOLUTIONS // THREE CALIBRATED VERTICALS
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
+              Calibrated For Your Career Domain
+            </h2>
+            <p className="text-sm sm:text-base text-[#a1a1aa]">
+              Generic tools ask generic questions. SmartHire leverages dedicated AI examiners and rubrics engineered
+              for your industry.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* IT Track Pod */}
+            <div
+              className="rounded-3xl p-7 flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] cursor-pointer group"
+              style={{
+                background: 'rgba(255, 255, 255, 0.02)',
+                backdropFilter: 'blur(16px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+              }}
+              onClick={() => handleLaunchTrack('it', 'Frontend Developer')}
+            >
+              <div className="space-y-5">
+                <div className="flex items-center justify-between">
+                  <div className="w-10 h-10 rounded-2xl bg-[#3b82f6]/10 border border-[#3b82f6]/30 flex items-center justify-center text-[#60a5fa]">
+                    <span className="material-symbols-outlined text-[20px]">terminal</span>
+                  </div>
+                  <span className="font-mono text-xs font-semibold px-2.5 py-1 rounded-full bg-[#3b82f6]/15 text-[#60a5fa] border border-[#3b82f6]/30">
+                    TRACK 01 // SYSTEMS
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-bold text-white group-hover:text-[#60a5fa] transition-colors">
+                    Information Technology
+                  </h3>
+                  <p className="text-xs text-[#a1a1aa] mt-1 leading-relaxed">
+                    Concurrency models, React 19 scheduler, distributed microservices, and system architecture.
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-white/5 space-y-2">
+                  <p className="font-mono text-[10px] uppercase font-semibold text-[#71717a]">Specializations</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {['Frontend', 'Backend', 'DevOps', 'Full Stack'].map((r, i) => (
+                      <span key={i} className="px-2 py-0.5 rounded text-[11px] bg-white/5 text-[#a1a1aa] border border-white/5">
+                        {r}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-xs font-semibold text-[#60a5fa]">
+                <span>Initialize Track</span>
+                <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">
+                  arrow_forward
+                </span>
+              </div>
+            </div>
+
+            {/* Management Track Pod */}
+            <div
+              className="rounded-3xl p-7 flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] cursor-pointer group"
+              style={{
+                background: 'rgba(255, 255, 255, 0.02)',
+                backdropFilter: 'blur(16px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+              }}
+              onClick={() => handleLaunchTrack('management', 'Product Manager')}
+            >
+              <div className="space-y-5">
+                <div className="flex items-center justify-between">
+                  <div className="w-10 h-10 rounded-2xl bg-[#7c3aed]/10 border border-[#7c3aed]/30 flex items-center justify-center text-[#c084fc]">
+                    <span className="material-symbols-outlined text-[20px]">strategy</span>
+                  </div>
+                  <span className="font-mono text-xs font-semibold px-2.5 py-1 rounded-full bg-[#7c3aed]/15 text-[#c084fc] border border-[#7c3aed]/30">
+                    TRACK 02 // STRATEGY
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-bold text-white group-hover:text-[#c084fc] transition-colors">
+                    Management & Leadership
+                  </h3>
+                  <p className="text-xs text-[#a1a1aa] mt-1 leading-relaxed">
+                    Product vision, roadmap trade-offs, OKR modeling, stakeholder alignment, and team execution.
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-white/5 space-y-2">
+                  <p className="font-mono text-[10px] uppercase font-semibold text-[#71717a]">Specializations</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {['Product Manager', 'Operations', 'Engineering Lead', 'Strategy'].map((r, i) => (
+                      <span key={i} className="px-2 py-0.5 rounded text-[11px] bg-white/5 text-[#a1a1aa] border border-white/5">
+                        {r}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-xs font-semibold text-[#c084fc]">
+                <span>Initialize Track</span>
+                <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">
+                  arrow_forward
+                </span>
+              </div>
+            </div>
+
+            {/* Law Track Pod */}
+            <div
+              className="rounded-3xl p-7 flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] cursor-pointer group"
+              style={{
+                background: 'rgba(255, 255, 255, 0.02)',
+                backdropFilter: 'blur(16px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+              }}
+              onClick={() => handleLaunchTrack('law', 'Corporate Counsel')}
+            >
+              <div className="space-y-5">
+                <div className="flex items-center justify-between">
+                  <div className="w-10 h-10 rounded-2xl bg-[#0EA5B7]/10 border border-[#0EA5B7]/30 flex items-center justify-center text-[#22D3EE]">
+                    <span className="material-symbols-outlined text-[20px]">gavel</span>
+                  </div>
+                  <span className="font-mono text-xs font-semibold px-2.5 py-1 rounded-full bg-[#0EA5B7]/15 text-[#22D3EE] border border-[#0EA5B7]/30">
+                    TRACK 03 // GOVERNANCE
+                  </span>
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-bold text-white group-hover:text-[#22D3EE] transition-colors">
+                    Law & Corporate Counsel
+                  </h3>
+                  <p className="text-xs text-[#a1a1aa] mt-1 leading-relaxed">
+                    Contractual risk mitigation, statutory regulatory compliance, intellectual property, and governance.
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-white/5 space-y-2">
+                  <p className="font-mono text-[10px] uppercase font-semibold text-[#71717a]">Specializations</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {['Corporate Counsel', 'Compliance', 'Legal Analyst', 'Contracts Lead'].map((r, i) => (
+                      <span key={i} className="px-2 py-0.5 rounded text-[11px] bg-white/5 text-[#a1a1aa] border border-white/5">
+                        {r}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-xs font-semibold text-[#22D3EE]">
+                <span>Initialize Track</span>
+                <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">
+                  arrow_forward
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* SECTION B: INTERACTIVE AI EXAMINER COCKPIT */}
+        <section id="cockpit" className="py-16 px-4 sm:px-6 max-w-5xl mx-auto w-full">
+          <div
+            className="rounded-3xl overflow-hidden shadow-2xl transition-all"
+            style={{
+              background: 'rgba(255, 255, 255, 0.02)',
+              backdropFilter: 'blur(16px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+            }}
+          >
+            {/* Header bar */}
+            <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-[#EF4444]/60"></span>
-                <span className="w-3 h-3 rounded-full bg-[#F59E0B]/60"></span>
-                <span className="w-3 h-3 rounded-full bg-[#16A34A]/60"></span>
-                <span className="ml-2 font-mono text-[11px] font-semibold text-[#6B7078] uppercase tracking-wider">
-                  Live Interactive Examination Cockpit
+                <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444]/80" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]/80" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]/80" />
+                <span className="ml-2 font-mono text-xs text-[#a1a1aa]">
+                  EXAMINATION COCKPIT // TELEMETRY PREVIEW
                 </span>
               </div>
 
-              {/* Track Selector Tabs */}
-              <div className="flex items-center bg-[#E5E7EB]/60 p-0.5 rounded-lg text-xs font-semibold">
+              {/* Track pills */}
+              <div className="flex items-center gap-1.5 p-1 rounded-full bg-white/5 border border-white/10 text-xs">
                 <button
                   type="button"
                   onClick={() => setActivePreviewTrack('it')}
-                  className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
-                    activePreviewTrack === 'it'
-                      ? 'bg-white text-[#2E6FF2] shadow-xs'
-                      : 'text-[#6B7078] hover:text-[#17181C]'
+                  className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
+                    activePreviewTrack === 'it' ? 'bg-[#3b82f6] text-white shadow-sm' : 'text-[#a1a1aa] hover:text-white'
                   }`}
                 >
                   IT Systems
@@ -302,10 +749,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <button
                   type="button"
                   onClick={() => setActivePreviewTrack('management')}
-                  className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
-                    activePreviewTrack === 'management'
-                      ? 'bg-white text-[#8B4FE0] shadow-xs'
-                      : 'text-[#6B7078] hover:text-[#17181C]'
+                  className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
+                    activePreviewTrack === 'management' ? 'bg-[#7c3aed] text-white shadow-sm' : 'text-[#a1a1aa] hover:text-white'
                   }`}
                 >
                   Management
@@ -313,10 +758,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <button
                   type="button"
                   onClick={() => setActivePreviewTrack('law')}
-                  className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
-                    activePreviewTrack === 'law'
-                      ? 'bg-white text-[#0EA5B7] shadow-xs'
-                      : 'text-[#6B7078] hover:text-[#17181C]'
+                  className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
+                    activePreviewTrack === 'law' ? 'bg-[#0EA5B7] text-white shadow-sm' : 'text-[#a1a1aa] hover:text-white'
                   }`}
                 >
                   Corporate Law
@@ -324,100 +767,83 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
             </div>
 
-            {/* Cockpit Content Body */}
+            {/* Cockpit Content */}
             <div className="p-6 sm:p-8 space-y-6">
-              {/* Question & Rubric Row */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div className="flex items-center gap-2">
                     <span
-                      className="px-2.5 py-0.5 rounded-md font-mono text-[10px] font-bold tracking-wider"
-                      style={{ backgroundColor: currentPreview.bgLight, color: currentPreview.color }}
+                      className="px-2.5 py-0.5 rounded-full font-mono text-[11px] font-semibold tracking-wider"
+                      style={{ backgroundColor: `${currentPreview.color}25`, color: currentPreview.color }}
                     >
                       {currentPreview.tag}
                     </span>
-                    <span className="text-xs text-[#6B7078] font-mono">• {currentPreview.role}</span>
+                    <span className="text-xs text-[#a1a1aa] font-mono">• {currentPreview.role}</span>
                   </div>
-                  <span className="font-mono text-xs font-semibold px-2 py-0.5 bg-[#ECFDF5] text-[#16A34A] rounded-md border border-[#BBF7D0]">
+                  <span className="font-mono text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                     Dimension: {currentPreview.rubric}
                   </span>
                 </div>
 
-                <h3 className="text-lg sm:text-xl font-bold text-[#17181C] leading-snug">
+                <h3 className="text-lg sm:text-xl font-bold text-white leading-snug">
                   {currentPreview.question}
                 </h3>
               </div>
 
-              {/* Response & Real-Time Examiner Remark */}
+              {/* Defense & Critique */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Candidate Answer Preview */}
-                <div className="p-4 rounded-xl bg-[#F8F9FA] border border-[#E5E7EB] space-y-2">
-                  <p className="font-mono text-[10px] font-bold uppercase text-[#6B7078]">
+                <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 space-y-2">
+                  <p className="font-mono text-[10px] uppercase font-semibold text-[#71717a]">
                     Candidate Structured Defense
                   </p>
-                  <p className="text-xs text-[#17181C] leading-relaxed italic">
+                  <p className="text-xs text-[#a1a1aa] leading-relaxed italic">
                     "{currentPreview.answerSnippet}"
                   </p>
                   <div className="pt-2 flex flex-wrap gap-1.5">
                     {currentPreview.keywords.map((kw, i) => (
-                      <span
-                        key={i}
-                        className="px-2 py-0.5 rounded text-[10px] font-mono bg-white border border-[#E5E7EB] text-[#17181C]"
-                      >
+                      <span key={i} className="px-2 py-0.5 rounded text-[10px] font-mono bg-white/5 border border-white/10 text-[#a1a1aa]">
                         {kw}
                       </span>
                     ))}
                   </div>
                 </div>
 
-                {/* Examiner Dynamic Evaluation */}
-                <div
-                  className="p-4 rounded-xl border space-y-2.5 transition-all"
-                  style={{ backgroundColor: currentPreview.bgSurface, borderColor: currentPreview.border }}
-                >
+                <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="w-7 h-7 rounded-full bg-white flex items-center justify-center font-bold text-xs shadow-xs text-[#17181C] border border-[#E5E7EB]">
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs text-white"
+                        style={{ backgroundColor: currentPreview.color }}
+                      >
                         {currentPreview.examinerName.charAt(0)}
-                      </span>
+                      </div>
                       <div>
-                        <p className="text-xs font-bold text-[#17181C]">{currentPreview.examinerName}</p>
-                        <p className="text-[10px] text-[#6B7078]">{currentPreview.examinerTitle}</p>
+                        <p className="text-xs font-bold text-white">{currentPreview.examinerName}</p>
+                        <p className="text-[10px] text-[#71717a]">{currentPreview.examinerTitle}</p>
                       </div>
                     </div>
-                    <span
-                      className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-white shadow-xs"
-                      style={{ color: currentPreview.color }}
-                    >
+                    <span className="font-mono text-xs font-bold px-2.5 py-0.5 rounded-full bg-white/10 text-white">
                       Score: {currentPreview.score}
                     </span>
                   </div>
 
-                  <p className="text-xs text-[#17181C] leading-relaxed font-mono">
-                    <span className="font-bold">Examiner Remark: </span>
+                  <p className="text-xs text-[#a1a1aa] leading-relaxed font-mono">
+                    <span className="font-bold text-white">Examiner Feedback: </span>
                     {currentPreview.feedback}
                   </p>
                 </div>
               </div>
 
-              {/* Bottom Quick Action Bar inside preview */}
-              <div className="pt-3 border-t border-[#E5E7EB] flex items-center justify-between flex-wrap gap-3">
-                <div className="flex items-center gap-3">
-                  <span className="font-mono text-xs text-[#16A34A] font-bold flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[16px]">verified</span>
-                    <span>Heuristic Verification Active</span>
-                  </span>
-                  <span className="text-xs text-[#6B7078] hidden sm:inline">|</span>
-                  <span className="font-mono text-xs text-[#6B7078] hidden sm:inline">
-                    ATS Audit Match: {currentPreview.atsScore}%
-                  </span>
-                </div>
+              {/* Bottom Quick Action */}
+              <div className="pt-4 border-t border-white/5 flex items-center justify-between flex-wrap gap-3">
+                <span className="text-xs text-[#a1a1aa] font-mono">
+                  ATS Alignment: <strong className="text-white">{currentPreview.atsScore}%</strong>
+                </span>
 
                 <button
                   type="button"
                   onClick={() => handleLaunchTrack(activePreviewTrack)}
-                  className="px-4 py-1.5 rounded-lg text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 cursor-pointer transition-all hover:brightness-110"
-                  style={{ backgroundColor: currentPreview.color }}
+                  className="btn-gradient-primary px-5 py-2 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-md"
                 >
                   <span>Practice This Track</span>
                   <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
@@ -425,666 +851,285 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* 4. THREE MULTI-FIELD TRACKS SECTION */}
-      <section id="tracks" className="py-20 lg:py-28 border-b border-[#E5E7EB] bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          <div className="text-center max-w-2xl mx-auto space-y-3">
-            <span className="font-mono text-xs uppercase font-bold text-[#2E6FF2] tracking-wider">
-              Disciplinary Alignment
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#17181C] tracking-tight">
-              Calibrated For Your Professional Discipline
-            </h2>
-            <p className="text-sm sm:text-base text-[#6B7078]">
-              Generic prep tools treat all careers the same. SmartHire uses distinct evaluation engines,
-              rubrics, and examiners specifically engineered for each field.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* IT Track Card */}
-            <div className="rounded-2xl border border-[#E5E7EB] bg-[#F8F9FA] hover:bg-white hover:border-[#BFDBFE] hover:shadow-lg p-6 sm:p-7 space-y-5 transition-all flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="w-10 h-10 rounded-xl bg-[#F0F4FF] border border-[#BFDBFE] flex items-center justify-center text-[#2E6FF2]">
-                    <span className="material-symbols-outlined text-[22px]">terminal</span>
-                  </div>
-                  <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-[#DAE2FF] text-[#2E6FF2]">
-                    IT SYSTEMS
-                  </span>
-                </div>
-
-                <div className="space-y-1.5">
-                  <h3 className="text-xl font-bold text-[#17181C]">Information Technology</h3>
-                  <p className="text-xs text-[#6B7078] leading-relaxed">
-                    Technical precision, concurrency models, algorithm optimization, and full-stack software architecture.
-                  </p>
-                </div>
-
-                <div className="space-y-2 pt-2 border-t border-[#E5E7EB]">
-                  <p className="font-mono text-[10px] font-bold uppercase text-[#6B7078]">High-Yield Specializations:</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {['Frontend Developer', 'Backend Architect', 'DevOps & Cloud', 'Full Stack Engineer'].map((r, i) => (
-                      <span key={i} className="px-2 py-0.5 rounded text-[11px] bg-white border border-[#E5E7EB] text-[#17181C]">
-                        {r}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2 pt-2">
-                  <p className="font-mono text-[10px] font-bold uppercase text-[#6B7078]">Key Evaluated Competencies:</p>
-                  <ul className="text-xs text-[#17181C] space-y-1.5">
-                    <li className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[15px] text-[#2E6FF2]">check_circle</span>
-                      <span>Algorithmic Complexity (Big O)</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[15px] text-[#2E6FF2]">check_circle</span>
-                      <span>React 19 & Concurrent State Engines</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[15px] text-[#2E6FF2]">check_circle</span>
-                      <span>Scalable Microservice & API Contracts</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => handleLaunchTrack('it', 'Frontend Developer')}
-                className="mt-6 w-full py-2.5 rounded-xl bg-white hover:bg-[#2E6FF2] text-[#2E6FF2] hover:text-white border border-[#2E6FF2] text-xs font-semibold shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>Launch IT Track</span>
-                <span className="material-symbols-outlined text-[15px]">arrow_forward</span>
-              </button>
-            </div>
-
-            {/* Management Track Card */}
-            <div className="rounded-2xl border border-[#E5E7EB] bg-[#F8F9FA] hover:bg-white hover:border-[#E9D5FF] hover:shadow-lg p-6 sm:p-7 space-y-5 transition-all flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="w-10 h-10 rounded-xl bg-[#F7F0FF] border border-[#E9D5FF] flex items-center justify-center text-[#8B4FE0]">
-                    <span className="material-symbols-outlined text-[22px]">strategy</span>
-                  </div>
-                  <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-[#EDDCFF] text-[#8B4FE0]">
-                    MGMT & PRODUCT
-                  </span>
-                </div>
-
-                <div className="space-y-1.5">
-                  <h3 className="text-xl font-bold text-[#17181C]">Management & Business</h3>
-                  <p className="text-xs text-[#6B7078] leading-relaxed">
-                    Product vision, roadmap trade-offs, stakeholder negotiations, unit economics, and team execution.
-                  </p>
-                </div>
-
-                <div className="space-y-2 pt-2 border-t border-[#E5E7EB]">
-                  <p className="font-mono text-[10px] font-bold uppercase text-[#6B7078]">High-Yield Specializations:</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {['Product Manager', 'Strategy & Operations', 'Engineering Manager', 'Business Analyst'].map((r, i) => (
-                      <span key={i} className="px-2 py-0.5 rounded text-[11px] bg-white border border-[#E5E7EB] text-[#17181C]">
-                        {r}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2 pt-2">
-                  <p className="font-mono text-[10px] font-bold uppercase text-[#6B7078]">Key Evaluated Competencies:</p>
-                  <ul className="text-xs text-[#17181C] space-y-1.5">
-                    <li className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[15px] text-[#8B4FE0]">check_circle</span>
-                      <span>PRD Architecture & User Need Prioritization</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[15px] text-[#8B4FE0]">check_circle</span>
-                      <span>Cross-functional Influence Without Authority</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[15px] text-[#8B4FE0]">check_circle</span>
-                      <span>KPI Root-Cause & Churn Mitigation</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => handleLaunchTrack('management', 'Product Manager')}
-                className="mt-6 w-full py-2.5 rounded-xl bg-white hover:bg-[#8B4FE0] text-[#8B4FE0] hover:text-white border border-[#8B4FE0] text-xs font-semibold shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>Launch Management Track</span>
-                <span className="material-symbols-outlined text-[15px]">arrow_forward</span>
-              </button>
-            </div>
-
-            {/* Law Track Card */}
-            <div className="rounded-2xl border border-[#E5E7EB] bg-[#F8F9FA] hover:bg-white hover:border-[#BAE6FD] hover:shadow-lg p-6 sm:p-7 space-y-5 transition-all flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="w-10 h-10 rounded-xl bg-[#EDFAFC] border border-[#BAE6FD] flex items-center justify-center text-[#0EA5B7]">
-                    <span className="material-symbols-outlined text-[22px]">gavel</span>
-                  </div>
-                  <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-[#CCF2F6] text-[#0EA5B7]">
-                    LAW & GOVERNANCE
-                  </span>
-                </div>
-
-                <div className="space-y-1.5">
-                  <h3 className="text-xl font-bold text-[#17181C]">Law & Governance</h3>
-                  <p className="text-xs text-[#6B7078] leading-relaxed">
-                    Contractual risk mitigation, statutory regulatory compliance, intellectual property, and governance defense.
-                  </p>
-                </div>
-
-                <div className="space-y-2 pt-2 border-t border-[#E5E7EB]">
-                  <p className="font-mono text-[10px] font-bold uppercase text-[#6B7078]">High-Yield Specializations:</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {['Corporate Counsel', 'Compliance Officer', 'Legal Analyst', 'IP & Contracts Lead'].map((r, i) => (
-                      <span key={i} className="px-2 py-0.5 rounded text-[11px] bg-white border border-[#E5E7EB] text-[#17181C]">
-                        {r}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2 pt-2">
-                  <p className="font-mono text-[10px] font-bold uppercase text-[#6B7078]">Key Evaluated Competencies:</p>
-                  <ul className="text-xs text-[#17181C] space-y-1.5">
-                    <li className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[15px] text-[#0EA5B7]">check_circle</span>
-                      <span>Limitation of Liability & Indemnity Caps</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[15px] text-[#0EA5B7]">check_circle</span>
-                      <span>GDPR / CCPA / Cross-Border Data Privacy</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="material-symbols-outlined text-[15px] text-[#0EA5B7]">check_circle</span>
-                      <span>Regulatory Enforcement & Due Diligence</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => handleLaunchTrack('law', 'Corporate Counsel')}
-                className="mt-6 w-full py-2.5 rounded-xl bg-white hover:bg-[#0EA5B7] text-[#0EA5B7] hover:text-white border border-[#0EA5B7] text-xs font-semibold shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>Launch Law Track</span>
-                <span className="material-symbols-outlined text-[15px]">arrow_forward</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. INTERACTIVE LIVE ATS AUDIT ENGINE PREVIEW */}
-      <section id="ats-scanner" className="py-20 lg:py-28 border-b border-[#E5E7EB] bg-[#F8F9FA]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          <div className="text-center max-w-2xl mx-auto space-y-3">
-            <span className="font-mono text-xs uppercase font-bold text-[#16A34A] tracking-wider">
-              Recruiter Filter Intelligence
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#17181C] tracking-tight">
-              Deterministic ATS Compatibility Scanner
-            </h2>
-            <p className="text-sm sm:text-base text-[#6B7078]">
-              Over 75% of candidate resumes are filtered out before reaching a human recruiter.
-              SmartHire tests your resume against strict heuristic rules so you can pass every parse test.
-            </p>
-          </div>
-
-          {/* Interactive ATS Widget */}
-          <div className="max-w-4xl mx-auto bg-white rounded-2xl border border-[#E5E7EB] shadow-lg p-6 sm:p-8 space-y-6">
-            <div className="flex items-center justify-between flex-wrap gap-4 border-b border-[#E5E7EB] pb-4">
+        {/* SECTION C: DETERMINISTIC ATS SCANNER */}
+        <section id="ats-scanner" className="py-16 px-4 sm:px-6 max-w-5xl mx-auto w-full">
+          <div
+            className="rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl"
+            style={{
+              background: 'rgba(255, 255, 255, 0.02)',
+              backdropFilter: 'blur(16px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+            }}
+          >
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/5 pb-5">
               <div>
-                <p className="font-mono text-xs font-bold uppercase text-[#6B7078]">
-                  Select Sample Dossier to Test:
-                </p>
-                <div className="flex gap-2 mt-2">
-                  <button
-                    type="button"
-                    onClick={() => setAtsSampleType('it')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                      atsSampleType === 'it'
-                        ? 'bg-[#2E6FF2] text-white shadow-xs'
-                        : 'bg-[#F1F2F4] text-[#6B7078] hover:text-[#17181C]'
-                    }`}
-                  >
-                    IT Engineer Resume
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAtsSampleType('mgmt')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                      atsSampleType === 'mgmt'
-                        ? 'bg-[#8B4FE0] text-white shadow-xs'
-                        : 'bg-[#F1F2F4] text-[#6B7078] hover:text-[#17181C]'
-                    }`}
-                  >
-                    Product Manager Resume
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAtsSampleType('law')}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                      atsSampleType === 'law'
-                        ? 'bg-[#0EA5B7] text-white shadow-xs'
-                        : 'bg-[#F1F2F4] text-[#6B7078] hover:text-[#17181C]'
-                    }`}
-                  >
-                    Legal Counsel Resume
-                  </button>
-                </div>
+                <span className="text-[11px] font-mono uppercase text-[#71717a]">Deterministic Heuristic Scanner</span>
+                <h3 className="text-xl font-bold text-white">{currentAts.title}</h3>
               </div>
 
-              <div className="flex items-center gap-3 bg-[#F8F9FA] px-4 py-2.5 rounded-xl border border-[#E5E7EB]">
-                <div className="text-right">
-                  <p className="font-mono text-2xl font-bold text-[#16A34A]">{currentAts.score}%</p>
-                  <p className="text-[10px] text-[#6B7078] font-mono uppercase">{currentAts.matchGrade}</p>
-                </div>
-                <span className="material-symbols-outlined text-[32px] text-[#16A34A]">task_alt</span>
+              <div className="flex items-center gap-1.5 bg-white/5 p-1 rounded-full border border-white/10 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setAtsSampleType('it')}
+                  className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
+                    atsSampleType === 'it' ? 'bg-[#3b82f6] text-white' : 'text-[#a1a1aa] hover:text-white'
+                  }`}
+                >
+                  Frontend
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAtsSampleType('mgmt')}
+                  className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
+                    atsSampleType === 'mgmt' ? 'bg-[#7c3aed] text-white' : 'text-[#a1a1aa] hover:text-white'
+                  }`}
+                >
+                  Product
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAtsSampleType('law')}
+                  className={`px-3 py-1 rounded-full transition-all cursor-pointer ${
+                    atsSampleType === 'law' ? 'bg-[#0EA5B7] text-white' : 'text-[#a1a1aa] hover:text-white'
+                  }`}
+                >
+                  Corporate Law
+                </button>
               </div>
             </div>
 
-            {/* Result details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
-              <div className="space-y-4">
-                <div>
-                  <p className="font-mono text-[11px] font-bold uppercase text-[#6B7078] mb-1.5">
-                    Analyzed Document
-                  </p>
-                  <p className="text-sm font-bold text-[#17181C]">{currentAts.title}</p>
-                  <p className="text-[#6B7078] mt-1 leading-relaxed">{currentAts.summary}</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+              {/* Radial Score Gauge */}
+              <div className="flex flex-col items-center justify-center p-6 bg-white/[0.02] rounded-2xl border border-white/5">
+                <div className="relative w-32 h-32 flex items-center justify-center">
+                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="42" stroke="rgba(255,255,255,0.08)" strokeWidth="8" fill="transparent" />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="42"
+                      stroke="url(#saas-gauge-gradient)"
+                      strokeWidth="8"
+                      strokeDasharray={264}
+                      strokeDashoffset={264 - (264 * currentAts.score) / 100}
+                      strokeLinecap="round"
+                      fill="transparent"
+                      className="transition-all duration-1000 ease-out"
+                    />
+                    <defs>
+                      <linearGradient id="saas-gauge-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#8b5cf6" />
+                        <stop offset="100%" stopColor="#3b82f6" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <div className="absolute flex flex-col items-center">
+                    <span className="text-2xl font-bold text-white">{currentAts.score}%</span>
+                    <span className="text-[10px] font-mono text-[#71717a]">Match Grade</span>
+                  </div>
                 </div>
+                <p className="mt-2 text-xs font-semibold text-emerald-400">{currentAts.matchGrade}</p>
+              </div>
 
+              {/* Keywords List */}
+              <div className="md:col-span-2 space-y-4">
                 <div>
-                  <p className="font-mono text-[11px] font-bold uppercase text-[#16A34A] mb-1.5">
-                    Verified Competency Keywords ({currentAts.matched.length})
-                  </p>
+                  <p className="text-xs font-mono uppercase text-[#71717a] mb-2">Detected Keywords ({currentAts.matched.length})</p>
                   <div className="flex flex-wrap gap-1.5">
                     {currentAts.matched.map((kw, i) => (
-                      <span
-                        key={i}
-                        className="px-2 py-0.5 rounded bg-[#ECFDF5] border border-[#A7F3D0] text-[#065F46] font-mono text-[11px]"
-                      >
+                      <span key={i} className="px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                         ✓ {kw}
                       </span>
                     ))}
                   </div>
                 </div>
-              </div>
 
-              <div className="space-y-4">
                 <div>
-                  <p className="font-mono text-[11px] font-bold uppercase text-[#F59E0B] mb-1.5">
-                    Recommended High-Yield Additions
-                  </p>
+                  <p className="text-xs font-mono uppercase text-[#71717a] mb-2">Missing High-Impact Keywords ({currentAts.missing.length})</p>
                   <div className="flex flex-wrap gap-1.5">
                     {currentAts.missing.map((kw, i) => (
-                      <span
-                        key={i}
-                        className="px-2 py-0.5 rounded bg-[#FFFBEB] border border-[#FDE68A] text-[#92400E] font-mono text-[11px]"
-                      >
-                        + Add "{kw}"
+                      <span key={i} className="px-2.5 py-1 rounded-full text-xs font-mono bg-rose-500/10 text-rose-300 border border-rose-500/20">
+                        ✗ {kw}
                       </span>
                     ))}
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-[#F8F9FA] border border-[#E5E7EB] space-y-2">
-                  <p className="font-mono text-[11px] font-bold text-[#17181C]">15+ Algorithmic Checks Run:</p>
-                  <div className="grid grid-cols-2 gap-1 text-[11px] text-[#6B7078]">
-                    <span>✓ Reverse Chronology</span>
-                    <span>✓ Heading Hierarchy</span>
-                    <span>✓ Contact PII Syntax</span>
-                    <span>✓ Bullet Metric Densities</span>
-                    <span>✓ Typography Safety</span>
-                    <span>✓ Zero Multi-column Table Traps</span>
-                  </div>
+                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 text-xs text-[#a1a1aa]">
+                  <span className="font-semibold text-white">ATS Heuristic Analysis: </span>
+                  {currentAts.summary}
                 </div>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-[#E5E7EB] flex items-center justify-between flex-wrap gap-3">
-              <span className="text-xs text-[#6B7078]">
-                Ready to audit your actual PDF or text resume docket?
+            <div className="pt-4 border-t border-white/5 flex items-center justify-between flex-wrap gap-3">
+              <span className="text-xs text-[#a1a1aa]">
+                Compile and export your resume in our markdown studio with zero formatting penalties.
               </span>
               <button
                 type="button"
                 onClick={() => onNavigate('resume')}
-                className="px-5 py-2.5 rounded-xl bg-[#17181C] hover:bg-[#2A2B30] text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 cursor-pointer transition-all"
+                className="btn-gradient-primary px-5 py-2 text-xs font-semibold cursor-pointer shadow-md"
               >
-                <span>Upload & Audit My Resume</span>
-                <span className="material-symbols-outlined text-[14px]">upload_file</span>
+                Scan Your Resume Now
               </button>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* 6. PLATFORM FEATURE BENTO GRID */}
-      <section id="features" className="py-20 lg:py-28 border-b border-[#E5E7EB] bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          <div className="text-center max-w-2xl mx-auto space-y-3">
-            <span className="font-mono text-xs uppercase font-bold text-[#8B4FE0] tracking-wider">
-              Comprehensive Platform Capabilities
+        {/* SECTION D: BENTO GRID FEATURES */}
+        <section id="features" className="py-20 px-4 sm:px-6 max-w-6xl mx-auto w-full">
+          <div className="text-center max-w-2xl mx-auto space-y-3 mb-14">
+            <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#60a5fa]">
+              SYSTEM ADVANTAGES
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#17181C] tracking-tight">
-              An End-to-End Preparation Engine
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
+              Built on Modern Architecture
             </h2>
-            <p className="text-sm sm:text-base text-[#6B7078]">
-              Everything you need to calibrate your profile, practice high-friction interview scenarios,
-              and walk into your next career opportunity fully prepared.
+            <p className="text-sm sm:text-base text-[#a1a1aa]">
+              Everything you need to master competitive career transitions with verifiable precision.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Bento Card 1: Dynamic Persona Branching */}
-            <div className="md:col-span-2 rounded-2xl border border-[#E5E7EB] bg-[#F8F9FA] p-7 sm:p-8 space-y-4 hover:shadow-md transition-all text-left">
-              <div className="w-10 h-10 rounded-xl bg-[#F7F0FF] border border-[#E9D5FF] flex items-center justify-center text-[#8B4FE0]">
-                <span className="material-symbols-outlined text-[24px]">forum</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div
+              className="rounded-3xl p-7 space-y-3"
+              style={{
+                background: 'rgba(255, 255, 255, 0.02)',
+                backdropFilter: 'blur(16px)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+              }}
+            >
+              <div className="w-10 h-10 rounded-2xl bg-[#7c3aed]/15 border border-[#7c3aed]/30 flex items-center justify-center text-[#c084fc]">
+                <span className="material-symbols-outlined text-[20px]">smart_toy</span>
               </div>
-              <h3 className="text-xl font-bold text-[#17181C]">
-                Dynamic Persona-Driven Mock Interviews
-              </h3>
-              <p className="text-xs sm:text-sm text-[#6B7078] leading-relaxed">
-                Step beyond static question lists. Our mock examination engine adapts to your responses:
-                if you present a sharp, executive-level answer, examiners like Eleanor Hayes and Marcus Vance
-                will branch dynamically to probe deeper and test how you handle organizational friction and edge cases.
+              <h4 className="text-lg font-bold text-white">Persona AI Examiners</h4>
+              <p className="text-xs text-[#a1a1aa] leading-relaxed">
+                Adaptive examiners who interrogate depth, challenge trade-offs, and dynamically adjust difficulty.
               </p>
-              <div className="pt-2 flex flex-wrap gap-2 text-xs font-mono">
-                <span className="px-2.5 py-1 rounded-md bg-white border border-[#E5E7EB] text-[#17181C]">
-                  • Multiple-Choice Core Knowledge
-                </span>
-                <span className="px-2.5 py-1 rounded-md bg-white border border-[#E5E7EB] text-[#17181C]">
-                  • Verbal Defense & Long Answers
-                </span>
-                <span className="px-2.5 py-1 rounded-md bg-white border border-[#E5E7EB] text-[#17181C]">
-                  • Adaptive Pressure Branching
-                </span>
-              </div>
             </div>
 
-            {/* Bento Card 2: Structured Resume Studio */}
-            <div className="rounded-2xl border border-[#E5E7EB] bg-[#F8F9FA] p-7 sm:p-8 space-y-4 hover:shadow-md transition-all text-left">
-              <div className="w-10 h-10 rounded-xl bg-[#F0F4FF] border border-[#BFDBFE] flex items-center justify-center text-[#2E6FF2]">
-                <span className="material-symbols-outlined text-[24px]">edit_document</span>
+            <div
+              className="rounded-3xl p-7 space-y-3"
+              style={{
+                background: 'rgba(255, 255, 255, 0.02)',
+                backdropFilter: 'blur(16px)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+              }}
+            >
+              <div className="w-10 h-10 rounded-2xl bg-[#3b82f6]/15 border border-[#3b82f6]/30 flex items-center justify-center text-[#60a5fa]">
+                <span className="material-symbols-outlined text-[20px]">database</span>
               </div>
-              <h3 className="text-xl font-bold text-[#17181C]">Resume Studio & PDF Export</h3>
-              <p className="text-xs text-[#6B7078] leading-relaxed">
-                Build clean, recruiter-compliant resumes with real-time Markdown sync, autosaving to MongoDB,
-                and instant crisp vector PDF downloads formatted to glide through ATS parsers.
+              <h4 className="text-lg font-bold text-white">Dual Database Engine</h4>
+              <p className="text-xs text-[#a1a1aa] leading-relaxed">
+                Relational candidate accounts in SQLite; dynamic resume schemas and evaluation trees in MongoDB Atlas.
               </p>
+            </div>
+
+            <div
+              className="rounded-3xl p-7 space-y-3"
+              style={{
+                background: 'rgba(255, 255, 255, 0.02)',
+                backdropFilter: 'blur(16px)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+              }}
+            >
+              <div className="w-10 h-10 rounded-2xl bg-[#0EA5B7]/15 border border-[#0EA5B7]/30 flex items-center justify-center text-[#22D3EE]">
+                <span className="material-symbols-outlined text-[20px]">psychology</span>
+              </div>
+              <h4 className="text-lg font-bold text-white">STAR & IRAC Rubrics</h4>
+              <p className="text-xs text-[#a1a1aa] leading-relaxed">
+                Automated scoring based on formal industry interview frameworks with detailed critique on every answer.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* SECTION E: BOTTOM EPIC CALL TO ACTION BANNER */}
+        <section id="pricing" className="py-24 px-4 sm:px-6 max-w-4xl mx-auto w-full text-center">
+          <div
+            className="rounded-3xl p-10 sm:p-14 space-y-6 shadow-2xl relative overflow-hidden"
+            style={{
+              background: 'rgba(255, 255, 255, 0.02)',
+              backdropFilter: 'blur(16px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              boxShadow: '0 4px 30px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+            }}
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-[#a1a1aa]">
+              <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
+              <span>INSTANT ONBOARDING // FREE ACCESS</span>
+            </div>
+
+            <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white leading-tight">
+              Ready to scale your <span className="gradient-text-highlights">SaaS?</span>
+            </h2>
+
+            <p className="text-sm sm:text-base text-[#a1a1aa] max-w-md mx-auto leading-relaxed">
+              Start practicing with realistic personas and verify your resume ATS compatibility today.
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
               <button
                 type="button"
-                onClick={() => onNavigate('resume_editor')}
-                className="text-xs font-semibold text-[#2E6FF2] hover:underline flex items-center gap-1 cursor-pointer pt-2"
+                onClick={() => onNavigate('field_select')}
+                className="btn-gradient-primary w-full sm:w-auto px-8 py-3.5 text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer shadow-lg"
               >
-                <span>Open Resume Editor</span>
-                <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                <span>Start for free</span>
+                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
               </button>
-            </div>
 
-            {/* Bento Card 3: Deep Telemetry Dossiers */}
-            <div className="rounded-2xl border border-[#E5E7EB] bg-[#F8F9FA] p-7 sm:p-8 space-y-4 hover:shadow-md transition-all text-left">
-              <div className="w-10 h-10 rounded-xl bg-[#EDFAFC] border border-[#BAE6FD] flex items-center justify-center text-[#0EA5B7]">
-                <span className="material-symbols-outlined text-[24px]">analytics</span>
-              </div>
-              <h3 className="text-xl font-bold text-[#17181C]">Candidate Telemetry Dossiers</h3>
-              <p className="text-xs text-[#6B7078] leading-relaxed">
-                Every examination session archives complete turn-by-turn rubrics, overall scores, and
-                downloadable comprehensive PDF reports to monitor your competency improvements over time.
-              </p>
               <button
                 type="button"
-                onClick={() => onNavigate('session_history')}
-                className="text-xs font-semibold text-[#0EA5B7] hover:underline flex items-center gap-1 cursor-pointer pt-2"
+                onClick={() => onNavigate('login')}
+                className="btn-glass w-full sm:w-auto px-7 py-3.5 text-sm font-medium cursor-pointer text-[#a1a1aa] hover:text-white"
               >
-                <span>View Session Archive</span>
-                <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                Sign In to Existing Dossier
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* 6. LIQUID GLASS FOOTER */}
+        <footer
+          className="w-full mt-auto py-8 px-4 sm:px-6 border-t border-white/5"
+          style={{ background: 'rgba(3, 3, 3, 0.8)' }}
+        >
+          <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#71717a]">
+            <div className="flex items-center gap-2.5">
+              <svg className="w-5 h-5 shrink-0" viewBox="0 0 32 32" fill="none">
+                <rect x="4" y="4" width="16" height="16" rx="4" fill="#7c3aed" />
+                <rect x="12" y="12" width="16" height="16" rx="4" fill="#8b5cf6" fillOpacity="0.85" />
+              </svg>
+              <span className="text-white font-semibold">SmartHire Prep</span>
+              <span className="text-[#71717a] font-mono">• Dark SaaS Edition</span>
+            </div>
+
+            <div className="flex items-center gap-6">
+              <a href="#features" className="hover:text-white transition-colors">Features</a>
+              <a href="#tracks" className="hover:text-white transition-colors">Solutions</a>
+              <a href="#ats-scanner" className="hover:text-white transition-colors">ATS Scanner</a>
+              <button
+                type="button"
+                onClick={() => onNavigate('field_select')}
+                className="hover:text-white transition-colors cursor-pointer"
+              >
+                Practice
               </button>
             </div>
 
-            {/* Bento Card 4: Enterprise Dual SQL + NoSQL Architecture */}
-            <div className="md:col-span-2 rounded-2xl border border-[#E5E7EB] bg-[#F8F9FA] p-7 sm:p-8 space-y-4 hover:shadow-md transition-all text-left">
-              <div className="w-10 h-10 rounded-xl bg-[#ECFDF5] border border-[#A7F3D0] flex items-center justify-center text-[#16A34A]">
-                <span className="material-symbols-outlined text-[24px]">database</span>
-              </div>
-              <h3 className="text-xl font-bold text-[#17181C]">
-                Dual Database Architecture (SQLite + MongoDB)
-              </h3>
-              <p className="text-xs sm:text-sm text-[#6B7078] leading-relaxed">
-                Engineered for speed, resilience, and document flexibility. User accounts, scoring archives,
-                and session metadata reside in ACID-compliant relational SQL tables, while unstructured resume
-                dockets, rich rubric synopses, and question banks leverage flexible document collections.
-              </p>
-              <div className="flex items-center gap-4 text-xs font-mono text-[#6B7078] pt-1">
-                <span>• SQLite Relational Core</span>
-                <span>• MongoDB Document Store</span>
-                <span>• Resilient mongomock Fallback</span>
-              </div>
+            <div className="flex items-center gap-2 font-mono text-[11px]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
+              <span>3D Engine: TubesCursor Active</span>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* 7. HOW IT WORKS 3-STEP WALKTHROUGH */}
-      <section id="how-it-works" className="py-20 lg:py-28 border-b border-[#E5E7EB] bg-[#F8F9FA]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          <div className="text-center max-w-2xl mx-auto space-y-3">
-            <span className="font-mono text-xs uppercase font-bold text-[#2E6FF2] tracking-wider">
-              Execution Roadmap
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#17181C] tracking-tight">
-              Three Steps to Interview Readiness
-            </h2>
-            <p className="text-sm sm:text-base text-[#6B7078]">
-              A structured workflow designed to build muscle memory and identify skill gaps rapidly.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-            {/* Step 1 */}
-            <div className="bg-white rounded-2xl p-7 border border-[#E5E7EB] shadow-xs space-y-4 relative">
-              <span className="font-mono text-4xl font-black text-[#E5E7EB]">01</span>
-              <h3 className="text-lg font-bold text-[#17181C]">Calibrate Discipline & Role</h3>
-              <p className="text-xs text-[#6B7078] leading-relaxed">
-                Select from IT Systems, Management, or Law. Choose your target role or customize a specialized
-                title to ensure questions and rubrics align precisely with the industry benchmarks you face.
-              </p>
-            </div>
-
-            {/* Step 2 */}
-            <div className="bg-white rounded-2xl p-7 border border-[#E5E7EB] shadow-xs space-y-4 relative">
-              <span className="font-mono text-4xl font-black text-[#E5E7EB]">02</span>
-              <h3 className="text-lg font-bold text-[#17181C]">Audit & Refine Your Resume</h3>
-              <p className="text-xs text-[#6B7078] leading-relaxed">
-                Upload your existing PDF or compose a new resume in the built-in Studio. Run the deterministic
-                heuristic ATS checker to identify keyword deficiencies and ensure parser-safe formatting.
-              </p>
-            </div>
-
-            {/* Step 3 */}
-            <div className="bg-white rounded-2xl p-7 border border-[#E5E7EB] shadow-xs space-y-4 relative">
-              <span className="font-mono text-4xl font-black text-[#E5E7EB]">03</span>
-              <h3 className="text-lg font-bold text-[#17181C]">Simulate, Defend & Review</h3>
-              <p className="text-xs text-[#6B7078] leading-relaxed">
-                Launch standard timed MCQs or dynamic mock persona interviews. Receive real-time examiner remarks,
-                review dimension rubrics, and download a performance report dossier to benchmark your progress.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 8. COMPARISON TABLE: SMARTHIRE VS GENERIC CHATBOTS */}
-      <section className="py-20 lg:py-28 border-b border-[#E5E7EB] bg-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-          <div className="text-center max-w-2xl mx-auto space-y-3">
-            <span className="font-mono text-xs uppercase font-bold text-[#17181C] tracking-wider">
-              The SmartHire Advantage
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#17181C] tracking-tight">
-              Why SmartHire Outperforms Generic AI Prompts
-            </h2>
-            <p className="text-sm text-[#6B7078]">
-              Generic chat models lack domain rubrics, deterministic ATS filters, and structured telemetry.
-            </p>
-          </div>
-
-          <div className="overflow-x-auto rounded-2xl border border-[#E5E7EB] shadow-sm">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-[#F8F9FA] border-b border-[#E5E7EB] text-[#17181C] font-mono uppercase text-[11px]">
-                  <th className="p-4 sm:p-5">Capability Dimension</th>
-                  <th className="p-4 sm:p-5 text-[#2E6FF2] bg-[#F0F4FF]/60 font-bold">
-                    SmartHire Prep Platform
-                  </th>
-                  <th className="p-4 sm:p-5 text-[#6B7078]">Generic AI Chatbots</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#E5E7EB] text-[#17181C]">
-                <tr>
-                  <td className="p-4 sm:p-5 font-semibold">Discipline-Specific Rubrics</td>
-                  <td className="p-4 sm:p-5 bg-[#F0F4FF]/30 font-semibold text-[#16A34A] flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                    <span>IT, Management, and Law calibrated scoring</span>
-                  </td>
-                  <td className="p-4 sm:p-5 text-[#6B7078]">Generic one-size-fits-all responses</td>
-                </tr>
-                <tr>
-                  <td className="p-4 sm:p-5 font-semibold">Deterministic ATS Checker</td>
-                  <td className="p-4 sm:p-5 bg-[#F0F4FF]/30 font-semibold text-[#16A34A] flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                    <span>15+ algorithmic formatting & keyword tests</span>
-                  </td>
-                  <td className="p-4 sm:p-5 text-[#6B7078]">No parsing rules; hallucinated advice</td>
-                </tr>
-                <tr>
-                  <td className="p-4 sm:p-5 font-semibold">Adaptive Examiner Branching</td>
-                  <td className="p-4 sm:p-5 bg-[#F0F4FF]/30 font-semibold text-[#16A34A] flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                    <span>Personas probe friction based on answers</span>
-                  </td>
-                  <td className="p-4 sm:p-5 text-[#6B7078]">Static text output with no memory</td>
-                </tr>
-                <tr>
-                  <td className="p-4 sm:p-5 font-semibold">Publication-Ready Vector PDF</td>
-                  <td className="p-4 sm:p-5 bg-[#F0F4FF]/30 font-semibold text-[#16A34A] flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                    <span>Instant downloadable PDF resumes & reports</span>
-                  </td>
-                  <td className="p-4 sm:p-5 text-[#6B7078]">Raw markdown text with manual copy/paste</td>
-                </tr>
-                <tr>
-                  <td className="p-4 sm:p-5 font-semibold">Long-Term Session Telemetry</td>
-                  <td className="p-4 sm:p-5 bg-[#F0F4FF]/30 font-semibold text-[#16A34A] flex items-center gap-1.5">
-                    <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                    <span>SQL archived performance records & trends</span>
-                  </td>
-                  <td className="p-4 sm:p-5 text-[#6B7078]">Lost once browser tab is closed</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      {/* 9. BOTTOM HIGH-CONVERSION CTA BANNER */}
-      <section className="py-20 lg:py-28 bg-[#17181C] text-white text-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(#2E6FF2_1px,transparent_1px)] [background-size:28px_28px] opacity-15 pointer-events-none"></div>
-
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white text-xs font-mono font-medium">
-            <span>Enterprise-Grade Candidate Calibration</span>
-          </div>
-
-          <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight">
-            Ready to Accelerate Your Career Trajectory?
-          </h2>
-
-          <p className="text-sm sm:text-base text-[#9CA3AF] max-w-xl mx-auto leading-relaxed">
-            Join candidates using SmartHire to simulate rigorous interviews, optimize resumes for ATS bots,
-            and walk into negotiations with verifiable confidence.
-          </p>
-
-          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <button
-              type="button"
-              onClick={() => onNavigate('field_select')}
-              className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-white hover:bg-[#F1F2F4] text-[#17181C] text-sm font-bold shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>Launch Practice Free</span>
-              <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onNavigate('login')}
-              className="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/20 text-sm font-semibold transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-[16px]">login</span>
-              <span>Candidate Sign In</span>
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* 10. FOOTER */}
-      <footer className="bg-white border-t border-[#E5E7EB] py-12 text-xs text-[#6B7078]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex flex-col items-center md:items-start gap-2">
-            <BrandWordmark
-              subtitle="Career Intelligence Suite"
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            />
-            <p className="text-[11px] text-[#9CA3AF] text-center md:text-left">
-              Dual SQLite Relational + MongoDB Document Architecture for high-precision career readiness.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-6 text-xs font-medium text-[#17181C]">
-            <a
-              href="#tracks"
-              className="hover:text-[#2E6FF2] transition-colors"
-            >
-              Career Tracks
-            </a>
-            <a
-              href="#features"
-              className="hover:text-[#2E6FF2] transition-colors"
-            >
-              Features
-            </a>
-            <a
-              href="#ats-scanner"
-              className="hover:text-[#2E6FF2] transition-colors"
-            >
-              ATS Scanner
-            </a>
-            <button
-              type="button"
-              onClick={() => onNavigate('login')}
-              className="hover:text-[#2E6FF2] transition-colors cursor-pointer"
-            >
-              Sign In
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2 font-mono text-[11px] text-[#16A34A] bg-[#ECFDF5] px-3 py-1 rounded-full border border-[#A7F3D0]">
-            <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse"></span>
-            <span>All Systems Operational (v2.4)</span>
-          </div>
-        </div>
-      </footer>
+        </footer>
+      </div>
     </div>
   );
 };
