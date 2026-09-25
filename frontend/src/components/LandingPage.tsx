@@ -74,72 +74,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     };
   }, []);
 
-  // Sticky header scroll status, progress bar, and active section spy
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const [activeSection, setActiveSection] = useState<string>('hero');
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      setIsScrolled(scrollY > 20);
-
-      const winHeight = document.documentElement.scrollHeight - window.innerHeight;
-      if (winHeight > 0) {
-        setScrollProgress(Math.min(100, Math.max(0, (scrollY / winHeight) * 100)));
-      }
-
-      const sections = ['hero', 'tracks', 'cockpit', 'ats-scanner', 'features', 'pricing'];
-      for (const sectionId of sections) {
-        const el = document.getElementById(sectionId);
-        if (el) {
-          const rect = el.getBoundingClientRect();
-          if (rect.top <= 160 && rect.bottom >= 160) {
-            setActiveSection(sectionId);
-            break;
-          }
-        }
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // IntersectionObserver for smooth sliding reveal animations on scroll
-  useEffect(() => {
-    const elements = document.querySelectorAll('.saas-reveal');
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('saas-visible');
-          }
-        });
-      },
-      { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
-    );
-
-    elements.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, []);
-
-  // Direct smooth navigation with navbar offset compensation
-  const handleDirectNav = (e: React.MouseEvent, sectionId: string) => {
-    e.preventDefault();
-    setMobileMenuOpen(false);
-    const element = document.getElementById(sectionId);
-    if (element) {
-      const navOffset = 84;
-      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
-      window.scrollTo({
-        top: Math.max(0, elementPosition - navOffset),
-        behavior: 'smooth',
-      });
-    }
-  };
-
   const previewData = {
     it: {
       tag: 'IT SYSTEMS',
@@ -235,8 +169,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   const currentAts = atsSamples[atsSampleType];
 
+  const handleDirectNav = (
+    e: React.MouseEvent<HTMLElement>,
+    targetId: string
+  ) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    const elem = document.getElementById(targetId);
+    if (elem) {
+      elem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#030303] text-white font-sans antialiased selection:bg-[#7c3aed]/30 selection:text-white relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#030303] text-white font-sans antialiased selection:bg-[#7c3aed]/30 selection:text-white relative">
       {/* 3D Animated Background Canvas (TubesCursor) */}
       <canvas
         id="canvas"
@@ -251,26 +199,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* Main content wrapper positioned above canvas */}
       <div className="relative z-10 flex flex-col min-h-screen">
-        {/* 1. LIQUID GLASS NAVBAR (Sticky Floating Dock with Smooth Compaction) */}
-        <header
-          className={`sticky top-0 z-50 w-full transition-all duration-300 ${
-            isScrolled
-              ? 'pt-2.5 pb-2.5 px-3 sm:px-6 bg-[#030303]/60 backdrop-blur-md border-b border-white/[0.06] shadow-[0_10px_30px_rgba(0,0,0,0.5)]'
-              : 'pt-5 pb-2 px-4 sm:px-6 bg-transparent'
-          }`}
-        >
-          <nav
-            className={`liquid-glass-nav flex items-center justify-between mx-auto transition-all duration-300 relative overflow-hidden ${
-              isScrolled ? 'is-stuck' : ''
-            }`}
-          >
-            {/* Ambient Top Glow Progress Bar */}
-            <div
-              className="absolute bottom-0 left-0 h-[2px] bg-gradient-to-r from-[#7c3aed] via-[#3b82f6] to-[#ec4899] transition-all duration-150 pointer-events-none rounded-full"
-              style={{ width: `${scrollProgress}%`, opacity: isScrolled ? 0.95 : 0 }}
-            />
-
-            {/* Left: SmartHire Logo (purple stacked squares + text) */}
+        {/* 1. LIQUID GLASS NAVBAR (Sticky Floating Pill) */}
+        <header className="sticky top-6 z-50 px-4 sm:px-6 w-full">
+          <nav className="liquid-glass-nav flex items-center justify-between mx-auto transition-all">
+            {/* Left: "Fluxo" / SmartHire Logo (purple stacked squares + text) */}
             <div
               onClick={(e) => handleDirectNav(e, 'hero')}
               className="flex items-center gap-3 cursor-pointer select-none group"
@@ -288,16 +220,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
             </div>
 
-            {/* Center: Desktop Navigation Links (with direct smooth navigation & active indicator) */}
-            <div className="hidden lg:flex items-center gap-2 text-sm font-medium">
+            {/* Center: Desktop Navigation Links (with dropdown chevrons) */}
+            <div className="hidden lg:flex items-center gap-7 text-sm font-medium text-[#a1a1aa]">
               <a
                 href="#features"
                 onClick={(e) => handleDirectNav(e, 'features')}
-                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer ${
-                  activeSection === 'features'
-                    ? 'text-white bg-white/10 shadow-xs'
-                    : 'text-[#a1a1aa] hover:text-white hover:bg-white/5'
-                }`}
+                className="hover:text-white transition-colors cursor-pointer"
               >
                 Features
               </a>
@@ -305,11 +233,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <a
                 href="#tracks"
                 onClick={(e) => handleDirectNav(e, 'tracks')}
-                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 group ${
-                  activeSection === 'tracks'
-                    ? 'text-white bg-white/10 shadow-xs'
-                    : 'text-[#a1a1aa] hover:text-white hover:bg-white/5'
-                }`}
+                className="hover:text-white transition-colors flex items-center gap-1.5 group cursor-pointer"
               >
                 <span>Solutions</span>
                 <svg
@@ -328,11 +252,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <a
                 href="#pricing"
                 onClick={(e) => handleDirectNav(e, 'pricing')}
-                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer ${
-                  activeSection === 'pricing'
-                    ? 'text-white bg-white/10 shadow-xs'
-                    : 'text-[#a1a1aa] hover:text-white hover:bg-white/5'
-                }`}
+                className="hover:text-white transition-colors cursor-pointer"
               >
                 Pricing
               </a>
@@ -340,11 +260,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <a
                 href="#cockpit"
                 onClick={(e) => handleDirectNav(e, 'cockpit')}
-                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 group ${
-                  activeSection === 'cockpit'
-                    ? 'text-white bg-white/10 shadow-xs'
-                    : 'text-[#a1a1aa] hover:text-white hover:bg-white/5'
-                }`}
+                className="hover:text-white transition-colors flex items-center gap-1.5 group cursor-pointer"
               >
                 <span>Resources</span>
                 <svg
@@ -363,11 +279,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <a
                 href="#ats-scanner"
                 onClick={(e) => handleDirectNav(e, 'ats-scanner')}
-                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer ${
-                  activeSection === 'ats-scanner'
-                    ? 'text-white bg-white/10 shadow-xs'
-                    : 'text-[#a1a1aa] hover:text-white hover:bg-white/5'
-                }`}
+                className="hover:text-white transition-colors cursor-pointer"
               >
                 Changelog
               </a>
@@ -431,48 +343,48 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* 2. MOBILE MENU DRAWER */}
           {mobileMenuOpen && (
             <div
-              className="lg:hidden absolute left-4 right-4 top-[calc(100%+8px)] rounded-3xl p-6 space-y-4 shadow-2xl transition-all"
+              className="lg:hidden absolute left-4 right-4 top-[calc(80px+12px)] rounded-3xl p-6 space-y-4 shadow-2xl transition-all"
               style={{
                 background: 'rgba(10, 10, 15, 0.95)',
-                backdropFilter: 'blur(20px) saturate(190%)',
-                WebkitBackdropFilter: 'blur(20px) saturate(190%)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                boxShadow: '0 12px 40px rgba(0, 0, 0, 0.6)',
+                backdropFilter: 'blur(16px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                boxShadow: '0 4px 30px rgba(0, 0, 0, 0.3)',
               }}
             >
               <div className="flex flex-col space-y-3 text-sm font-medium text-[#a1a1aa]">
                 <a
                   href="#features"
                   onClick={(e) => handleDirectNav(e, 'features')}
-                  className="hover:text-white py-1.5 transition-colors"
+                  className="hover:text-white py-1.5 transition-colors cursor-pointer"
                 >
                   Features
                 </a>
                 <a
                   href="#tracks"
                   onClick={(e) => handleDirectNav(e, 'tracks')}
-                  className="hover:text-white py-1.5 transition-colors"
+                  className="hover:text-white py-1.5 transition-colors cursor-pointer"
                 >
                   Solutions
                 </a>
                 <a
                   href="#pricing"
                   onClick={(e) => handleDirectNav(e, 'pricing')}
-                  className="hover:text-white py-1.5 transition-colors"
+                  className="hover:text-white py-1.5 transition-colors cursor-pointer"
                 >
                   Pricing
                 </a>
                 <a
                   href="#cockpit"
                   onClick={(e) => handleDirectNav(e, 'cockpit')}
-                  className="hover:text-white py-1.5 transition-colors"
+                  className="hover:text-white py-1.5 transition-colors cursor-pointer"
                 >
                   Resources
                 </a>
                 <a
                   href="#ats-scanner"
                   onClick={(e) => handleDirectNav(e, 'ats-scanner')}
-                  className="hover:text-white py-1.5 transition-colors"
+                  className="hover:text-white py-1.5 transition-colors cursor-pointer"
                 >
                   Changelog
                 </a>
