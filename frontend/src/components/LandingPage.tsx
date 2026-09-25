@@ -375,7 +375,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   }}
                   className="w-full py-2.5 rounded-full btn-gradient-primary text-xs font-semibold text-white cursor-pointer"
                 >
-                  Start for free ->
+                  Start for free &rarr;
                 </button>
               </div>
             </div>
@@ -396,7 +396,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#7c3aed] text-white">
               New
             </span>
-            <span>AI Assistant is now live -></span>
+            <span>AI Assistant is now live &rarr;</span>
           </div>
 
           {/* Headline (H1): font-size: 4.5rem; line-height: 1.1; font-weight: 700 */}
