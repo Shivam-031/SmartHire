@@ -31,8 +31,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
     const initTubes = async () => {
       try {
+        console.log('[Tubes] initTubes started');
         const canvas = canvasRef.current || (document.getElementById('canvas') as HTMLCanvasElement);
-        if (!canvas) return;
+        if (!canvas) {
+          console.log('[Tubes] Canvas element not found');
+          return;
+        }
 
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
@@ -41,26 +45,41 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         let module: any = null;
         try {
           module = await loadModule('/tubes1.min.js');
-        } catch {
+          console.log('[Tubes] Loaded local /tubes1.min.js');
+        } catch (localErr) {
+          console.log('[Tubes] Local load failed, trying CDN:', localErr);
           module = await loadModule(
             'https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js'
           );
         }
         const TubesCursor = module?.default || module;
+        console.log('[Tubes] TubesCursor type:', typeof TubesCursor);
 
         if (isMounted && typeof TubesCursor === 'function') {
           appInstance = TubesCursor(canvas, {
             tubes: {
-              colors: ['#ff008a', '#8b5cf6', '#3b82f6', '#ffffff'],
+              count: 28,
+              minRadius: 0.012,
+              maxRadius: 0.065,
+              minTubularSegments: 48,
+              maxTubularSegments: 100,
+              lerp: 0.35,
+              noise: 0.06,
+              colors: ['#ff008a', '#c084fc', '#8b5cf6', '#3b82f6', '#06b6d4'],
               lights: {
-                intensity: 120,
-                colors: ['#ff008a', '#8b5cf6', '#3b82f6', '#ffffff'],
+                intensity: 180,
+                colors: ['#ff008a', '#8b5cf6', '#3b82f6', '#06b6d4'],
               },
             },
+            sleepRadiusX: 520,
+            sleepRadiusY: 260,
+            sleepTimeScale1: 0.9,
+            sleepTimeScale2: 1.4,
           });
+          console.log('[Tubes] appInstance created:', !!appInstance);
         }
       } catch (err) {
-        console.warn('TubesCursor 3D background notice:', err);
+        console.error('[Tubes] Error initializing TubesCursor:', err);
       }
     };
 
@@ -268,10 +287,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         />
       </div>
 
+      {/* Subtle modern cyber-grid background */}
+      <div
+        className="fixed inset-0 pointer-events-none opacity-40"
+        style={{
+          zIndex: 0,
+          backgroundImage: `
+            linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px)
+          `,
+          backgroundSize: '54px 54px',
+          maskImage: 'radial-gradient(ellipse 80% 60% at 50% 20%, black 40%, transparent 100%)',
+          WebkitMaskImage: 'radial-gradient(ellipse 80% 60% at 50% 20%, black 40%, transparent 100%)',
+        }}
+      />
+
       {/* Ambient background glows */}
-      <div className="fixed top-[-100px] left-[10%] w-[550px] h-[550px] rounded-full bg-[#7c3aed]/22 blur-[140px] pointer-events-none" style={{ zIndex: 0 }} />
-      <div className="fixed top-[40%] right-[-100px] w-[500px] h-[500px] rounded-full bg-[#3b82f6]/18 blur-[150px] pointer-events-none" style={{ zIndex: 0 }} />
-      <div className="fixed bottom-[-100px] left-[30%] w-[650px] h-[650px] rounded-full bg-[#8b5cf6]/20 blur-[160px] pointer-events-none" style={{ zIndex: 0 }} />
+      <div className="fixed top-[-120px] left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full bg-gradient-to-b from-[#7c3aed]/25 via-[#4f46e5]/18 to-transparent blur-[120px] pointer-events-none" style={{ zIndex: 0 }} />
+      <div className="fixed top-[30%] left-[-150px] w-[550px] h-[550px] rounded-full bg-[#8b5cf6]/20 blur-[150px] pointer-events-none" style={{ zIndex: 0 }} />
+      <div className="fixed top-[45%] right-[-150px] w-[600px] h-[600px] rounded-full bg-[#06b6d4]/16 blur-[160px] pointer-events-none" style={{ zIndex: 0 }} />
+      <div className="fixed bottom-[-100px] left-[25%] w-[700px] h-[700px] rounded-full bg-[#7c3aed]/18 blur-[160px] pointer-events-none" style={{ zIndex: 0 }} />
 
       {/* Main content wrapper */}
       <div className="relative z-10 flex flex-col min-h-screen">
@@ -1044,7 +1079,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     >
                       {currentPreview.tag}
                     </span>
-                    <span className="text-xs text-[#a1a1aa] font-mono">• {currentPreview.role}</span>
+                    <span className="text-xs text-[#a1a1aa] font-mono">ΓÇó {currentPreview.role}</span>
                   </div>
                   <span className="font-mono text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                     Dimension: {currentPreview.rubric}
@@ -1217,7 +1252,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <div className="flex flex-wrap gap-1.5">
                     {currentAts.matched.map((kw, i) => (
                       <span key={i} className="px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                        ✓ {kw}
+                        Γ£ô {kw}
                       </span>
                     ))}
                   </div>
@@ -1228,7 +1263,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <div className="flex flex-wrap gap-1.5">
                     {currentAts.missing.map((kw, i) => (
                       <span key={i} className="px-2.5 py-1 rounded-full text-xs font-mono bg-rose-500/10 text-rose-300 border border-rose-500/20">
-                        ✕ {kw}
+                        Γ£ò {kw}
                       </span>
                     ))}
                   </div>
@@ -1555,7 +1590,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             {/* Bottom Bar */}
             <div className="pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#71717a]">
-              <span>© {new Date().getFullYear()} SmartHire Platform. All rights reserved.</span>
+              <span>┬⌐ {new Date().getFullYear()} SmartHire Platform. All rights reserved.</span>
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1.5 font-mono text-[11px]">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
