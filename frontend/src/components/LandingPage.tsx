@@ -268,8 +268,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* Main content wrapper */}
       <div className="relative z-10 flex flex-col min-h-screen">
-        {/* 1. LIQUID GLASS NAVBAR (Fixed Floating Pill Dock - No Jitter, Zero Layout Shift) */}
-        <header className="sticky top-0 z-50 w-full pt-4 pb-2 px-4 sm:px-6 pointer-events-none">
+        {/* 1. LIQUID GLASS NAVBAR (Fixed Floating Pill Dock - Fixed on Viewport) */}
+        <header className="fixed top-0 left-0 right-0 z-50 w-full pt-4 pb-2 px-4 sm:px-6 pointer-events-none">
           <nav
             className={`liquid-glass-nav pointer-events-auto flex items-center justify-between mx-auto relative overflow-hidden ${
               isScrolled ? 'is-scrolled' : ''
@@ -634,7 +634,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         {/* 3. HERO SECTION */}
         <section
           id="hero"
-          className="saas-reveal saas-visible pt-16 sm:pt-24 pb-16 px-4 sm:px-6 flex flex-col items-center text-center max-w-5xl mx-auto w-full"
+          className="saas-reveal saas-visible pt-28 sm:pt-36 pb-16 px-4 sm:px-6 flex flex-col items-center text-center max-w-5xl mx-auto w-full"
         >
           {/* Badge */}
           <div
