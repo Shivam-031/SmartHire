@@ -1,21 +1,28 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { type DocketStep } from './AppLayout';
-import { useThrottledScroll } from '../hooks/useThrottledScroll';
-import { useSectionObserver } from '../hooks/useIntersectionObserver';
 
 interface LandingPageProps {
   onNavigate: (step: DocketStep) => void;
   onSelectTrack?: (field: string, role?: string) => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTrack }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({
+  onNavigate,
+  onSelectTrack,
+}) => {
   const { user, isAuthenticated, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activePreviewTrack, setActivePreviewTrack] = useState<'it' | 'management' | 'law'>('it');
   const [atsSampleType, setAtsSampleType] = useState<'it' | 'mgmt' | 'law'>('it');
 
-  // 3D background canvas init with requestIdleCallback for optimal initial render performance
+  // Sticky header scroll status, progress bar, and active section spy
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [activeSection, setActiveSection] = useState<string>('hero');
+  const scrollRaf = useRef<number | null>(null);
+
+  // Initialize 3D TubesCursor from CDN, defer initialization to idle time for performance
   useEffect(() => {
     let isMounted = true;
     let appInstance: any = null;
@@ -26,11 +33,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
       try {
         const canvas = document.getElementById('canvas') as HTMLCanvasElement;
         if (!canvas) return;
+
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
+
         const loadModule = new Function('url', 'return import(url)');
-        const module = await loadModule('https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js');
+        const module = await loadModule(
+          'https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js'
+        );
         const TubesCursor = module.default || module;
+
         if (isMounted && typeof TubesCursor === 'function') {
           appInstance = TubesCursor(canvas, {
             tubes: {
@@ -48,11 +60,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
     };
 
     if (typeof (window as any).requestIdleCallback === 'function') {
-      idleId = (window as any).requestIdleCallback(() => {
-        setTimeout(init, 1000);
-      });
+      idleId = (window as any).requestIdleCallback(init);
     } else {
-      timerId = setTimeout(init, 2000);
+      timerId = setTimeout(init, 500);
     }
 
     const handleResize = () => {
@@ -75,30 +85,74 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
     };
   }, []);
 
-  // Ref to navbar element for class toggling
-  const navRef = useRef<HTMLElement>(null);
+  // Optimized RAF scroll handler
+  useEffect(() => {
+    const handleScroll = () => {
+      if (scrollRaf.current !== null) {
+        return;
+      }
+      scrollRaf.current = requestAnimationFrame(() => {
+        const scrollY = window.scrollY;
+        setIsScrolled(scrollY > 20);
 
-  // Throttled scroll handling – updates CSS variables and navbar class
-  useThrottledScroll(({ isScrolled, progress }) => {
-    document.documentElement.style.setProperty('--scroll-progress', `${progress}%`);
-    if (navRef.current) {
-      navRef.current.classList.toggle('nav-scrolled', isScrolled);
-    }
-  }, 100);
+        const winHeight = document.documentElement.scrollHeight - window.innerHeight;
+        if (winHeight > 0) {
+          setScrollProgress(Math.min(100, Math.max(0, (scrollY / winHeight) * 100)));
+        }
 
-  // Section observer for active link highlighting
-  useSectionObserver(
-    ['hero', 'tracks', 'cockpit', 'ats-scanner', 'features', 'pricing'],
-    '.nav-link'
-  );
+        const sections = ['hero', 'tracks', 'cockpit', 'ats-scanner', 'features', 'pricing'];
+        for (const sectionId of sections) {
+          const el = document.getElementById(sectionId);
+          if (el) {
+            const rect = el.getBoundingClientRect();
+            if (rect.top <= 180 && rect.bottom >= 180) {
+              setActiveSection(sectionId);
+              break;
+            }
+          }
+        }
 
-  // Direct navigation with offset compensation
+        scrollRaf.current = null;
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (scrollRaf.current !== null) {
+        cancelAnimationFrame(scrollRaf.current);
+        scrollRaf.current = null;
+      }
+    };
+  }, []);
+
+  // IntersectionObserver for smooth sliding reveal animation
+  useEffect(() => {
+    const elements = document.querySelectorAll('.saas-reveal');
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('saas-visible');
+          }
+        });
+      },
+      { threshold: 0.05, rootMargin: '0px 0px -30px 0px' }
+    );
+
+    elements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
+  // Direct smooth navigation with navbar offset compensation
   const handleDirectNav = (e: React.MouseEvent, sectionId: string) => {
     e.preventDefault();
     setMobileMenuOpen(false);
     const element = document.getElementById(sectionId);
     if (element) {
-      const navOffset = 84;
+      const navOffset = 88;
       const elementPosition = element.getBoundingClientRect().top + window.scrollY;
       window.scrollTo({
         top: Math.max(0, elementPosition - navOffset),
@@ -114,12 +168,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
     onNavigate('role_select');
   };
 
+  // Telemetry preview data for AI Cockpit
   const previewData = {
     it: {
       tag: 'IT SYSTEMS',
       role: 'Frontend Developer & Systems Engineer',
       color: '#3b82f6',
-      badgeBorder: '#3b82f6',
       question:
         'Explain how React 19 concurrent features (such as useDeferredValue and Actions) optimize main thread execution compared to traditional debouncing.',
       answerSnippet:
@@ -137,7 +191,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
       tag: 'MANAGEMENT & STRATEGY',
       role: 'Senior Product Manager & Strategy Lead',
       color: '#8b5cf6',
-      badgeBorder: '#8b5cf6',
       question:
         'When engineering velocity degrades due to legacy technical debt, how do you defend allocating 30% of a sprint to debt rather than high-visibility roadmap features?',
       answerSnippet:
@@ -154,8 +207,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
     law: {
       tag: 'LAW & GOVERNANCE',
       role: 'Corporate Legal Counsel & Compliance Officer',
-      color: '#60a5fa',
-      badgeBorder: '#60a5fa',
+      color: '#0EA5B7',
       question:
         'How do you negotiate an uncapped liability clause in a SaaS Enterprise MSA when the prospective enterprise client mandates strict indemnity for data incidents?',
       answerSnippet:
@@ -173,6 +225,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
 
   const currentPreview = previewData[activePreviewTrack];
 
+  // ATS Scanner Sample Data
   const atsSamples = {
     it: {
       title: 'Senior Frontend Engineer Dossier',
@@ -205,26 +258,43 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
   return (
     <div className="min-h-screen bg-[#030303] text-white font-sans antialiased selection:bg-[#7c3aed]/30 selection:text-white relative overflow-x-hidden">
       {/* 3D Animated Background Canvas (TubesCursor) */}
-      <canvas id="canvas" className="fixed inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }} />
+      <canvas
+        id="canvas"
+        className="fixed inset-0 w-full h-full pointer-events-none"
+        style={{ zIndex: 0 }}
+      />
 
       {/* Ambient background glows */}
       <div className="fixed top-[-100px] left-[10%] w-[500px] h-[500px] rounded-full bg-[#7c3aed]/12 blur-[140px] pointer-events-none" />
       <div className="fixed top-[40%] right-[-100px] w-[500px] h-[500px] rounded-full bg-[#3b82f6]/10 blur-[150px] pointer-events-none" />
       <div className="fixed bottom-[-100px] left-[30%] w-[600px] h-[600px] rounded-full bg-[#8b5cf6]/10 blur-[160px] pointer-events-none" />
 
-      {/* Main content wrapper positioned above canvas */}
+      {/* Main content wrapper */}
       <div className="relative z-10 flex flex-col min-h-screen">
-        {/* Sticky NavBar */}
-        <header className="sticky top-0 z-50 w-full transition-all duration-300 pt-5 pb-2 px-4 sm:px-6 bg-transparent">
-          <nav ref={navRef} className="liquid-glass-nav flex items-center justify-between mx-auto transition-all duration-300 relative overflow-hidden">
+        {/* 1. LIQUID GLASS NAVBAR (Sticky Floating Dock with Smooth Compaction) */}
+        <header
+          className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+            isScrolled
+              ? 'pt-2.5 pb-2.5 px-3 sm:px-6 bg-[#030303]/60 backdrop-blur-md border-b border-white/[0.06] shadow-[0_10px_30px_rgba(0,0,0,0.5)]'
+              : 'pt-5 pb-2 px-4 sm:px-6 bg-transparent'
+          }`}
+        >
+          <nav
+            className={`liquid-glass-nav flex items-center justify-between mx-auto transition-all duration-300 relative overflow-hidden ${
+              isScrolled ? 'is-stuck' : ''
+            }`}
+          >
             {/* Ambient Progress Bar */}
             <div
               className="absolute bottom-0 left-0 h-[2px] bg-gradient-to-r from-[#7c3aed] via-[#3b82f6] to-[#ec4899] transition-all duration-150 pointer-events-none rounded-full"
-              style={{ width: 'var(--scroll-progress)' }}
+              style={{ width: `${scrollProgress}%`, opacity: isScrolled ? 0.95 : 0 }}
             />
 
-            {/* Logo */}
-            <div onClick={(e) => handleDirectNav(e, 'hero')} className="flex items-center gap-3 cursor-pointer select-none group">
+            {/* Left: SmartHire Logo */}
+            <div
+              onClick={(e) => handleDirectNav(e, 'hero')}
+              className="flex items-center gap-3 cursor-pointer select-none group"
+            >
               <svg className="w-8 h-8 shrink-0 transition-transform duration-300 group-hover:scale-105" viewBox="0 0 32 32" fill="none">
                 <rect x="4" y="4" width="16" height="16" rx="4" fill="#7c3aed" />
                 <rect x="12" y="12" width="16" height="16" rx="4" fill="#8b5cf6" fillOpacity="0.85" />
@@ -238,53 +308,134 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
               </div>
             </div>
 
-            {/* Desktop navigation links */}
-            <div className="hidden lg:flex items-center gap-1.5 text-sm font-medium">
-              <a href="#features" onClick={(e) => handleDirectNav(e, 'features')} className="nav-link px-3 py-1.5 rounded-full transition-all cursor-pointer">
+            {/* Center: Desktop Navigation Links */}
+            <div className="hidden lg:flex items-center gap-2 text-sm font-medium">
+              <a
+                href="#hero"
+                onClick={(e) => handleDirectNav(e, 'hero')}
+                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer ${
+                  activeSection === 'hero'
+                    ? 'text-white bg-white/10 shadow-xs'
+                    : 'text-[#a1a1aa] hover:text-white hover:bg-white/5'
+                }`}
+              >
+                Overview
+              </a>
+
+              <a
+                href="#tracks"
+                onClick={(e) => handleDirectNav(e, 'tracks')}
+                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 group ${
+                  activeSection === 'tracks'
+                    ? 'text-white bg-white/10 shadow-xs'
+                    : 'text-[#a1a1aa] hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <span>Tracks</span>
+                <svg
+                  className="w-3.5 h-3.5 text-[#71717a] group-hover:text-white transition-transform duration-200 group-hover:translate-y-0.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </a>
+
+              <a
+                href="#cockpit"
+                onClick={(e) => handleDirectNav(e, 'cockpit')}
+                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 group ${
+                  activeSection === 'cockpit'
+                    ? 'text-white bg-white/10 shadow-xs'
+                    : 'text-[#a1a1aa] hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <span>AI Cockpit</span>
+              </a>
+
+              <a
+                href="#ats-scanner"
+                onClick={(e) => handleDirectNav(e, 'ats-scanner')}
+                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer ${
+                  activeSection === 'ats-scanner'
+                    ? 'text-white bg-white/10 shadow-xs'
+                    : 'text-[#a1a1aa] hover:text-white hover:bg-white/5'
+                }`}
+              >
+                ATS Scanner
+              </a>
+
+              <a
+                href="#features"
+                onClick={(e) => handleDirectNav(e, 'features')}
+                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer ${
+                  activeSection === 'features'
+                    ? 'text-white bg-white/10 shadow-xs'
+                    : 'text-[#a1a1aa] hover:text-white hover:bg-white/5'
+                }`}
+              >
                 Features
               </a>
-              <a href="#tracks" onClick={(e) => handleDirectNav(e, 'tracks')} className="nav-link px-3 py-1.5 rounded-full flex items-center gap-1.5 group cursor-pointer">
-                <span>Solutions</span>
-                <svg className="w-3.5 h-3.5 text-[#71717a] group-hover:text-white transition-transform duration-200 group-hover:translate-y-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </a>
-              <a href="#pricing" onClick={(e) => handleDirectNav(e, 'pricing')} className="nav-link px-3 py-1.5 rounded-full transition-all cursor-pointer">
+
+              <a
+                href="#pricing"
+                onClick={(e) => handleDirectNav(e, 'pricing')}
+                className={`px-3 py-1.5 rounded-full transition-all cursor-pointer ${
+                  activeSection === 'pricing'
+                    ? 'text-white bg-white/10 shadow-xs'
+                    : 'text-[#a1a1aa] hover:text-white hover:bg-white/5'
+                }`}
+              >
                 Pricing
-              </a>
-              <a href="#cockpit" onClick={(e) => handleDirectNav(e, 'cockpit')} className="nav-link px-3 py-1.5 rounded-full flex items-center gap-1.5 group cursor-pointer">
-                <span>Cockpit</span>
-                <svg className="w-3.5 h-3.5 text-[#71717a] group-hover:text-white transition-transform duration-200 group-hover:translate-y-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </a>
-              <a href="#ats-scanner" onClick={(e) => handleDirectNav(e, 'ats-scanner')} className="nav-link px-3 py-1.5 rounded-full transition-all cursor-pointer">
-                ATS Scanner
               </a>
             </div>
 
-            {/* Right actions */}
+            {/* Right: Actions */}
             <div className="flex items-center gap-3">
+              {/* Direct Link to ATS Scanner */}
+              <button
+                type="button"
+                onClick={() => onNavigate('resume')}
+                className="text-xs font-medium text-[#a1a1aa] hover:text-white transition-colors cursor-pointer hidden xl:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-white/5"
+              >
+                <span className="material-symbols-outlined text-[15px]">document_scanner</span>
+                <span>ATS Check</span>
+              </button>
+
+              {/* Direct Link to Resume Studio */}
+              <button
+                type="button"
+                onClick={() => onNavigate('resume_editor')}
+                className="text-xs font-medium text-[#a1a1aa] hover:text-white transition-colors cursor-pointer hidden xl:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-white/5"
+              >
+                <span className="material-symbols-outlined text-[15px]">edit_note</span>
+                <span>Resume Studio</span>
+              </button>
+
               {isAuthenticated ? (
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => onNavigate('profile')}
-                    className="btn-glass px-4 py-2 text-xs font-semibold flex items-center gap-2 cursor-pointer shadow-sm hover:border-white/20 transition-all"
+                    className="btn-glass px-4 py-2 text-xs font-semibold flex items-center gap-2 cursor-pointer shadow-sm"
                   >
                     <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
-                    <span>{user?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'Workspace'}</span>
-                    <svg className="w-3.5 h-3.5 text-[#a1a1aa]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <span>Workspace ({user?.name?.split(' ')[0] || 'Candidate'})</span>
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </button>
                   <button
                     type="button"
                     onClick={() => logout()}
-                    className="text-xs text-[#a1a1aa] hover:text-white transition-colors cursor-pointer px-2 py-1"
-                    title="Logout"
+                    className="text-xs text-[#71717a] hover:text-white transition-colors px-2 py-1 cursor-pointer"
+                    title="Sign Out"
                   >
-                    Sign out
+                    Logout
                   </button>
                 </div>
               ) : (
@@ -292,7 +443,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
                   <button
                     type="button"
                     onClick={() => onNavigate('login')}
-                    className="text-sm font-medium text-[#a1a1aa] hover:text-white transition-colors cursor-pointer hidden sm:inline px-3 py-1.5"
+                    className="text-sm font-medium text-[#a1a1aa] hover:text-white transition-colors cursor-pointer hidden sm:inline px-2 py-1"
                   >
                     Log in
                   </button>
@@ -328,7 +479,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
             </div>
           </nav>
 
-          {/* Mobile Menu Drawer */}
+          {/* 2. MOBILE MENU DRAWER */}
           {mobileMenuOpen && (
             <div
               className="lg:hidden absolute left-4 right-4 top-[calc(100%+8px)] rounded-3xl p-6 space-y-4 shadow-2xl transition-all"
@@ -341,48 +492,64 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
               }}
             >
               <div className="flex flex-col space-y-3 text-sm font-medium text-[#a1a1aa]">
-                <a href="#hero" onClick={(e) => handleDirectNav(e, 'hero')} className="hover:text-white py-1.5 transition-colors cursor-pointer">
+                <a
+                  href="#hero"
+                  onClick={(e) => handleDirectNav(e, 'hero')}
+                  className="hover:text-white py-1.5 transition-colors"
+                >
                   Overview
                 </a>
-                <a href="#features" onClick={(e) => handleDirectNav(e, 'features')} className="hover:text-white py-1.5 transition-colors cursor-pointer">
-                  Features
+                <a
+                  href="#tracks"
+                  onClick={(e) => handleDirectNav(e, 'tracks')}
+                  className="hover:text-white py-1.5 transition-colors"
+                >
+                  Career Tracks
                 </a>
-                <a href="#tracks" onClick={(e) => handleDirectNav(e, 'tracks')} className="hover:text-white py-1.5 transition-colors cursor-pointer">
-                  Solutions & Tracks
+                <a
+                  href="#cockpit"
+                  onClick={(e) => handleDirectNav(e, 'cockpit')}
+                  className="hover:text-white py-1.5 transition-colors"
+                >
+                  AI Cockpit Preview
                 </a>
-                <a href="#cockpit" onClick={(e) => handleDirectNav(e, 'cockpit')} className="hover:text-white py-1.5 transition-colors cursor-pointer">
-                  AI Cockpit
+                <a
+                  href="#ats-scanner"
+                  onClick={(e) => handleDirectNav(e, 'ats-scanner')}
+                  className="hover:text-white py-1.5 transition-colors"
+                >
+                  ATS Resume Scanner
                 </a>
-                <a href="#ats-scanner" onClick={(e) => handleDirectNav(e, 'ats-scanner')} className="hover:text-white py-1.5 transition-colors cursor-pointer">
-                  ATS Scanner
+                <a
+                  href="#features"
+                  onClick={(e) => handleDirectNav(e, 'features')}
+                  className="hover:text-white py-1.5 transition-colors"
+                >
+                  System Features
                 </a>
-                <a href="#pricing" onClick={(e) => handleDirectNav(e, 'pricing')} className="hover:text-white py-1.5 transition-colors cursor-pointer">
+                <a
+                  href="#pricing"
+                  onClick={(e) => handleDirectNav(e, 'pricing')}
+                  className="hover:text-white py-1.5 transition-colors"
+                >
                   Pricing
                 </a>
               </div>
 
-              <div className="pt-3 border-t border-white/10 flex flex-col gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    onNavigate('field_select');
-                  }}
-                  className="w-full py-2.5 rounded-full btn-gradient-primary text-xs font-semibold text-white cursor-pointer shadow-md"
-                >
-                  Select Track & Practice &rarr;
-                </button>
-
-                <div className="grid grid-cols-2 gap-2 pt-1">
+              {/* Direct App Tool Shortcuts inside Drawer */}
+              <div className="pt-3 border-t border-white/10 space-y-2">
+                <p className="text-[10px] font-mono uppercase tracking-widest text-[#71717a]">Quick Tools</p>
+                <div className="grid grid-cols-2 gap-2 text-xs">
                   <button
                     type="button"
                     onClick={() => {
                       setMobileMenuOpen(false);
                       onNavigate('resume');
                     }}
-                    className="py-2 px-3 rounded-xl btn-glass text-xs font-medium text-white cursor-pointer text-center"
+                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-left text-[#a1a1aa] hover:text-white flex items-center gap-2"
                   >
-                    ATS Upload
+                    <span className="material-symbols-outlined text-[16px] text-[#3b82f6]">document_scanner</span>
+                    <span>ATS Scan</span>
                   </button>
                   <button
                     type="button"
@@ -390,9 +557,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
                       setMobileMenuOpen(false);
                       onNavigate('resume_editor');
                     }}
-                    className="py-2 px-3 rounded-xl btn-glass text-xs font-medium text-white cursor-pointer text-center"
+                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-left text-[#a1a1aa] hover:text-white flex items-center gap-2"
                   >
-                    Resume Editor
+                    <span className="material-symbols-outlined text-[16px] text-[#8b5cf6]">edit_note</span>
+                    <span>Studio</span>
                   </button>
                   <button
                     type="button"
@@ -400,9 +568,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
                       setMobileMenuOpen(false);
                       onNavigate('template_picker');
                     }}
-                    className="py-2 px-3 rounded-xl btn-glass text-xs font-medium text-white cursor-pointer text-center"
+                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-left text-[#a1a1aa] hover:text-white flex items-center gap-2"
                   >
-                    Templates
+                    <span className="material-symbols-outlined text-[16px] text-[#0EA5B7]">palette</span>
+                    <span>Templates</span>
                   </button>
                   <button
                     type="button"
@@ -410,23 +579,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
                       setMobileMenuOpen(false);
                       onNavigate('session_history');
                     }}
-                    className="py-2 px-3 rounded-xl btn-glass text-xs font-medium text-white cursor-pointer text-center"
+                    className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-left text-[#a1a1aa] hover:text-white flex items-center gap-2"
                   >
-                    Past Sessions
+                    <span className="material-symbols-outlined text-[16px] text-emerald-400">history</span>
+                    <span>Sessions</span>
                   </button>
                 </div>
+              </div>
 
+              <div className="pt-4 border-t border-white/10 flex flex-col gap-3">
                 {isAuthenticated ? (
-                  <div className="flex items-center justify-between pt-2">
+                  <>
                     <button
                       type="button"
                       onClick={() => {
                         setMobileMenuOpen(false);
                         onNavigate('profile');
                       }}
-                      className="text-xs font-semibold text-[#c084fc] hover:underline cursor-pointer"
+                      className="w-full py-2.5 rounded-full btn-glass text-xs font-semibold text-white cursor-pointer"
                     >
-                      Candidate Profile &rarr;
+                      Open Candidate Workspace &rarr;
                     </button>
                     <button
                       type="button"
@@ -434,22 +606,34 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
                         setMobileMenuOpen(false);
                         logout();
                       }}
-                      className="text-xs text-[#a1a1aa] hover:text-white cursor-pointer"
+                      className="w-full py-2 text-xs text-[#71717a] hover:text-white cursor-pointer"
                     >
-                      Log out
+                      Sign Out
                     </button>
-                  </div>
+                  </>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      onNavigate('login');
-                    }}
-                    className="w-full py-2.5 rounded-full btn-glass text-xs font-semibold text-white cursor-pointer mt-1"
-                  >
-                    Log in
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        onNavigate('login');
+                      }}
+                      className="w-full py-2.5 rounded-full btn-glass text-xs font-semibold text-white cursor-pointer"
+                    >
+                      Log in
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        onNavigate('field_select');
+                      }}
+                      className="w-full py-2.5 rounded-full btn-gradient-primary text-xs font-semibold text-white cursor-pointer"
+                    >
+                      Start for free &rarr;
+                    </button>
+                  </>
                 )}
               </div>
             </div>
@@ -457,7 +641,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
         </header>
 
         {/* 3. HERO SECTION */}
-        <section id="hero" className="saas-reveal pt-16 sm:pt-24 pb-12 px-4 sm:px-6 flex flex-col items-center text-center max-w-5xl mx-auto w-full">
+        <section
+          id="hero"
+          className="saas-reveal saas-visible pt-16 sm:pt-24 pb-16 px-4 sm:px-6 flex flex-col items-center text-center max-w-5xl mx-auto w-full"
+        >
           {/* Badge */}
           <div
             className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium text-[#a1a1aa] mb-8 cursor-pointer hover:border-white/20 transition-all shadow-sm"
@@ -470,26 +657,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
             <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#7c3aed] text-white">
               New
             </span>
-            <span>AI Assistant is now live &rarr;</span>
+            <span>AI Mock Interview & ATS Scanner 2.0 is live &rarr;</span>
           </div>
 
           {/* Headline */}
           <h1 className="text-[2.2rem] sm:text-[3rem] md:text-[3.8rem] lg:text-[4.5rem] font-bold tracking-tight text-white leading-[1.1] max-w-4xl">
             The all-in-one platform
             <br />
-            to scale your{' '}
+            to ace your{' '}
             <span className="gradient-text-highlights">
-              SaaS
+              Interviews.
             </span>
           </h1>
 
           {/* Subheadline */}
-          <p className="mt-6 text-base sm:text-xl text-[#a1a1aa] max-w-[600px] mx-auto leading-relaxed">
-            Build, launch, and grow your SaaS faster with powerful tools, beautiful analytics, and AI that works for you.
+          <p className="mt-6 text-base sm:text-xl text-[#a1a1aa] max-w-[620px] mx-auto leading-relaxed">
+            Practice with adaptive AI examiners calibrated for IT, Management, and Law. Optimize your resume with deterministic ATS scoring and instant feedback.
           </p>
 
-          {/* Primary CTA Buttons */}
+          {/* CTA Buttons */}
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
+            {/* Primary: Start for free */}
             <button
               type="button"
               onClick={() => onNavigate('field_select')}
@@ -501,14 +689,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
               </svg>
             </button>
 
-            <a
-              href="#ats-scanner"
-              onClick={(e) => handleDirectNav(e, 'ats-scanner')}
+            {/* Secondary: Check ATS Resume */}
+            <button
+              type="button"
+              onClick={() => onNavigate('resume')}
               className="btn-glass w-full sm:w-auto px-7 py-4 text-sm font-medium flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span>Book a demo</span>
-            </a>
+              <span className="material-symbols-outlined text-[18px] text-[#60a5fa]">document_scanner</span>
+              <span>Scan Resume (ATS)</span>
+            </button>
 
+            {/* Google OAuth Direct GIS Integration */}
             {!isAuthenticated && (
               <button
                 type="button"
@@ -516,64 +707,108 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
                 className="btn-glass w-full sm:w-auto px-6 py-4 text-sm font-medium flex items-center justify-center gap-2.5 cursor-pointer text-[#a1a1aa] hover:text-white"
               >
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                  <path
+                    fill="#4285F4"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                  />
                 </svg>
                 <span>Continue with Google</span>
               </button>
             )}
           </div>
 
-          {/* Quick Page Jump Strip */}
-          <div className="mt-12 w-full max-w-4xl grid grid-cols-2 md:grid-cols-4 gap-3 text-left">
+          {/* Quick Jump Action Cards - Direct access to all pages */}
+          <div className="mt-14 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
             <div
               onClick={() => onNavigate('field_select')}
-              className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/15 transition-all cursor-pointer group"
+              className="p-5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-[#7c3aed]/40 transition-all cursor-pointer group shadow-sm flex flex-col justify-between"
             >
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-base">🎯</span>
-                <span className="text-[10px] font-mono text-[#7c3aed] uppercase font-bold tracking-wider">Step 01</span>
+              <div>
+                <div className="w-9 h-9 rounded-xl bg-[#7c3aed]/15 border border-[#7c3aed]/30 flex items-center justify-center text-[#c084fc] mb-3">
+                  <span className="material-symbols-outlined text-[20px]">smart_toy</span>
+                </div>
+                <h3 className="font-semibold text-sm text-white group-hover:text-[#c084fc] transition-colors">
+                  AI Mock Interview
+                </h3>
+                <p className="text-xs text-[#a1a1aa] mt-1 line-clamp-2">
+                  Interactive dialogue with domain-calibrated examiners and STAR rubrics.
+                </p>
               </div>
-              <p className="text-xs font-semibold text-white group-hover:text-[#c084fc] transition-colors">Select Track</p>
-              <p className="text-[11px] text-[#71717a] mt-0.5">IT, Strategy, Law</p>
+              <div className="mt-4 flex items-center text-xs font-semibold text-[#c084fc] group-hover:translate-x-1 transition-transform">
+                <span>Start Session &rarr;</span>
+              </div>
             </div>
 
             <div
               onClick={() => onNavigate('resume')}
-              className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/15 transition-all cursor-pointer group"
+              className="p-5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-[#3b82f6]/40 transition-all cursor-pointer group shadow-sm flex flex-col justify-between"
             >
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-base">📄</span>
-                <span className="text-[10px] font-mono text-[#3b82f6] uppercase font-bold tracking-wider">Step 02</span>
+              <div>
+                <div className="w-9 h-9 rounded-xl bg-[#3b82f6]/15 border border-[#3b82f6]/30 flex items-center justify-center text-[#60a5fa] mb-3">
+                  <span className="material-symbols-outlined text-[20px]">document_scanner</span>
+                </div>
+                <h3 className="font-semibold text-sm text-white group-hover:text-[#60a5fa] transition-colors">
+                  ATS Resume Scanner
+                </h3>
+                <p className="text-xs text-[#a1a1aa] mt-1 line-clamp-2">
+                  Deep semantic keyword matching and pass-rate probability analysis.
+                </p>
               </div>
-              <p className="text-xs font-semibold text-white group-hover:text-[#60a5fa] transition-colors">ATS Scanner</p>
-              <p className="text-[11px] text-[#71717a] mt-0.5">Parse & match score</p>
+              <div className="mt-4 flex items-center text-xs font-semibold text-[#60a5fa] group-hover:translate-x-1 transition-transform">
+                <span>Scan Resume &rarr;</span>
+              </div>
             </div>
 
             <div
               onClick={() => onNavigate('resume_editor')}
-              className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/15 transition-all cursor-pointer group"
+              className="p-5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-[#0EA5B7]/40 transition-all cursor-pointer group shadow-sm flex flex-col justify-between"
             >
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-base">✏️</span>
-                <span className="text-[10px] font-mono text-[#ec4899] uppercase font-bold tracking-wider">Studio</span>
+              <div>
+                <div className="w-9 h-9 rounded-xl bg-[#0EA5B7]/15 border border-[#0EA5B7]/30 flex items-center justify-center text-[#22D3EE] mb-3">
+                  <span className="material-symbols-outlined text-[20px]">edit_document</span>
+                </div>
+                <h3 className="font-semibold text-sm text-white group-hover:text-[#22D3EE] transition-colors">
+                  Markdown Resume Studio
+                </h3>
+                <p className="text-xs text-[#a1a1aa] mt-1 line-clamp-2">
+                  Zero-formatting penalty resume builder with live compile & template sync.
+                </p>
               </div>
-              <p className="text-xs font-semibold text-white group-hover:text-[#f472b6] transition-colors">Resume Editor</p>
-              <p className="text-[11px] text-[#71717a] mt-0.5">Interactive builder</p>
+              <div className="mt-4 flex items-center text-xs font-semibold text-[#22D3EE] group-hover:translate-x-1 transition-transform">
+                <span>Open Studio &rarr;</span>
+              </div>
             </div>
 
             <div
               onClick={() => onNavigate('session_history')}
-              className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/15 transition-all cursor-pointer group"
+              className="p-5 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 hover:border-emerald-500/40 transition-all cursor-pointer group shadow-sm flex flex-col justify-between"
             >
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-base">📊</span>
-                <span className="text-[10px] font-mono text-[#10B981] uppercase font-bold tracking-wider">Analytics</span>
+              <div>
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-3">
+                  <span className="material-symbols-outlined text-[20px]">monitoring</span>
+                </div>
+                <h3 className="font-semibold text-sm text-white group-hover:text-emerald-400 transition-colors">
+                  Session Telemetry
+                </h3>
+                <p className="text-xs text-[#a1a1aa] mt-1 line-clamp-2">
+                  Detailed transcripts, examiner critique archives, and historical scores.
+                </p>
               </div>
-              <p className="text-xs font-semibold text-white group-hover:text-emerald-400 transition-colors">Past Sessions</p>
-              <p className="text-[11px] text-[#71717a] mt-0.5">Dossiers & rubrics</p>
+              <div className="mt-4 flex items-center text-xs font-semibold text-emerald-400 group-hover:translate-x-1 transition-transform">
+                <span>View History &rarr;</span>
+              </div>
             </div>
           </div>
         </section>
@@ -584,12 +819,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
           className="saas-reveal w-full max-w-6xl mx-auto px-4 sm:px-6 mt-6"
           style={{
             borderTop: '1px solid rgba(255, 255, 255, 0.05)',
-            padding: '40px 0 60px',
+            padding: '36px 0 64px',
           }}
         >
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 text-center sm:text-left">
             <p className="text-xs font-medium uppercase tracking-wider text-[#71717a]">
-              Trusted by 10,000+ teams worldwide
+              Trusted by 10,000+ candidates and top engineering teams
             </p>
 
             <div className="flex items-center gap-2">
@@ -601,7 +836,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
                 ))}
               </div>
               <span className="text-xs font-semibold text-white">5.0/5</span>
-              <span className="text-xs text-[#71717a]">from 1,200+ reviews</span>
+              <span className="text-xs text-[#71717a]">from 1,200+ verified evaluations</span>
             </div>
           </div>
 
@@ -622,39 +857,40 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
             </div>
 
             <div className="flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity duration-300 cursor-pointer">
-              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.43 3H6.57C4.6 3 3 4.6 3 6.57v10.86C3 19.4 4.6 21 6.57 21h10.86c1.97 0 3.57-1.6 3.57-3.57V6.57C21 4.6 19.4 3 17.43 3zM9.57 6.43h4.86c1.74 0 3.14 1.4 3.14 3.14 0 1.25-.73 2.33-1.79 2.82 1.34.46 2.29 1.73 2.29 3.18v.86c0 .9-.73 1.63-1.63 1.63h-6.87V6.43zm2.57 4.29h2.29c.47 0 .86-.39.86-.86s-.39-.86-.86-.86h-2.29v1.72zm2.57 5.14h-2.57v-1.71h2.57c.47 0 .86.38.86.85s-.39.86-.86.86z" />
+              <svg className="h-6 w-6" viewBox="0 0 36 36" fill="currentColor">
+                <path d="M10 5h10.8c6.9 0 11.7 4.2 11.7 10.4 0 4.6-2.8 8.1-7 9.6l8.2 10h-6.8l-7.4-9.3H15.2V35H10V5zm5.2 15.6h5.3c3.8 0 6.3-2.1 6.3-5.3 0-3.2-2.5-5.3-6.3-5.3h-5.3v10.6z" />
               </svg>
               <span className="font-semibold text-lg tracking-tight">Remix</span>
             </div>
 
             <div className="flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity duration-300 cursor-pointer">
-              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M13.2 2.4a1.2 1.2 0 0 0-2.4 0v3.6a1.2 1.2 0 0 0 2.4 0V2.4zm-7.6 3a1.2 1.2 0 0 0-1.7 1.7l2.5 2.5a1.2 1.2 0 0 0 1.7-1.7L5.6 5.4zm12.8 0a1.2 1.2 0 0 0-1.7 0l-2.5 2.5a1.2 1.2 0 0 0 1.7 1.7l2.5-2.5a1.2 1.2 0 0 0 0-1.7zM2.4 10.8a1.2 1.2 0 0 0 0 2.4h3.6a1.2 1.2 0 0 0 0-2.4H2.4zm15.6 0a1.2 1.2 0 0 0 0 2.4h3.6a1.2 1.2 0 0 0 0-2.4H18zM6.4 16.9a1.2 1.2 0 0 0-1.7 0 1.2 1.2 0 0 0 0 1.7l2.5 2.5a1.2 1.2 0 0 0 1.7-1.7l-2.5-2.5zm11.2 0l-2.5 2.5a1.2 1.2 0 0 0 1.7 1.7l2.5-2.5a1.2 1.2 0 0 0-1.7-1.7zM10.8 18a1.2 1.2 0 0 0 0 2.4v1.2a1.2 1.2 0 0 0 2.4 0v-1.2a1.2 1.2 0 0 0 0-2.4h-2.4z" />
+              <svg className="h-6 w-6" viewBox="0 0 36 36" fill="currentColor">
+                <path d="M18.8 6.2l-3.5 3.5 7.1 7.1-7.1 7.1 3.5 3.5 10.6-10.6L18.8 6.2zm-12 10.6L17.4 6.2l-3.5-3.5L3.3 13.3c-2 2-2 5.2 0 7.2l10.6 10.6 3.5-3.5-10.6-10.8z" />
               </svg>
               <span className="font-semibold text-lg tracking-tight">Raycast</span>
             </div>
 
             <div className="flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity duration-300 cursor-pointer">
-              <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12.001,4.8c-3.2,0-5.2,1.6-6,4.8c1.2-1.6,2.6-2.2,4.2-1.8c0.913,0.228,1.565,0.89,2.288,1.624 C13.666,10.618,15.027,12,18.001,12c3.2,0,5.2-1.6,6-4.8c-1.2,1.6-2.6,2.2-4.2,1.8c-0.913-0.228-1.565-0.89-2.288-1.624 C16.337,6.182,14.976,4.8,12.001,4.8z M6.001,12c-3.2,0-5.2,1.6-6,4.8c1.2-1.6,2.6-2.2,4.2-1.8c0.913,0.228,1.565,0.89,2.288,1.624 c1.177,1.194,2.538,2.576,5.512,2.576c3.2,0,5.2-1.6,6-4.8c-1.2,1.6-2.6,2.2-4.2,1.8c-0.913-0.228-1.565-0.89-2.288-1.624 C10.337,13.382,8.976,12,6.001,12z" />
+              <svg className="h-6 w-7" viewBox="0 0 32 32" fill="currentColor">
+                <path d="M16 8c-4.4 0-7.2 2.2-8.4 6.6 1.8-2.2 3.8-3 6-2.4 1.3.3 2.2 1.3 3.2 2.3C18.4 16.2 20.6 18 26 18c4.4 0 7.2-2.2 8.4-6.6-1.8 2.2-3.8 3-6 2.4-1.3-.3-2.2-1.3-3.2-2.3C23.6 9.8 21.4 8 16 8zM8 18c-4.4 0-7.2 2.2-8.4 6.6 1.8-2.2 3.8-3 6-2.4 1.3.3 2.2 1.3 3.2 2.3C10.4 26.2 12.6 28 18 28c4.4 0 7.2-2.2 8.4-6.6-1.8 2.2-3.8 3-6 2.4-1.3-.3-2.2-1.3-3.2-2.3C15.6 19.8 13.4 18 8 18z" />
               </svg>
-              <span className="font-semibold text-lg tracking-tight">Tailwind</span>
+              <span className="font-semibold text-lg tracking-tight">tailwindcss</span>
             </div>
           </div>
         </section>
 
-        {/* SECTION A: TRACKS / SOLUTIONS EXPLORER */}
-        <section id="tracks" className="saas-reveal py-16 px-4 sm:px-6 max-w-6xl mx-auto w-full">
-          <div className="text-center max-w-2xl mx-auto space-y-3 mb-12">
-            <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#7c3aed]">
-              DOMAIN SPECIALIZATION DOSSIERS
+        {/* 5. CAREER TRACKS SECTION */}
+        <section id="tracks" className="saas-reveal py-20 px-4 sm:px-6 max-w-6xl mx-auto w-full">
+          <div className="text-center max-w-2xl mx-auto space-y-3 mb-14">
+            <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#c084fc]">
+              SOLUTIONS // THREE CALIBRATED VERTICALS
             </span>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
-              Role-Calibrated Evaluation Engines
+              Calibrated For Your Career Domain
             </h2>
             <p className="text-sm sm:text-base text-[#a1a1aa]">
-              Select a specialized track to initialize domain personas, custom ATS rubrics, and tailored examination banks.
+              Generic tools ask generic questions. SmartHire leverages dedicated AI examiners and rubrics engineered
+              for your industry.
             </p>
           </div>
 
@@ -703,7 +939,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
               </div>
 
               <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-xs font-semibold text-[#60a5fa]">
-                <span>Initialize Track</span>
+                <span>Initialize IT Track</span>
                 <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">
                   arrow_forward
                 </span>
@@ -754,7 +990,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
               </div>
 
               <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-xs font-semibold text-[#c084fc]">
-                <span>Initialize Track</span>
+                <span>Initialize Management Track</span>
                 <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">
                   arrow_forward
                 </span>
@@ -805,7 +1041,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
               </div>
 
               <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-xs font-semibold text-[#22D3EE]">
-                <span>Initialize Track</span>
+                <span>Initialize Legal Track</span>
                 <span className="material-symbols-outlined text-[16px] group-hover:translate-x-1 transition-transform">
                   arrow_forward
                 </span>
@@ -814,39 +1050,31 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
           </div>
         </section>
 
-        {/* SECTION B: INTERACTIVE AI EXAMINER COCKPIT */}
+        {/* 6. AI EXAMINER COCKPIT PREVIEW */}
         <section id="cockpit" className="saas-reveal py-16 px-4 sm:px-6 max-w-5xl mx-auto w-full">
-          <div className="text-center max-w-2xl mx-auto space-y-3 mb-10">
-            <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#3b82f6]">
-              LIVE MOCK INTERACTION PREVIEW
-            </span>
-            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
-              Dynamic Examiner Cockpit
-            </h2>
-            <p className="text-sm sm:text-base text-[#a1a1aa]">
-              Simulate questions, explore structured answers, and inspect multi-tiered evaluation matrices.
-            </p>
-          </div>
-
           <div
-            className="rounded-3xl border border-white/10 overflow-hidden shadow-2xl"
+            className="rounded-3xl overflow-hidden shadow-2xl transition-all"
             style={{
               background: 'rgba(255, 255, 255, 0.02)',
               backdropFilter: 'blur(16px) saturate(180%)',
               WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-              boxShadow: '0 4px 30px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
             }}
           >
-            {/* Cockpit Top Bar */}
-            <div className="px-6 py-4 border-b border-white/5 flex flex-wrap items-center justify-between gap-4 bg-white/[0.01]">
+            {/* Header bar */}
+            <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-                <span className="font-mono text-xs font-medium text-emerald-400">SESSION LIVE</span>
-                <span className="text-xs text-[#71717a] font-mono">• Persona Evaluation Mode</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444]/80" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]/80" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]/80" />
+                <span className="ml-2 font-mono text-xs text-[#a1a1aa]">
+                  EXAMINATION COCKPIT // TELEMETRY PREVIEW
+                </span>
               </div>
 
-              {/* Track Selector Tabs inside Cockpit */}
-              <div className="flex items-center gap-1.5 bg-white/5 p-1 rounded-full border border-white/10 text-xs">
+              {/* Track pills */}
+              <div className="flex items-center gap-1.5 p-1 rounded-full bg-white/5 border border-white/10 text-xs">
                 <button
                   type="button"
                   onClick={() => setActivePreviewTrack('it')}
@@ -953,12 +1181,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
-                    onClick={() => onNavigate('role_select')}
-                    className="btn-glass px-4 py-2 text-xs font-medium cursor-pointer text-[#a1a1aa] hover:text-white"
+                    onClick={() => onNavigate('field_select')}
+                    className="text-xs text-[#a1a1aa] hover:text-white transition-colors"
                   >
-                    Browse Role Library
+                    View All Tracks
                   </button>
-
                   <button
                     type="button"
                     onClick={() => handleLaunchTrack(activePreviewTrack)}
@@ -973,7 +1200,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
           </div>
         </section>
 
-        {/* SECTION C: DETERMINISTIC ATS SCANNER */}
+        {/* 7. DETERMINISTIC ATS SCANNER */}
         <section id="ats-scanner" className="saas-reveal py-16 px-4 sm:px-6 max-w-5xl mx-auto w-full">
           <div
             className="rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl"
@@ -1038,7 +1265,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
                       strokeDashoffset={264 - (264 * currentAts.score) / 100}
                       strokeLinecap="round"
                       fill="transparent"
-                      className="transition-all duration-700"
+                      className="transition-all duration-1000 ease-out"
                     />
                     <defs>
                       <linearGradient id="saas-gauge-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -1047,87 +1274,71 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
                       </linearGradient>
                     </defs>
                   </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-3xl font-extrabold text-white font-mono">{currentAts.score}%</span>
-                    <span className="text-[10px] text-[#71717a] uppercase font-semibold">Match Score</span>
+                  <div className="absolute flex flex-col items-center">
+                    <span className="text-2xl font-bold text-white">{currentAts.score}%</span>
+                    <span className="text-[10px] font-mono text-[#71717a]">Match Grade</span>
                   </div>
                 </div>
-
-                <span className="mt-3 text-xs font-semibold text-emerald-400 font-mono">
-                  {currentAts.matchGrade}
-                </span>
+                <p className="mt-2 text-xs font-semibold text-emerald-400">{currentAts.matchGrade}</p>
               </div>
 
-              {/* Keyword Analysis Breakdown */}
+              {/* Keywords List */}
               <div className="md:col-span-2 space-y-4">
                 <div>
-                  <p className="text-xs font-semibold text-white mb-1.5 flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    <span>Validated High-Impact Keywords ({currentAts.matched.length})</span>
-                  </p>
+                  <p className="text-xs font-mono uppercase text-[#71717a] mb-2">Detected Keywords ({currentAts.matched.length})</p>
                   <div className="flex flex-wrap gap-1.5">
                     {currentAts.matched.map((kw, i) => (
-                      <span key={i} className="px-2.5 py-1 rounded-md text-xs font-mono bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
-                        {kw}
+                      <span key={i} className="px-2.5 py-1 rounded-full text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        ✓ {kw}
                       </span>
                     ))}
                   </div>
                 </div>
 
                 <div>
-                  <p className="text-xs font-semibold text-white mb-1.5 flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                    <span>Missing Required Competencies ({currentAts.missing.length})</span>
-                  </p>
+                  <p className="text-xs font-mono uppercase text-[#71717a] mb-2">Missing High-Impact Keywords ({currentAts.missing.length})</p>
                   <div className="flex flex-wrap gap-1.5">
                     {currentAts.missing.map((kw, i) => (
-                      <span key={i} className="px-2.5 py-1 rounded-md text-xs font-mono bg-amber-500/10 text-amber-300 border border-amber-500/20">
-                        {kw}
+                      <span key={i} className="px-2.5 py-1 rounded-full text-xs font-mono bg-rose-500/10 text-rose-300 border border-rose-500/20">
+                        ✕ {kw}
                       </span>
                     ))}
                   </div>
                 </div>
 
-                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
-                  <p className="text-xs text-[#a1a1aa] leading-relaxed">
-                    <strong className="text-white">Parsing Analysis: </strong>
-                    {currentAts.summary}
-                  </p>
+                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 text-xs text-[#a1a1aa]">
+                  <span className="font-semibold text-white">ATS Heuristic Analysis: </span>
+                  {currentAts.summary}
                 </div>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-white/5 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
+            {/* Direct Tool Links below ATS */}
+            <div className="pt-4 border-t border-white/5 flex items-center justify-between flex-wrap gap-3">
+              <span className="text-xs text-[#a1a1aa]">
+                Compile and export your resume in our markdown studio with zero formatting penalties.
+              </span>
+              <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={() => onNavigate('resume_editor')}
-                  className="btn-glass px-4 py-2 text-xs font-medium cursor-pointer text-[#a1a1aa] hover:text-white"
+                  className="btn-glass px-4 py-2 text-xs font-semibold cursor-pointer"
                 >
-                  Live Resume Editor
+                  Open Resume Studio
                 </button>
                 <button
                   type="button"
-                  onClick={() => onNavigate('template_picker')}
-                  className="btn-glass px-4 py-2 text-xs font-medium cursor-pointer text-[#a1a1aa] hover:text-white"
+                  onClick={() => onNavigate('resume')}
+                  className="btn-gradient-primary px-5 py-2 text-xs font-semibold cursor-pointer shadow-md"
                 >
-                  Browse Templates
+                  Scan Your Resume Now &rarr;
                 </button>
               </div>
-
-              <button
-                type="button"
-                onClick={() => onNavigate('resume')}
-                className="btn-gradient-primary px-5 py-2 text-xs font-semibold cursor-pointer shadow-md flex items-center gap-1.5"
-              >
-                <span>Scan Your Resume Now</span>
-                <span className="material-symbols-outlined text-[14px]">upload_file</span>
-              </button>
             </div>
           </div>
         </section>
 
-        {/* SECTION D: BENTO GRID FEATURES */}
+        {/* 8. SYSTEM ADVANTAGES BENTO GRID */}
         <section id="features" className="saas-reveal py-20 px-4 sm:px-6 max-w-6xl mx-auto w-full">
           <div className="text-center max-w-2xl mx-auto space-y-3 mb-14">
             <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#60a5fa]">
@@ -1142,9 +1353,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Card 1 */}
             <div
-              onClick={() => onNavigate('role_select')}
-              className="rounded-3xl p-7 space-y-3 cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all group"
+              onClick={() => onNavigate('field_select')}
+              className="rounded-3xl p-7 space-y-3 cursor-pointer group hover:border-[#7c3aed]/40 transition-all"
               style={{
                 background: 'rgba(255, 255, 255, 0.02)',
                 backdropFilter: 'blur(16px)',
@@ -1154,18 +1366,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
               <div className="w-10 h-10 rounded-2xl bg-[#7c3aed]/15 border border-[#7c3aed]/30 flex items-center justify-center text-[#c084fc]">
                 <span className="material-symbols-outlined text-[20px]">smart_toy</span>
               </div>
-              <h4 className="text-lg font-bold text-white group-hover:text-[#c084fc] transition-colors">Persona AI Examiners</h4>
+              <h4 className="text-lg font-bold text-white group-hover:text-[#c084fc] transition-colors">
+                Persona AI Examiners
+              </h4>
               <p className="text-xs text-[#a1a1aa] leading-relaxed">
-                Adaptive examiners who interrogate depth, challenge trade-offs, and dynamically adjust difficulty.
+                Adaptive examiners who interrogate depth, challenge architectural trade-offs, and dynamically adjust difficulty.
               </p>
-              <span className="text-xs text-[#7c3aed] font-semibold flex items-center gap-1 pt-2">
-                Explore Personas &rarr;
+              <span className="inline-block text-xs font-semibold text-[#c084fc] pt-2">
+                Launch Mock Session &rarr;
               </span>
             </div>
 
+            {/* Card 2 */}
             <div
-              onClick={() => onNavigate('resume')}
-              className="rounded-3xl p-7 space-y-3 cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all group"
+              onClick={() => onNavigate('profile')}
+              className="rounded-3xl p-7 space-y-3 cursor-pointer group hover:border-[#3b82f6]/40 transition-all"
               style={{
                 background: 'rgba(255, 255, 255, 0.02)',
                 backdropFilter: 'blur(16px)',
@@ -1175,18 +1390,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
               <div className="w-10 h-10 rounded-2xl bg-[#3b82f6]/15 border border-[#3b82f6]/30 flex items-center justify-center text-[#60a5fa]">
                 <span className="material-symbols-outlined text-[20px]">database</span>
               </div>
-              <h4 className="text-lg font-bold text-white group-hover:text-[#60a5fa] transition-colors">Dual Database Engine</h4>
+              <h4 className="text-lg font-bold text-white group-hover:text-[#60a5fa] transition-colors">
+                Dual Database Engine
+              </h4>
               <p className="text-xs text-[#a1a1aa] leading-relaxed">
                 Relational candidate accounts in SQLite; dynamic resume schemas and evaluation trees in MongoDB Atlas.
               </p>
-              <span className="text-xs text-[#3b82f6] font-semibold flex items-center gap-1 pt-2">
-                Launch Resume Parser &rarr;
+              <span className="inline-block text-xs font-semibold text-[#60a5fa] pt-2">
+                View Candidate Dossier &rarr;
               </span>
             </div>
 
+            {/* Card 3 */}
             <div
               onClick={() => onNavigate('session_history')}
-              className="rounded-3xl p-7 space-y-3 cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all group"
+              className="rounded-3xl p-7 space-y-3 cursor-pointer group hover:border-[#0EA5B7]/40 transition-all"
               style={{
                 background: 'rgba(255, 255, 255, 0.02)',
                 backdropFilter: 'blur(16px)',
@@ -1196,18 +1414,45 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
               <div className="w-10 h-10 rounded-2xl bg-[#0EA5B7]/15 border border-[#0EA5B7]/30 flex items-center justify-center text-[#22D3EE]">
                 <span className="material-symbols-outlined text-[20px]">psychology</span>
               </div>
-              <h4 className="text-lg font-bold text-white group-hover:text-[#22D3EE] transition-colors">STAR & IRAC Rubrics</h4>
+              <h4 className="text-lg font-bold text-white group-hover:text-[#22D3EE] transition-colors">
+                STAR & IRAC Rubrics
+              </h4>
               <p className="text-xs text-[#a1a1aa] leading-relaxed">
                 Automated scoring based on formal industry interview frameworks with detailed critique on every answer.
               </p>
-              <span className="text-xs text-[#0EA5B7] font-semibold flex items-center gap-1 pt-2">
-                View Past Rubrics &rarr;
+              <span className="inline-block text-xs font-semibold text-[#22D3EE] pt-2">
+                Explore Analytics &rarr;
               </span>
             </div>
 
+            {/* Card 4 */}
             <div
-              onClick={() => onNavigate('field_select')}
-              className="rounded-3xl p-7 space-y-3 cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all group"
+              onClick={() => onNavigate('resume')}
+              className="rounded-3xl p-7 space-y-3 cursor-pointer group hover:border-emerald-500/40 transition-all"
+              style={{
+                background: 'rgba(255, 255, 255, 0.02)',
+                backdropFilter: 'blur(16px)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+              }}
+            >
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                <span className="material-symbols-outlined text-[20px]">fact_check</span>
+              </div>
+              <h4 className="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors">
+                Deterministic ATS Engine
+              </h4>
+              <p className="text-xs text-[#a1a1aa] leading-relaxed">
+                Heuristic keyword density, formatting compliance checks, and reverse-chronological hierarchy parsing.
+              </p>
+              <span className="inline-block text-xs font-semibold text-emerald-400 pt-2">
+                Check ATS Score &rarr;
+              </span>
+            </div>
+
+            {/* Card 5 */}
+            <div
+              onClick={() => onNavigate('resume_editor')}
+              className="rounded-3xl p-7 space-y-3 cursor-pointer group hover:border-[#ec4899]/40 transition-all"
               style={{
                 background: 'rgba(255, 255, 255, 0.02)',
                 backdropFilter: 'blur(16px)',
@@ -1215,76 +1460,60 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
               }}
             >
               <div className="w-10 h-10 rounded-2xl bg-[#ec4899]/15 border border-[#ec4899]/30 flex items-center justify-center text-[#f472b6]">
-                <span className="material-symbols-outlined text-[20px]">graphic_eq</span>
-              </div>
-              <h4 className="text-lg font-bold text-white group-hover:text-[#f472b6] transition-colors">Real-Time Voice & Pace</h4>
-              <p className="text-xs text-[#a1a1aa] leading-relaxed">
-                Detect speech cadence, hesitation frequencies, filler counts, and delivery clarity in real-time.
-              </p>
-              <span className="text-xs text-[#ec4899] font-semibold flex items-center gap-1 pt-2">
-                Practice Audio &rarr;
-              </span>
-            </div>
-
-            <div
-              onClick={() => onNavigate('resume_editor')}
-              className="rounded-3xl p-7 space-y-3 cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all group"
-              style={{
-                background: 'rgba(255, 255, 255, 0.02)',
-                backdropFilter: 'blur(16px)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-              }}
-            >
-              <div className="w-10 h-10 rounded-2xl bg-[#10B981]/15 border border-[#10B981]/30 flex items-center justify-center text-emerald-400">
                 <span className="material-symbols-outlined text-[20px]">edit_note</span>
               </div>
-              <h4 className="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors">Interactive Resume Studio</h4>
+              <h4 className="text-lg font-bold text-white group-hover:text-[#f472b6] transition-colors">
+                Markdown Resume Studio
+              </h4>
               <p className="text-xs text-[#a1a1aa] leading-relaxed">
-                Craft industry-ready, ATS-compliant CVs with real-time preview and exportable high-fidelity formats.
+                Live markdown resume editing with instant preview, zero-lag parsing, and multi-version draft storage.
               </p>
-              <span className="text-xs text-emerald-400 font-semibold flex items-center gap-1 pt-2">
-                Open Studio &rarr;
+              <span className="inline-block text-xs font-semibold text-[#f472b6] pt-2">
+                Open Resume Studio &rarr;
               </span>
             </div>
 
+            {/* Card 6 */}
             <div
               onClick={() => onNavigate('template_picker')}
-              className="rounded-3xl p-7 space-y-3 cursor-pointer hover:border-white/20 hover:scale-[1.01] transition-all group"
+              className="rounded-3xl p-7 space-y-3 cursor-pointer group hover:border-[#eab308]/40 transition-all"
               style={{
                 background: 'rgba(255, 255, 255, 0.02)',
                 backdropFilter: 'blur(16px)',
                 border: '1px solid rgba(255, 255, 255, 0.08)',
               }}
             >
-              <div className="w-10 h-10 rounded-2xl bg-[#EAB308]/15 border border-[#EAB308]/30 flex items-center justify-center text-[#FACC15]">
-                <span className="material-symbols-outlined text-[20px]">folder_special</span>
+              <div className="w-10 h-10 rounded-2xl bg-[#eab308]/15 border border-[#eab308]/30 flex items-center justify-center text-[#facc15]">
+                <span className="material-symbols-outlined text-[20px]">palette</span>
               </div>
-              <h4 className="text-lg font-bold text-white group-hover:text-[#FACC15] transition-colors">Curated ATS Templates</h4>
+              <h4 className="text-lg font-bold text-white group-hover:text-[#facc15] transition-colors">
+                Executive Template Gallery
+              </h4>
               <p className="text-xs text-[#a1a1aa] leading-relaxed">
-                Battle-tested templates guaranteed to pass major enterprise ATS filters like Workday, Greenhouse, and Lever.
+                Pre-calibrated typographical templates optimized for applicant tracking systems and executive recruiters.
               </p>
-              <span className="text-xs text-[#FACC15] font-semibold flex items-center gap-1 pt-2">
-                Browse Templates &rarr;
+              <span className="inline-block text-xs font-semibold text-[#facc15] pt-2">
+                Choose Templates &rarr;
               </span>
             </div>
           </div>
         </section>
 
-        {/* SECTION E: BOTTOM CALL TO ACTION & PRICING BANNER */}
-        <section id="pricing" className="saas-reveal py-20 px-4 sm:px-6 max-w-5xl mx-auto w-full text-center">
-          <div className="text-center max-w-2xl mx-auto space-y-3 mb-12">
-            <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#7c3aed]">
-              PLANS & ACCELERATION
+        {/* 9. PRICING & ONBOARDING SECTION */}
+        <section id="pricing" className="saas-reveal py-20 px-4 sm:px-6 max-w-6xl mx-auto w-full">
+          <div className="text-center max-w-2xl mx-auto space-y-3 mb-14">
+            <span className="text-xs font-mono font-semibold uppercase tracking-widest text-[#c084fc]">
+              PLANS & ONBOARDING
             </span>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
-              Empowering Every Career Step
+              Transparent Access for Every Candidate
             </h2>
             <p className="text-sm sm:text-base text-[#a1a1aa]">
-              Start with free simulation sessions, or upgrade for unlimited high-depth AI evaluations.
+              Start with free mock interviews and expand your preparation as you target top-tier companies.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left mb-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Starter Plan */}
             <div
               className="rounded-3xl p-7 flex flex-col justify-between"
@@ -1295,26 +1524,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
               }}
             >
               <div className="space-y-4">
-                <span className="text-xs font-mono uppercase text-[#71717a] font-semibold">STARTER</span>
+                <span className="font-mono text-xs uppercase font-semibold text-[#a1a1aa]">Free Starter</span>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-extrabold text-white">$0</span>
-                  <span className="text-xs text-[#71717a]">/ forever</span>
+                  <span className="text-3xl sm:text-4xl font-bold text-white">$0</span>
+                  <span className="text-xs text-[#71717a]">/ forever free</span>
                 </div>
-                <p className="text-xs text-[#a1a1aa] leading-relaxed">
-                  Ideal for candidates beginning interview practice and basic resume compatibility checks.
-                </p>
-                <div className="space-y-2 pt-2 text-xs text-[#a1a1aa]">
+                <p className="text-xs text-[#a1a1aa]">Ideal for initial resume check and interview baseline.</p>
+                <div className="pt-4 border-t border-white/5 space-y-2 text-xs text-[#d4d4d8]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-emerald-400">✓</span>
+                    <span>Full ATS Resume Check</span>
+                  </div>
                   <div className="flex items-center gap-2">
                     <span className="text-emerald-400">✓</span>
                     <span>3 Full AI Mock Sessions</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-emerald-400">✓</span>
-                    <span>Standard ATS Keyword Analysis</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-emerald-400">✓</span>
-                    <span>Core Rubric Evaluations</span>
+                    <span>Markdown Resume Studio</span>
                   </div>
                 </div>
               </div>
@@ -1322,9 +1549,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
               <button
                 type="button"
                 onClick={() => onNavigate('field_select')}
-                className="mt-6 w-full py-2.5 rounded-full btn-glass text-xs font-semibold text-white cursor-pointer hover:border-white/20 transition-all text-center"
+                className="mt-6 w-full py-3 rounded-full btn-glass text-xs font-semibold cursor-pointer"
               >
-                Start Free Practice
+                Start Practicing Free
               </button>
             </div>
 
@@ -1332,55 +1559,53 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
             <div
               className="rounded-3xl p-7 flex flex-col justify-between relative overflow-hidden"
               style={{
-                background: 'rgba(124, 58, 237, 0.06)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(124, 58, 237, 0.4)',
-                boxShadow: '0 0 35px rgba(124, 58, 237, 0.15)',
+                background: 'rgba(124, 58, 237, 0.08)',
+                backdropFilter: 'blur(16px)',
+                border: '1px solid rgba(139, 92, 246, 0.4)',
+                boxShadow: '0 0 40px rgba(124, 58, 237, 0.2)',
               }}
             >
-              <div className="absolute top-4 right-4 px-2.5 py-0.5 rounded-full bg-[#7c3aed] text-white text-[10px] font-mono font-bold tracking-wider">
-                POPULAR
+              <div className="absolute top-3 right-4 px-2.5 py-0.5 rounded-full bg-[#7c3aed] text-[10px] font-mono font-semibold text-white uppercase">
+                Most Popular
               </div>
 
               <div className="space-y-4">
-                <span className="text-xs font-mono uppercase text-[#c084fc] font-semibold">PRO CANDIDATE</span>
+                <span className="font-mono text-xs uppercase font-semibold text-[#c084fc]">Pro Candidate</span>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-extrabold text-white">$19</span>
+                  <span className="text-3xl sm:text-4xl font-bold text-white">$19</span>
                   <span className="text-xs text-[#71717a]">/ month</span>
                 </div>
-                <p className="text-xs text-[#a1a1aa] leading-relaxed">
-                  Full multi-turn interrogations with principal personas, voice cadence analysis, and unlimited resumes.
-                </p>
-                <div className="space-y-2 pt-2 text-xs text-[#a1a1aa]">
+                <p className="text-xs text-[#a1a1aa]">Complete toolkit for active career transitions and offer hunting.</p>
+                <div className="pt-4 border-t border-white/10 space-y-2 text-xs text-[#d4d4d8]">
                   <div className="flex items-center gap-2">
-                    <span className="text-[#c084fc]">✓</span>
-                    <span>Unlimited AI Examinations</span>
+                    <span className="text-emerald-400">✓</span>
+                    <span>Unlimited AI Mock Interviews</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[#c084fc]">✓</span>
-                    <span>Deep Voice Cadence Analytics</span>
+                    <span className="text-emerald-400">✓</span>
+                    <span>Examiner STAR/IRAC Feedback</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[#c084fc]">✓</span>
-                    <span>Interactive Resume Studio Export</span>
+                    <span className="text-emerald-400">✓</span>
+                    <span>Unlimited ATS Scans & Keyword Tuning</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[#c084fc]">✓</span>
-                    <span>Priority Examiner Personas</span>
+                    <span className="text-emerald-400">✓</span>
+                    <span>All Executive Resume Templates</span>
                   </div>
                 </div>
               </div>
 
               <button
                 type="button"
-                onClick={() => onNavigate(isAuthenticated ? 'field_select' : 'signup')}
-                className="mt-6 w-full py-2.5 rounded-full btn-gradient-primary text-xs font-semibold text-white cursor-pointer shadow-lg text-center"
+                onClick={() => onNavigate('field_select')}
+                className="mt-6 w-full py-3 rounded-full btn-gradient-primary text-xs font-semibold cursor-pointer shadow-lg"
               >
-                Accelerate with Pro &rarr;
+                Get Pro Candidate &rarr;
               </button>
             </div>
 
-            {/* Enterprise Plan */}
+            {/* Enterprise / Universities */}
             <div
               className="rounded-3xl p-7 flex flex-col justify-between"
               style={{
@@ -1390,41 +1615,41 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
               }}
             >
               <div className="space-y-4">
-                <span className="text-xs font-mono uppercase text-[#71717a] font-semibold">CAMPUS & TEAMS</span>
+                <span className="font-mono text-xs uppercase font-semibold text-[#a1a1aa]">Institutions & Teams</span>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-extrabold text-white">Custom</span>
+                  <span className="text-3xl sm:text-4xl font-bold text-white">Custom</span>
                   <span className="text-xs text-[#71717a]">/ cohort</span>
                 </div>
-                <p className="text-xs text-[#a1a1aa] leading-relaxed">
-                  For university career centers, bootcamps, and talent accelerators seeking cohort dashboards.
-                </p>
-                <div className="space-y-2 pt-2 text-xs text-[#a1a1aa]">
+                <p className="text-xs text-[#a1a1aa]">Designed for universities, bootcamps, and career centers.</p>
+                <div className="pt-4 border-t border-white/5 space-y-2 text-xs text-[#d4d4d8]">
                   <div className="flex items-center gap-2">
-                    <span className="text-blue-400">✓</span>
-                    <span>Cohort Analytics Dashboard</span>
+                    <span className="text-emerald-400">✓</span>
+                    <span>Cohort Telemetry & Score Export</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-blue-400">✓</span>
-                    <span>Custom Industry Question Banks</span>
+                    <span className="text-emerald-400">✓</span>
+                    <span>Custom Rubric Calibration</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-blue-400">✓</span>
-                    <span>Dedicated Advisor Workspace</span>
+                    <span className="text-emerald-400">✓</span>
+                    <span>Dedicated Institutional Dashboard</span>
                   </div>
                 </div>
               </div>
 
               <button
                 type="button"
-                onClick={() => onNavigate('field_select')}
-                className="mt-6 w-full py-2.5 rounded-full btn-glass text-xs font-semibold text-white cursor-pointer hover:border-white/20 transition-all text-center"
+                onClick={() => onNavigate('login')}
+                className="mt-6 w-full py-3 rounded-full btn-glass text-xs font-semibold cursor-pointer"
               >
-                Contact Academic Team
+                Sign In to Institution
               </button>
             </div>
           </div>
+        </section>
 
-          {/* Epic Call to Action Box */}
+        {/* 10. BOTTOM EPIC CALL TO ACTION BANNER */}
+        <section className="saas-reveal py-16 px-4 sm:px-6 max-w-4xl mx-auto w-full text-center">
           <div
             className="rounded-3xl p-10 sm:p-14 space-y-6 shadow-2xl relative overflow-hidden"
             style={{
@@ -1437,11 +1662,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
           >
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-mono text-[#a1a1aa]">
               <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
-              <span>INSTANT ONBOARDING // ALL TRACKS OPEN</span>
+              <span>INSTANT ONBOARDING // FREE ACCESS</span>
             </div>
 
             <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-white leading-tight">
-              Ready to scale your <span className="gradient-text-highlights">SaaS Career?</span>
+              Ready to ace your <span className="gradient-text-highlights">Next Interview?</span>
             </h2>
 
             <p className="text-sm sm:text-base text-[#a1a1aa] max-w-md mx-auto leading-relaxed">
@@ -1469,15 +1694,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
           </div>
         </section>
 
-        {/* 6. LIQUID GLASS FOOTER */}
+        {/* 11. LIQUID GLASS FOOTER */}
         <footer
           className="w-full mt-auto py-12 px-4 sm:px-6 border-t border-white/5"
-          style={{ background: 'rgba(3, 3, 3, 0.85)', backdropFilter: 'blur(16px)' }}
+          style={{ background: 'rgba(3, 3, 3, 0.8)' }}
         >
-          <div className="max-w-6xl mx-auto space-y-8">
-            <div className="flex flex-col md:flex-row items-start justify-between gap-8">
-              {/* Brand Col */}
-              <div className="space-y-3 max-w-sm">
+          <div className="max-w-6xl mx-auto space-y-10">
+            {/* 4 Column Directory */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-xs">
+              <div className="col-span-2 md:col-span-1 space-y-3">
                 <div
                   onClick={(e) => handleDirectNav(e, 'hero')}
                   className="flex items-center gap-2.5 cursor-pointer group select-none"
@@ -1486,88 +1711,77 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onNavigate, onSelectTr
                     <rect x="4" y="4" width="16" height="16" rx="4" fill="#7c3aed" />
                     <rect x="12" y="12" width="16" height="16" rx="4" fill="#8b5cf6" fillOpacity="0.85" />
                   </svg>
-                  <span className="text-white font-bold text-base group-hover:text-[#c084fc] transition-colors">SmartHire Prep</span>
-                  <span className="text-[#71717a] font-mono text-xs">• Dark SaaS Edition</span>
+                  <span className="text-white font-bold text-base group-hover:text-[#c084fc] transition-colors">SmartHire</span>
                 </div>
-                <p className="text-xs text-[#71717a] leading-relaxed">
-                  Autonomous interview intelligence, deterministic ATS parser, and rubric-driven career evaluation.
+                <p className="text-[#71717a] leading-relaxed">
+                  Next-generation AI interview preparation and deterministic applicant tracking system optimization.
                 </p>
+                <div className="flex items-center gap-2 font-mono text-[11px] text-[#71717a] pt-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
+                  <span>TubesCursor 3D Engine Active</span>
+                </div>
               </div>
 
-              {/* Links Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 text-xs">
-                {/* Sections */}
-                <div className="space-y-2.5">
-                  <p className="font-semibold text-white tracking-wider uppercase font-mono text-[11px]">Sections</p>
-                  <div className="flex flex-col space-y-2 text-[#a1a1aa]">
-                    <a href="#hero" onClick={(e) => handleDirectNav(e, 'hero')} className="hover:text-white transition-colors cursor-pointer">Overview</a>
-                    <a href="#tracks" onClick={(e) => handleDirectNav(e, 'tracks')} className="hover:text-white transition-colors cursor-pointer">Solutions & Tracks</a>
-                    <a href="#cockpit" onClick={(e) => handleDirectNav(e, 'cockpit')} className="hover:text-white transition-colors cursor-pointer">Live Cockpit</a>
-                    <a href="#ats-scanner" onClick={(e) => handleDirectNav(e, 'ats-scanner')} className="hover:text-white transition-colors cursor-pointer">ATS Scanner</a>
-                    <a href="#features" onClick={(e) => handleDirectNav(e, 'features')} className="hover:text-white transition-colors cursor-pointer">System Advantages</a>
-                    <a href="#pricing" onClick={(e) => handleDirectNav(e, 'pricing')} className="hover:text-white transition-colors cursor-pointer">Plans & Pricing</a>
-                  </div>
+              <div className="space-y-3">
+                <p className="font-mono text-[11px] uppercase font-semibold text-white tracking-wider">Sections</p>
+                <div className="flex flex-col space-y-2 text-[#a1a1aa]">
+                  <a href="#hero" onClick={(e) => handleDirectNav(e, 'hero')} className="hover:text-white transition-colors cursor-pointer">Overview</a>
+                  <a href="#tracks" onClick={(e) => handleDirectNav(e, 'tracks')} className="hover:text-white transition-colors cursor-pointer">Career Tracks</a>
+                  <a href="#cockpit" onClick={(e) => handleDirectNav(e, 'cockpit')} className="hover:text-white transition-colors cursor-pointer">AI Cockpit Preview</a>
+                  <a href="#ats-scanner" onClick={(e) => handleDirectNav(e, 'ats-scanner')} className="hover:text-white transition-colors cursor-pointer">ATS Scanner</a>
+                  <a href="#features" onClick={(e) => handleDirectNav(e, 'features')} className="hover:text-white transition-colors cursor-pointer">System Advantages</a>
+                  <a href="#pricing" onClick={(e) => handleDirectNav(e, 'pricing')} className="hover:text-white transition-colors cursor-pointer">Pricing & Plans</a>
                 </div>
+              </div>
 
-                {/* Direct App Tools */}
-                <div className="space-y-2.5">
-                  <p className="font-semibold text-white tracking-wider uppercase font-mono text-[11px]">Applications</p>
-                  <div className="flex flex-col space-y-2 text-[#a1a1aa]">
-                    <button type="button" onClick={() => onNavigate('field_select')} className="hover:text-white transition-colors cursor-pointer text-left">
-                      Field & Track Select
-                    </button>
-                    <button type="button" onClick={() => onNavigate('role_select')} className="hover:text-white transition-colors cursor-pointer text-left">
-                      Role Selection
-                    </button>
-                    <button type="button" onClick={() => onNavigate('resume')} className="hover:text-white transition-colors cursor-pointer text-left">
-                      ATS Resume Upload
-                    </button>
-                    <button type="button" onClick={() => onNavigate('resume_editor')} className="hover:text-white transition-colors cursor-pointer text-left">
-                      Live Resume Studio
-                    </button>
-                    <button type="button" onClick={() => onNavigate('template_picker')} className="hover:text-white transition-colors cursor-pointer text-left">
-                      Resume Templates
-                    </button>
-                    <button type="button" onClick={() => onNavigate('session_history')} className="hover:text-white transition-colors cursor-pointer text-left">
-                      Examination History
-                    </button>
-                  </div>
+              <div className="space-y-3">
+                <p className="font-mono text-[11px] uppercase font-semibold text-white tracking-wider">Applications</p>
+                <div className="flex flex-col space-y-2 text-[#a1a1aa]">
+                  <button type="button" onClick={() => onNavigate('field_select')} className="text-left hover:text-white transition-colors cursor-pointer">
+                    Mock Interview Engine
+                  </button>
+                  <button type="button" onClick={() => onNavigate('role_select')} className="text-left hover:text-white transition-colors cursor-pointer">
+                    Role & Track Catalog
+                  </button>
+                  <button type="button" onClick={() => onNavigate('resume')} className="text-left hover:text-white transition-colors cursor-pointer">
+                    ATS Resume Scanner
+                  </button>
+                  <button type="button" onClick={() => onNavigate('resume_editor')} className="text-left hover:text-white transition-colors cursor-pointer">
+                    Markdown Resume Studio
+                  </button>
+                  <button type="button" onClick={() => onNavigate('template_picker')} className="text-left hover:text-white transition-colors cursor-pointer">
+                    Executive Template Picker
+                  </button>
+                  <button type="button" onClick={() => onNavigate('session_history')} className="text-left hover:text-white transition-colors cursor-pointer">
+                    Session Telemetry History
+                  </button>
                 </div>
+              </div>
 
-                {/* Candidate Account */}
-                <div className="space-y-2.5">
-                  <p className="font-semibold text-white tracking-wider uppercase font-mono text-[11px]">Account</p>
-                  <div className="flex flex-col space-y-2 text-[#a1a1aa]">
-                    {isAuthenticated ? (
-                      <>
-                        <button type="button" onClick={() => onNavigate('profile')} className="hover:text-white transition-colors cursor-pointer text-left font-medium text-[#c084fc]">
-                          Candidate Profile
-                        </button>
-                        <button type="button" onClick={() => logout()} className="hover:text-white transition-colors cursor-pointer text-left">
-                          Sign Out
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button type="button" onClick={() => onNavigate('login')} className="hover:text-white transition-colors cursor-pointer text-left">
-                          Sign In
-                        </button>
-                        <button type="button" onClick={() => onNavigate('signup')} className="hover:text-white transition-colors cursor-pointer text-left">
-                          Register Account
-                        </button>
-                      </>
-                    )}
-                  </div>
+              <div className="space-y-3">
+                <p className="font-mono text-[11px] uppercase font-semibold text-white tracking-wider">Candidate Account</p>
+                <div className="flex flex-col space-y-2 text-[#a1a1aa]">
+                  <button type="button" onClick={() => onNavigate('profile')} className="text-left hover:text-white transition-colors cursor-pointer">
+                    Candidate Profile Dossier
+                  </button>
+                  <button type="button" onClick={() => onNavigate('login')} className="text-left hover:text-white transition-colors cursor-pointer">
+                    Candidate Sign In
+                  </button>
+                  <button type="button" onClick={() => onNavigate('signup')} className="text-left hover:text-white transition-colors cursor-pointer">
+                    Create New Account
+                  </button>
                 </div>
               </div>
             </div>
 
             {/* Bottom Bar */}
             <div className="pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#71717a]">
-              <p>&copy; {new Date().getFullYear()} SmartHire Career Intelligence Systems. All rights reserved.</p>
-              <div className="flex items-center gap-2 font-mono text-[11px]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse" />
-                <span>3D Engine: TubesCursor Active</span>
+              <span>© {new Date().getFullYear()} SmartHire Platform. All rights reserved.</span>
+              <div className="flex items-center gap-4">
+                <span className="flex items-center gap-1.5 font-mono text-[11px]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
+                  <span>All Systems Operational</span>
+                </span>
               </div>
             </div>
           </div>
