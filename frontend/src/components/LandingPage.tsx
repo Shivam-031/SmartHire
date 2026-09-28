@@ -38,17 +38,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         canvas.height = window.innerHeight;
 
         const loadModule = new Function('url', 'return import(url)');
-        const module = await loadModule(
-          'https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js'
-        );
-        const TubesCursor = module.default || module;
+        let module: any = null;
+        try {
+          module = await loadModule('/tubes1.min.js');
+        } catch {
+          module = await loadModule(
+            'https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js'
+          );
+        }
+        const TubesCursor = module?.default || module;
 
         if (isMounted && typeof TubesCursor === 'function') {
           appInstance = TubesCursor(canvas, {
             tubes: {
               colors: ['#ff008a', '#8b5cf6', '#3b82f6', '#ffffff'],
               lights: {
-                intensity: 50,
+                intensity: 120,
                 colors: ['#ff008a', '#8b5cf6', '#3b82f6', '#ffffff'],
               },
             },
@@ -253,13 +258,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   return (
     <div className="min-h-screen bg-[#030303] text-white font-sans antialiased selection:bg-[#7c3aed]/30 selection:text-white relative overflow-x-hidden">
-      {/* 3D Animated Background Canvas (TubesCursor) */}
-      <canvas
-        ref={canvasRef}
-        id="canvas"
-        className="fixed inset-0 w-full h-full pointer-events-none"
-        style={{ zIndex: 0 }}
-      />
+      {/* 3D Animated Background Canvas Container (TubesCursor) */}
+      <div className="fixed inset-0 w-full h-full pointer-events-none overflow-hidden" style={{ zIndex: 1 }}>
+        <canvas
+          ref={canvasRef}
+          id="canvas"
+          className="w-full h-full block"
+          style={{ width: '100%', height: '100%' }}
+        />
+      </div>
 
       {/* Ambient background glows */}
       <div className="fixed top-[-100px] left-[10%] w-[550px] h-[550px] rounded-full bg-[#7c3aed]/22 blur-[140px] pointer-events-none" style={{ zIndex: 0 }} />
@@ -269,7 +276,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* Main content wrapper */}
       <div className="relative z-10 flex flex-col min-h-screen">
         {/* 1. LIQUID GLASS NAVBAR (Fixed Floating Pill Dock - No Jitter, Zero Layout Shift) */}
-        <header className="sticky top-0 z-50 w-full pt-4 pb-2 px-4 sm:px-6 pointer-events-none">
+        <header className="fixed top-0 left-0 right-0 z-50 w-full pt-4 pb-2 px-4 sm:px-6 pointer-events-none">
           <nav
             className={`liquid-glass-nav pointer-events-auto flex items-center justify-between mx-auto relative overflow-hidden ${
               isScrolled ? 'is-scrolled' : ''
@@ -564,7 +571,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         {/* 3. HERO SECTION */}
         <section
           id="hero"
-          className="saas-reveal saas-visible pt-16 sm:pt-24 pb-16 px-4 sm:px-6 flex flex-col items-center text-center max-w-5xl mx-auto w-full"
+          className="saas-reveal saas-visible pt-28 sm:pt-36 pb-16 px-4 sm:px-6 flex flex-col items-center text-center max-w-5xl mx-auto w-full"
         >
           {/* Badge */}
           <div
