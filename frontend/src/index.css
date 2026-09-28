@@ -152,6 +152,10 @@ body {
   --gradient-text-highlights: linear-gradient(135deg, #60a5fa, #c084fc, #f472b6);
   --glass-borders: rgba(255, 255, 255, 0.08);
   --glass-background: rgba(255, 255, 255, 0.02);
+  /* Scroll & navbar variables */
+  --nav-bg-opacity: 0;
+  --nav-shadow-opacity: 0;
+  --scroll-progress: 0%;
 }
 
 .liquid-glass-nav {
@@ -181,12 +185,25 @@ body {
   box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.8), 0 0 24px rgba(124, 58, 237, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
+/* Nav scroll state */
+.liquid-glass-nav.nav-scrolled {
+  height: 62px;
+  max-width: 1220px;
+  padding: 0 20px;
+  background: rgba(8, 8, 14, 0.88);
+  backdrop-filter: blur(20px) saturate(190%);
+  -webkit-backdrop-filter: blur(20px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.8), 0 0 24px rgba(124, 58, 237, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: background, height, transform;
+}
+
 /* Scroll-triggered sliding reveal animation */
 .saas-reveal {
-  opacity: 0;
-  transform: translateY(32px);
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .saas-reveal.saas-visible {
@@ -232,3 +249,10 @@ body {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.2);
 }
+
+/* Active nav link styling */
+.nav-link.active {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+}
+

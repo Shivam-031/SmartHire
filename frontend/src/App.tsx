@@ -13,7 +13,7 @@ import UserProfile from './components/UserProfile';
 import InterviewModeModal from './components/InterviewModeModal';
 import AuthScreen from './components/AuthScreen';
 import ProfileScreen from './components/ProfileScreen';
-import LandingPage from './components/LandingPage';
+import { LandingPage } from './components/LandingPage';
 
 // URL Hash to DocketStep mapping
 const HASH_MAP: Record<string, DocketStep> = {
