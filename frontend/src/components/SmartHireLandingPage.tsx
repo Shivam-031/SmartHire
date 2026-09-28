@@ -31,12 +31,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
     const initTubes = async () => {
       try {
-        console.log('[Tubes] initTubes started');
         const canvas = canvasRef.current || (document.getElementById('canvas') as HTMLCanvasElement);
-        if (!canvas) {
-          console.log('[Tubes] Canvas element not found');
-          return;
-        }
+        if (!canvas) return;
 
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
@@ -45,41 +41,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         let module: any = null;
         try {
           module = await loadModule('/tubes1.min.js');
-          console.log('[Tubes] Loaded local /tubes1.min.js');
-        } catch (localErr) {
-          console.log('[Tubes] Local load failed, trying CDN:', localErr);
+        } catch {
           module = await loadModule(
             'https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js'
           );
         }
         const TubesCursor = module?.default || module;
-        console.log('[Tubes] TubesCursor type:', typeof TubesCursor);
 
         if (isMounted && typeof TubesCursor === 'function') {
           appInstance = TubesCursor(canvas, {
             tubes: {
-              count: 28,
-              minRadius: 0.012,
-              maxRadius: 0.065,
-              minTubularSegments: 48,
-              maxTubularSegments: 100,
-              lerp: 0.35,
-              noise: 0.06,
-              colors: ['#ff008a', '#c084fc', '#8b5cf6', '#3b82f6', '#06b6d4'],
+              colors: ['#ff008a', '#8b5cf6', '#3b82f6', '#ffffff'],
               lights: {
-                intensity: 180,
-                colors: ['#ff008a', '#8b5cf6', '#3b82f6', '#06b6d4'],
+                intensity: 120,
+                colors: ['#ff008a', '#8b5cf6', '#3b82f6', '#ffffff'],
               },
             },
-            sleepRadiusX: 520,
-            sleepRadiusY: 260,
-            sleepTimeScale1: 0.9,
-            sleepTimeScale2: 1.4,
           });
-          console.log('[Tubes] appInstance created:', !!appInstance);
         }
       } catch (err) {
-        console.error('[Tubes] Error initializing TubesCursor:', err);
+        console.warn('TubesCursor 3D background notice:', err);
       }
     };
 
@@ -287,26 +268,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         />
       </div>
 
-      {/* Subtle modern cyber-grid background */}
-      <div
-        className="fixed inset-0 pointer-events-none opacity-40"
-        style={{
-          zIndex: 0,
-          backgroundImage: `
-            linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px)
-          `,
-          backgroundSize: '54px 54px',
-          maskImage: 'radial-gradient(ellipse 80% 60% at 50% 20%, black 40%, transparent 100%)',
-          WebkitMaskImage: 'radial-gradient(ellipse 80% 60% at 50% 20%, black 40%, transparent 100%)',
-        }}
-      />
-
       {/* Ambient background glows */}
-      <div className="fixed top-[-120px] left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full bg-gradient-to-b from-[#7c3aed]/25 via-[#4f46e5]/18 to-transparent blur-[120px] pointer-events-none" style={{ zIndex: 0 }} />
-      <div className="fixed top-[30%] left-[-150px] w-[550px] h-[550px] rounded-full bg-[#8b5cf6]/20 blur-[150px] pointer-events-none" style={{ zIndex: 0 }} />
-      <div className="fixed top-[45%] right-[-150px] w-[600px] h-[600px] rounded-full bg-[#06b6d4]/16 blur-[160px] pointer-events-none" style={{ zIndex: 0 }} />
-      <div className="fixed bottom-[-100px] left-[25%] w-[700px] h-[700px] rounded-full bg-[#7c3aed]/18 blur-[160px] pointer-events-none" style={{ zIndex: 0 }} />
+      <div className="fixed top-[-100px] left-[10%] w-[550px] h-[550px] rounded-full bg-[#7c3aed]/22 blur-[140px] pointer-events-none" style={{ zIndex: 0 }} />
+      <div className="fixed top-[40%] right-[-100px] w-[500px] h-[500px] rounded-full bg-[#3b82f6]/18 blur-[150px] pointer-events-none" style={{ zIndex: 0 }} />
+      <div className="fixed bottom-[-100px] left-[30%] w-[650px] h-[650px] rounded-full bg-[#8b5cf6]/20 blur-[160px] pointer-events-none" style={{ zIndex: 0 }} />
 
       {/* Main content wrapper */}
       <div className="relative z-10 flex flex-col min-h-screen">
