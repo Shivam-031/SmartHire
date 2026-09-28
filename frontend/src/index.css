@@ -161,25 +161,25 @@ body {
 .liquid-glass-nav {
   position: relative;
   z-index: 100;
-  height: 68px;
-  padding: 0 24px;
+  height: 60px;
+  padding: 0 20px;
   border-radius: 100px;
-  max-width: 1200px;
+  max-width: 1040px;
   margin: 0 auto;
-  background: rgba(10, 10, 15, 0.7);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(10, 10, 15, 0.72);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .liquid-glass-nav.is-scrolled,
 .liquid-glass-nav.is-stuck,
 .liquid-glass-nav.nav-scrolled {
-  background: rgba(8, 8, 14, 0.92);
+  background: rgba(7, 7, 12, 0.92);
   border-color: rgba(255, 255, 255, 0.16);
-  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.8), 0 0 24px rgba(124, 58, 237, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.8), 0 0 20px rgba(124, 58, 237, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 /* Scroll-triggered sliding reveal animation */
