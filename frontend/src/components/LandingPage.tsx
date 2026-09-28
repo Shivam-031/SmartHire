@@ -22,16 +22,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [activeSection, setActiveSection] = useState<string>('hero');
   const scrollRaf = useRef<number | null>(null);
 
-  // Initialize 3D TubesCursor from CDN, defer initialization to idle time for performance
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Initialize 3D TubesCursor from CDN immediately on mount
   useEffect(() => {
     let isMounted = true;
     let appInstance: any = null;
-    let idleId: any = null;
-    let timerId: any = null;
 
-    const init = async () => {
+    const initTubes = async () => {
       try {
-        const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+        const canvas = canvasRef.current || (document.getElementById('canvas') as HTMLCanvasElement);
         if (!canvas) return;
 
         canvas.width = window.innerWidth;
@@ -59,14 +59,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       }
     };
 
-    if (typeof (window as any).requestIdleCallback === 'function') {
-      idleId = (window as any).requestIdleCallback(init);
-    } else {
-      timerId = setTimeout(init, 500);
-    }
+    initTubes();
 
     const handleResize = () => {
-      const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+      const canvas = canvasRef.current || (document.getElementById('canvas') as HTMLCanvasElement);
       if (canvas) {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
@@ -76,12 +72,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
     return () => {
       isMounted = false;
-      if (idleId != null) (window as any).cancelIdleCallback?.(idleId);
-      if (timerId != null) clearTimeout(timerId);
       window.removeEventListener('resize', handleResize);
-      if (appInstance && typeof appInstance.dispose === 'function') {
-        appInstance.dispose();
-      }
+      try {
+        if (appInstance && typeof appInstance.dispose === 'function') {
+          appInstance.dispose();
+        }
+      } catch (_) {}
     };
   }, []);
 
@@ -259,35 +255,30 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     <div className="min-h-screen bg-[#030303] text-white font-sans antialiased selection:bg-[#7c3aed]/30 selection:text-white relative overflow-x-hidden">
       {/* 3D Animated Background Canvas (TubesCursor) */}
       <canvas
+        ref={canvasRef}
         id="canvas"
         className="fixed inset-0 w-full h-full pointer-events-none"
         style={{ zIndex: 0 }}
       />
 
       {/* Ambient background glows */}
-      <div className="fixed top-[-100px] left-[10%] w-[500px] h-[500px] rounded-full bg-[#7c3aed]/12 blur-[140px] pointer-events-none" />
-      <div className="fixed top-[40%] right-[-100px] w-[500px] h-[500px] rounded-full bg-[#3b82f6]/10 blur-[150px] pointer-events-none" />
-      <div className="fixed bottom-[-100px] left-[30%] w-[600px] h-[600px] rounded-full bg-[#8b5cf6]/10 blur-[160px] pointer-events-none" />
+      <div className="fixed top-[-100px] left-[10%] w-[550px] h-[550px] rounded-full bg-[#7c3aed]/22 blur-[140px] pointer-events-none" style={{ zIndex: 0 }} />
+      <div className="fixed top-[40%] right-[-100px] w-[500px] h-[500px] rounded-full bg-[#3b82f6]/18 blur-[150px] pointer-events-none" style={{ zIndex: 0 }} />
+      <div className="fixed bottom-[-100px] left-[30%] w-[650px] h-[650px] rounded-full bg-[#8b5cf6]/20 blur-[160px] pointer-events-none" style={{ zIndex: 0 }} />
 
       {/* Main content wrapper */}
       <div className="relative z-10 flex flex-col min-h-screen">
-        {/* 1. LIQUID GLASS NAVBAR (Sticky Floating Dock with Smooth Compaction) */}
-        <header
-          className={`sticky top-0 z-50 w-full transition-all duration-300 ${
-            isScrolled
-              ? 'pt-2.5 pb-2.5 px-3 sm:px-6 bg-[#030303]/60 backdrop-blur-md border-b border-white/[0.06] shadow-[0_10px_30px_rgba(0,0,0,0.5)]'
-              : 'pt-5 pb-2 px-4 sm:px-6 bg-transparent'
-          }`}
-        >
+        {/* 1. LIQUID GLASS NAVBAR (Fixed Floating Pill Dock - No Jitter, Zero Layout Shift) */}
+        <header className="sticky top-0 z-50 w-full pt-4 pb-2 px-4 sm:px-6 pointer-events-none">
           <nav
-            className={`liquid-glass-nav flex items-center justify-between mx-auto transition-all duration-300 relative overflow-hidden ${
-              isScrolled ? 'is-stuck' : ''
+            className={`liquid-glass-nav pointer-events-auto flex items-center justify-between mx-auto relative overflow-hidden ${
+              isScrolled ? 'is-scrolled' : ''
             }`}
           >
             {/* Ambient Progress Bar */}
             <div
               className="absolute bottom-0 left-0 h-[2px] bg-gradient-to-r from-[#7c3aed] via-[#3b82f6] to-[#ec4899] transition-all duration-150 pointer-events-none rounded-full"
-              style={{ width: `${scrollProgress}%`, opacity: isScrolled ? 0.95 : 0 }}
+              style={{ width: `${scrollProgress}%`, opacity: isScrolled ? 0.95 : 0.3 }}
             />
 
             {/* Left: SmartHire Logo */}

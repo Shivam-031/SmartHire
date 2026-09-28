@@ -41,7 +41,7 @@
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 88px;
+  scroll-padding-top: 96px;
 }
 
 body {
@@ -161,42 +161,25 @@ body {
 .liquid-glass-nav {
   position: relative;
   z-index: 100;
-  height: 76px;
+  height: 68px;
   padding: 0 24px;
   border-radius: 100px;
   max-width: 1200px;
-  background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: background, height, transform;
+  margin: 0 auto;
+  background: rgba(10, 10, 15, 0.7);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.liquid-glass-nav.is-stuck {
-  height: 62px;
-  max-width: 1220px;
-  padding: 0 20px;
-  background: rgba(8, 8, 14, 0.88);
-  backdrop-filter: blur(20px) saturate(190%);
-  -webkit-backdrop-filter: blur(20px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.8), 0 0 24px rgba(124, 58, 237, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-}
-
-/* Nav scroll state */
+.liquid-glass-nav.is-scrolled,
+.liquid-glass-nav.is-stuck,
 .liquid-glass-nav.nav-scrolled {
-  height: 62px;
-  max-width: 1220px;
-  padding: 0 20px;
-  background: rgba(8, 8, 14, 0.88);
-  backdrop-filter: blur(20px) saturate(190%);
-  -webkit-backdrop-filter: blur(20px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(8, 8, 14, 0.92);
+  border-color: rgba(255, 255, 255, 0.16);
   box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.8), 0 0 24px rgba(124, 58, 237, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: background, height, transform;
 }
 
 /* Scroll-triggered sliding reveal animation */
