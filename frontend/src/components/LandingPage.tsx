@@ -429,8 +429,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     type="button"
                     onClick={() => onNavigate('field_select')}
                     className="btn-gradient-primary px-4 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-md hover:shadow-lg transition-all"
+                    title="Enter Google Stitch Workspace (Step 1: Track Setup)"
                   >
-                    <span>Get Started</span>
+                    <span>Launch App</span>
                     <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
@@ -1600,6 +1601,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
           </div>
         </footer>
+
+        {/* Floating Quick Dock for Instant Stitch App Access */}
+        <div className="fixed bottom-6 right-6 z-50">
+          <button
+            type="button"
+            onClick={() => onNavigate('field_select')}
+            className="flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-[#141313]/90 hover:bg-[#1f1e1e] border border-white/[0.15] text-white text-xs font-semibold shadow-[0_8px_32px_rgba(0,0,0,0.6)] backdrop-blur-xl transition-all hover:scale-105 cursor-pointer group"
+            title="Launch Google Stitch Workspace"
+          >
+            <span className="w-2 h-2 rounded-full bg-[#22d3ee] shadow-[0_0_8px_#22d3ee] animate-pulse" />
+            <span>Enter Stitch Workspace</span>
+            <span className="material-symbols-outlined text-[16px] group-hover:translate-x-0.5 transition-transform text-[#c084fc]">
+              arrow_forward
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   );

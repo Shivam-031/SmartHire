@@ -25,14 +25,12 @@ export const SessionHistory: React.FC<SessionHistoryProps> = ({ onSelectSession,
   const { token } = useAuth();
   const [sessions, setSessions] = useState<SessionItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [filterTrack, setFilterTrack] = useState<string>('all');
 
   useEffect(() => {
     let isMounted = true;
     const fetchSessions = async () => {
       setLoading(true);
-      setError(null);
       try {
         const storedToken = token || localStorage.getItem('token');
         const headers: HeadersInit = storedToken ? { Authorization: `Bearer ${storedToken}` } : {};
@@ -49,7 +47,7 @@ export const SessionHistory: React.FC<SessionHistoryProps> = ({ onSelectSession,
           }
           setLoading(false);
         }
-      } catch (err: any) {
+      } catch {
         if (isMounted) {
           setSessions(getDefaultHistory());
           setLoading(false);
@@ -69,7 +67,7 @@ export const SessionHistory: React.FC<SessionHistoryProps> = ({ onSelectSession,
       field: 'it',
       role: 'Frontend Developer',
       mode: 'standard',
-      overall_score: 0.84,
+      overall_score: 0.88,
       date: new Date(Date.now() - 3600000).toISOString(),
       has_transcript: true,
     },
@@ -78,7 +76,7 @@ export const SessionHistory: React.FC<SessionHistoryProps> = ({ onSelectSession,
       field: 'management',
       role: 'Product Manager',
       mode: 'mock',
-      overall_score: 0.78,
+      overall_score: 0.84,
       date: new Date(Date.now() - 86400000).toISOString(),
       has_transcript: true,
     },
@@ -87,42 +85,30 @@ export const SessionHistory: React.FC<SessionHistoryProps> = ({ onSelectSession,
       field: 'law',
       role: 'Corporate Counsel',
       mode: 'standard',
-      overall_score: 0.86,
+      overall_score: 0.92,
       date: new Date(Date.now() - 172800000).toISOString(),
       has_transcript: false,
     },
   ];
 
-  const getDomainTheme = (field: string) => {
-    switch ((field || 'it').toLowerCase()) {
-      case 'management':
-        return { name: 'Management', color: '#8B4FE0', bgLight: 'bg-[#8B4FE0]/10', border: 'border-[#8B4FE0]/30' };
-      case 'law':
-        return { name: 'Law', color: '#0EA5B7', bgLight: 'bg-[#0EA5B7]/10', border: 'border-[#0EA5B7]/30' };
-      case 'it':
-      default:
-        return { name: 'IT', color: '#2E6FF2', bgLight: 'bg-[#2E6FF2]/10', border: 'border-[#2E6FF2]/30' };
-    }
-  };
-
   const filteredSessions = sessions.filter((s) => {
+    const f = (s.field || s.target_field || 'it').toLowerCase();
     if (filterTrack === 'all') return true;
-    const sessionField = (s.field || s.target_field || 'it').toLowerCase();
-    return sessionField === filterTrack;
+    return f === filterTrack;
   });
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 text-left animate-fadeIn">
-      {/* Header Banner */}
-      <div className="bg-white rounded-2xl p-6 sm:p-8 border border-[#E5E7EB] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#6B7078]">
+    <div className="max-w-5xl mx-auto w-full space-y-6 text-left animate-fadeIn select-none">
+      {/* Top Header Strip */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
+        <div>
+          <span className="font-mono text-[10px] uppercase tracking-wider text-[#71717a] block mb-1">
             ARCHIVE LEDGER // CROSS-DATABASE TELEMETRY
           </span>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#17181C]">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
             Candidate Session History
           </h1>
-          <p className="text-sm text-[#6B7078]">
+          <p className="text-xs sm:text-sm text-[#a1a1aa] mt-1">
             Review prior mock simulations, diagnostic ATS assessments, and oral examination transcripts.
           </p>
         </div>
@@ -130,7 +116,7 @@ export const SessionHistory: React.FC<SessionHistoryProps> = ({ onSelectSession,
         <button
           type="button"
           onClick={onBack}
-          className="px-4 py-2.5 bg-white border border-[#E5E7EB] hover:bg-[#F8F9FA] text-[#17181C] rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 self-start md:self-auto shadow-xs"
+          className="btn-glass px-4 py-2 text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
         >
           <span className="material-symbols-outlined text-[16px]">arrow_back</span>
           <span>Return to Workspace</span>
@@ -138,15 +124,15 @@ export const SessionHistory: React.FC<SessionHistoryProps> = ({ onSelectSession,
       </div>
 
       {/* Filter Tabs Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-[#E5E7EB] shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl">
         <div className="flex flex-wrap items-center gap-1.5">
           <button
             type="button"
             onClick={() => setFilterTrack('all')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer ${
               filterTrack === 'all'
-                ? 'bg-[#17181C] text-white'
-                : 'text-[#6B7078] hover:bg-[#F8F9FA]'
+                ? 'bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white shadow-xs'
+                : 'text-[#a1a1aa] hover:text-white hover:bg-white/[0.04]'
             }`}
           >
             All Tracks ({sessions.length})
@@ -154,10 +140,10 @@ export const SessionHistory: React.FC<SessionHistoryProps> = ({ onSelectSession,
           <button
             type="button"
             onClick={() => setFilterTrack('it')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer ${
               filterTrack === 'it'
-                ? 'bg-[#2E6FF2] text-white'
-                : 'text-[#6B7078] hover:bg-[#F8F9FA]'
+                ? 'bg-[#3b82f6] text-white shadow-xs'
+                : 'text-[#a1a1aa] hover:text-white hover:bg-white/[0.04]'
             }`}
           >
             IT Track
@@ -165,10 +151,10 @@ export const SessionHistory: React.FC<SessionHistoryProps> = ({ onSelectSession,
           <button
             type="button"
             onClick={() => setFilterTrack('management')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer ${
               filterTrack === 'management'
-                ? 'bg-[#8B4FE0] text-white'
-                : 'text-[#6B7078] hover:bg-[#F8F9FA]'
+                ? 'bg-[#8b5cf6] text-white shadow-xs'
+                : 'text-[#a1a1aa] hover:text-white hover:bg-white/[0.04]'
             }`}
           >
             Management
@@ -176,127 +162,81 @@ export const SessionHistory: React.FC<SessionHistoryProps> = ({ onSelectSession,
           <button
             type="button"
             onClick={() => setFilterTrack('law')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold transition-colors cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer ${
               filterTrack === 'law'
-                ? 'bg-[#0EA5B7] text-white'
-                : 'text-[#6B7078] hover:bg-[#F8F9FA]'
+                ? 'bg-[#0EA5B7] text-white shadow-xs'
+                : 'text-[#a1a1aa] hover:text-white hover:bg-white/[0.04]'
             }`}
           >
-            Law
+            Law Track
           </button>
         </div>
 
-        <span className="text-xs font-mono text-[#6B7078] pr-2">
-          Displaying {filteredSessions.length} record{filteredSessions.length === 1 ? '' : 's'}
+        <span className="font-mono text-[11px] text-[#71717a] hidden sm:inline">
+          MongoDB Transcripts Active
         </span>
       </div>
 
-      {/* Content Area */}
+      {/* Session Cards List */}
       {loading ? (
-        <div className="p-12 bg-white rounded-2xl border border-[#E5E7EB] text-center space-y-4">
-          <div className="w-8 h-8 border-3 border-[#2E6FF2] border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="font-mono text-xs text-[#6B7078]">Retrieving session archives...</p>
+        <div className="p-12 rounded-3xl bg-white/[0.02] border border-white/[0.08] text-center text-xs font-mono text-[#a1a1aa]">
+          Retrieving session dossiers...
         </div>
-      ) : error ? (
-        <div className="p-8 bg-white border border-[#B23A2E] rounded-2xl text-center font-mono">
-          <p className="text-xs text-[#B23A2E] mb-3">{error}</p>
-          <button
-            onClick={onBack}
-            className="px-4 py-2 bg-[#17181C] text-white text-xs font-semibold rounded-xl"
-          >
-            Back
-          </button>
+      ) : filteredSessions.length === 0 ? (
+        <div className="p-12 rounded-3xl bg-white/[0.02] border border-white/[0.08] text-center text-xs text-[#a1a1aa]">
+          No sessions recorded in this track filter.
         </div>
-      ) : filteredSessions.length > 0 ? (
+      ) : (
         <div className="space-y-3">
-          {filteredSessions.map((session) => {
-            const rawField = session.field || session.target_field || 'it';
-            const roleName = session.role || session.target_role || 'General Role';
-            const domain = getDomainTheme(rawField);
-            const scorePct =
-              session.overall_score !== null && session.overall_score !== undefined
-                ? Math.round(session.overall_score * 100)
-                : 82;
-            const dateStr = session.date || session.created_at;
-            const formattedDate = dateStr
-              ? new Date(dateStr).toLocaleDateString(undefined, {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric',
-                })
-              : 'Recent Session';
-
+          {filteredSessions.map((s) => {
+            const scorePct = s.overall_score !== null ? Math.round((s.overall_score || 0.85) * 100) : 85;
             return (
               <div
-                key={session.id}
-                onClick={() => onSelectSession(session.id)}
-                className="group bg-white rounded-2xl p-5 border border-[#E5E7EB] hover:border-[#D1D5DB] hover:shadow-md transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-4"
+                key={s.id}
+                onClick={() => onSelectSession(s.id)}
+                className="p-5 rounded-3xl bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.08] hover:border-white/[0.14] transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
               >
-                <div className="space-y-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span
-                      className={`font-mono text-xs font-bold px-2 py-0.5 rounded-md border uppercase ${domain.bgLight} ${domain.border}`}
-                      style={{ color: domain.color }}
-                    >
-                      {domain.name}
-                    </span>
-                    <span className="font-mono text-xs text-[#6B7078] bg-[#F8F9FA] px-2 py-0.5 rounded border border-[#E5E7EB]">
-                      {session.mode === 'mock' ? 'Mock Simulation' : 'Standard Q&A'}
-                    </span>
-                    <span className="font-mono text-xs text-[#9CA3AF]">Docket #{session.id}</span>
-                    {session.has_transcript && (
-                      <span className="inline-flex items-center gap-1 font-mono text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded border border-[#A7F3D0]">
-                        <span className="material-symbols-outlined text-[12px]">description</span>
-                        Transcript Attached
-                      </span>
-                    )}
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center text-[#c084fc] font-mono text-sm font-bold shrink-0 group-hover:scale-105 transition-transform">
+                    #{s.id}
                   </div>
 
-                  <h3 className="text-base font-bold text-[#17181C] group-hover:text-[#2E6FF2] transition-colors">
-                    {roleName}
-                  </h3>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-sm text-white group-hover:text-[#c084fc] transition-colors">
+                        {s.role || s.target_role || 'Candidate Role'}
+                      </h3>
+                      <span className="font-mono text-[10px] uppercase px-2 py-0.5 rounded-full bg-white/[0.05] text-[#22d3ee]">
+                        {s.field || s.target_field || 'IT'}
+                      </span>
+                      <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-white/[0.05] text-[#a1a1aa]">
+                        Mode: {s.mode || 'standard'}
+                      </span>
+                    </div>
 
-                  <div className="text-xs font-mono text-[#6B7078] flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[14px]">event</span>
-                    <span>{formattedDate}</span>
+                    <p className="text-xs text-[#71717a] font-mono">
+                      {s.date || s.created_at ? new Date(s.date || s.created_at || '').toLocaleDateString() : 'Recent Session'}
+                    </p>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between md:justify-end gap-5 pt-3 md:pt-0 border-t md:border-t-0 border-[#E5E7EB] shrink-0">
-                  <div className="text-left md:text-right font-mono">
-                    <span
-                      className={`text-xl font-bold block ${
-                        scorePct >= 75
-                          ? 'text-[#059669]'
-                          : scorePct >= 60
-                          ? 'text-[#D97706]'
-                          : 'text-[#B23A2E]'
-                      }`}
-                    >
+                <div className="flex items-center gap-4 self-end sm:self-auto">
+                  <div className="text-right">
+                    <div className="font-mono text-base font-bold text-white">
                       {scorePct}%
+                    </div>
+                    <span className="text-[10px] font-mono text-[#10b981]">
+                      {scorePct >= 85 ? 'Offer Ready' : 'Passed'}
                     </span>
-                    <span className="text-[10px] text-[#9CA3AF] uppercase">Readiness</span>
                   </div>
 
-                  <button
-                    type="button"
-                    className="px-4 py-2 bg-[#F8F9FA] group-hover:bg-[#17181C] group-hover:text-white text-[#17181C] border border-[#E5E7EB] group-hover:border-[#17181C] rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-                  >
-                    <span>Inspect Dossier</span>
-                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                  </button>
+                  <div className="w-8 h-8 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-[#a1a1aa] group-hover:text-white transition-colors">
+                    <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                  </div>
                 </div>
               </div>
             );
           })}
-        </div>
-      ) : (
-        <div className="p-12 bg-white rounded-2xl border border-[#E5E7EB] text-center space-y-2">
-          <span className="material-symbols-outlined text-3xl text-[#9CA3AF]">folder_open</span>
-          <p className="text-sm font-semibold text-[#17181C]">No session records found</p>
-          <p className="text-xs text-[#6B7078]">
-            No completed assessments recorded under the selected track.
-          </p>
         </div>
       )}
     </div>

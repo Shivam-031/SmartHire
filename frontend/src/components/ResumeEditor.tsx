@@ -49,6 +49,7 @@ interface StructuredResumeData {
 
 interface ResumeEditorProps {
   sqlResumeId?: number | null;
+  mongoResumeId?: string | null;
   onSaved?: (resumeId: string) => void;
   onProceedToInterview?: () => void;
   onATSCheckRequested?: () => void;
@@ -57,79 +58,95 @@ interface ResumeEditorProps {
 
 export const ResumeEditor: React.FC<ResumeEditorProps> = ({
   sqlResumeId,
+  mongoResumeId,
   onSaved,
   onProceedToInterview,
   onATSCheckRequested,
   onNavigateToTemplates,
 }) => {
   const { user, token } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [resumeData, setResumeData] = useState<StructuredResumeData>({
-    title: 'Primary Resume',
+    title: 'Senior Engineer Dossier',
     template_id: 1,
     contact: {
-      name: user?.name || 'Candidate Name',
-      email: user?.email || 'candidate@example.com',
+      name: user?.name || 'Alex Chen',
+      email: user?.email || 'alex.chen@example.com',
       phone: '+1 (555) 019-2834',
-      location: 'New York, NY',
-      linkedin: 'linkedin.com/in/candidate',
-      portfolio: ''
+      location: 'San Francisco, CA',
+      linkedin: 'linkedin.com/in/alexchen',
+      portfolio: '',
     },
-    summary: 'Experienced professional with demonstrated expertise in delivering high-impact solutions, collaborating across cross-functional teams, and maintaining rigorous quality standards.',
+    summary:
+      'Systems engineer and technical lead specializing in high-throughput distributed systems, concurrent web applications, and ATS-optimized cloud architecture.',
     experience: [
       {
-        title: 'Senior Practitioner',
-        company: 'Vanguard Systems Group',
+        title: 'Senior Systems Engineer',
+        company: 'Vanguard Architecture Lab',
         dates: '2023 - Present',
         bullets: [
-          'Spearheaded key operational initiatives increasing project throughput by 35%.',
-          'Architected reliable standards and mentored 5 junior colleagues.'
-        ]
-      }
+          'Spearheaded transition to event-driven microservices reducing p99 latency by 38%.',
+          'Architected high-concurrency client interfaces serving 2.4M monthly active users.',
+        ],
+      },
     ],
     education: [
       {
-        degree: 'B.S. in Computer Science & Engineering',
-        school: 'State University',
+        degree: 'B.S. in Computer Science',
+        school: 'University of California, Berkeley',
         year: '2021',
-        gpa: '3.8/4.0'
-      }
+        gpa: '3.8/4.0',
+      },
     ],
     skills: [
       {
-        category: 'Core Competencies',
-        items: ['Problem Solving', 'System Architecture', 'Agile Methodologies', 'Documentation']
-      }
+        category: 'Core Engineering',
+        items: ['TypeScript', 'React 19', 'Node.js', 'Python', 'Go', 'Distributed Systems'],
+      },
+      {
+        category: 'Data & Infra',
+        items: ['PostgreSQL', 'Redis', 'Docker', 'Kubernetes', 'AWS Lambda', 'Kafka'],
+      },
     ],
     projects: [
       {
-        title: 'SmartHire Evaluation Workbench',
-        technologies: 'React, TypeScript, Python, Flask',
-        description: 'Multi-field career evaluation platform with heuristic ATS and oral exam rubrics.',
-        link: 'github.com/candidate/smarthire'
-      }
-    ]
+        title: 'Distributed Stream Ledger',
+        technologies: 'Go, Kafka, Redis, gRPC',
+        description:
+          'High-throughput message pipeline capable of handling 85k events/sec with sub-5ms commit latency.',
+        link: 'github.com/example/ledger',
+      },
+    ],
   });
 
-  // Load current resume on mount
   useEffect(() => {
-    setLoading(true);
-    const headers: Record<string, string> = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-
-    fetch('http://localhost:5000/api/resume/editor/current', { headers })
-      .then(res => res.json())
-      .then(data => {
-        if (data.resume) {
-          setResumeData(data.resume);
+    const fetchLatest = async () => {
+      if (!token) return;
+      setLoading(true);
+      try {
+        const url = mongoResumeId
+          ? `http://localhost:5000/api/resume/editor?id=${mongoResumeId}`
+          : 'http://localhost:5000/api/resume/editor';
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.resume) {
+            setResumeData(data.resume);
+          }
         }
+      } catch {
+        // ignore
+      } finally {
         setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, [token]);
+      }
+    };
+    fetchLatest();
+  }, [token, mongoResumeId]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -141,23 +158,23 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
       const res = await fetch('http://localhost:5000/api/resume/editor', {
         method: 'POST',
         headers,
-        body: JSON.stringify(resumeData)
+        body: JSON.stringify(resumeData),
       });
       const data = await res.json();
       setSaving(false);
       if (res.ok) {
         setSaveSuccess(true);
         if (data.id) {
-          setResumeData(prev => ({ ...prev, id: data.id }));
+          setResumeData((prev) => ({ ...prev, id: data.id }));
           if (onSaved) onSaved(data.id);
         }
         setTimeout(() => setSaveSuccess(false), 3000);
       } else {
-        setSaveError(data.error || 'Failed to save resume document. Please verify candidate session.');
+        setSaveError(data.error || 'Failed to save resume document.');
       }
     } catch (err: any) {
       setSaving(false);
-      setSaveError(err.message || 'Network error encountered while saving resume document.');
+      setSaveError(err.message || 'Network error encountered.');
     }
   };
 
@@ -168,15 +185,15 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
       const res = await fetch('http://localhost:5000/api/resume/editor/prefill', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sql_resume_id: sqlResumeId })
+        body: JSON.stringify({ sql_resume_id: sqlResumeId }),
       });
       const data = await res.json();
       setSaving(false);
       if (data.resume) {
-        setResumeData(prev => ({
+        setResumeData((prev) => ({
           ...prev,
           ...data.resume,
-          contact: { ...prev.contact, ...data.resume.contact }
+          contact: { ...prev.contact, ...data.resume.contact },
         }));
       }
     } catch {
@@ -184,66 +201,68 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
     }
   };
 
-  // Entry mutators
   const updateContact = (field: string, val: string) => {
-    setResumeData(prev => ({
+    setResumeData((prev) => ({
       ...prev,
-      contact: { ...prev.contact, [field]: val }
+      contact: { ...prev.contact, [field]: val },
     }));
   };
 
   const addExperience = () => {
-    setResumeData(prev => ({
+    setResumeData((prev) => ({
       ...prev,
       experience: [
         ...prev.experience,
-        { title: '', company: '', dates: '2024 - Present', bullets: ['Key accomplishment or leadership initiative.'] }
-      ]
+        {
+          title: '',
+          company: '',
+          dates: '2024 - Present',
+          bullets: ['Key accomplishment or technical initiative with measurable impact.'],
+        },
+      ],
     }));
   };
 
   const removeExperience = (idx: number) => {
-    setResumeData(prev => ({
+    setResumeData((prev) => ({
       ...prev,
-      experience: prev.experience.filter((_, i) => i !== idx)
+      experience: prev.experience.filter((_, i) => i !== idx),
     }));
   };
 
-  const addEducation = () => {
-    setResumeData(prev => ({
-      ...prev,
-      education: [
-        ...prev.education,
-        { degree: 'Degree / Specialization', school: 'University / Institution', year: '2023' }
-      ]
-    }));
-  };
-
-  const removeEducation = (idx: number) => {
-    setResumeData(prev => ({
-      ...prev,
-      education: prev.education.filter((_, i) => i !== idx)
-    }));
+  const updateExperience = (idx: number, field: string, val: any) => {
+    setResumeData((prev) => {
+      const exp = [...prev.experience];
+      exp[idx] = { ...exp[idx], [field]: val };
+      return { ...prev, experience: exp };
+    });
   };
 
   return (
-    <div className="space-y-6 text-left">
-      {/* Action Header Strip */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white border border-[#D2D5C9] rounded shadow-sm">
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#2F6F4E]" />
-          <div>
-            <h2 className="font-serif text-base font-bold text-[#1A2E22]">Structured Resume Document Editor</h2>
-            <p className="text-[11px] text-[#5C6B60]">MongoDB Document Sync · Instant Schema Validation</p>
+    <div className="space-y-6 text-left animate-fadeIn select-none">
+      {/* Top Action Header Strip (Stitch Screen Resume Editor) */}
+      <div className="rounded-3xl p-5 sm:p-6 bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#c084fc] shadow-[0_0_8px_#c084fc]" />
+            <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
+              Markdown Resume Studio
+            </h2>
+            <span className="font-mono text-[10px] text-[#22d3ee] px-2 py-0.5 rounded-full bg-[#0EA5B7]/15 border border-[#0EA5B7]/30">
+              MongoDB Cloud Sync
+            </span>
           </div>
+          <p className="text-xs text-[#a1a1aa]">
+            Structured schema validation with real-time ATS keyword density checks.
+          </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           {sqlResumeId && (
             <button
               type="button"
               onClick={handlePrefillFromUpload}
-              className="px-3 py-1.5 text-xs text-[#2F6F4E] border border-[#2F6F4E]/40 rounded hover:bg-[#F1F6F3] transition-colors"
+              className="px-3 py-2 text-xs font-mono text-[#c084fc] border border-[#c084fc]/30 rounded-xl hover:bg-white/[0.04] transition-colors cursor-pointer"
             >
               Pre-fill from Upload
             </button>
@@ -253,14 +272,14 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="px-4 py-2 bg-[#2F6F4E] hover:bg-[#25583E] text-white text-xs font-medium rounded transition-colors shadow-sm flex items-center gap-1.5"
+            className="btn-gradient-primary px-4 py-2 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-md disabled:opacity-50"
           >
             {saving ? (
-              <span>Saving to Mongo...</span>
+              <span>Saving Document...</span>
             ) : saveSuccess ? (
               <span>Saved Successfully ✓</span>
             ) : (
-              <span>Save Resume Document</span>
+              <span>Save Resume</span>
             )}
           </button>
 
@@ -268,9 +287,9 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
             <button
               type="button"
               onClick={onATSCheckRequested}
-              className="px-3 py-1.5 border border-[#2F6F4E]/50 text-[#2F6F4E] hover:bg-[#F1F6F3] text-xs font-medium rounded transition-colors flex items-center gap-1"
+              className="btn-glass px-3.5 py-2 text-xs font-semibold text-white cursor-pointer"
             >
-              <span>Audit with ATS &rarr;</span>
+              Audit with ATS &rarr;
             </button>
           )}
 
@@ -278,9 +297,9 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
             <button
               type="button"
               onClick={onNavigateToTemplates}
-              className="px-3 py-1.5 border border-[#D2D5C9] bg-white hover:bg-[#F7F8F5] text-[#1A2E22] text-xs font-medium rounded transition-colors flex items-center gap-1"
+              className="btn-glass px-3.5 py-2 text-xs font-semibold text-white cursor-pointer"
             >
-              <span>Export PDF &rarr;</span>
+              Template PDF &rarr;
             </button>
           )}
 
@@ -288,305 +307,215 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
             <button
               type="button"
               onClick={onProceedToInterview}
-              className="px-4 py-2 border border-[#D2D5C9] bg-[#EEF0EA] hover:bg-[#E2E6DC] text-[#1A2E22] text-xs font-medium rounded transition-colors flex items-center gap-1.5"
+              className="btn-gradient-primary px-4 py-2 text-xs font-semibold cursor-pointer shadow-md"
             >
-              <span>Practice Interview &rarr;</span>
+              Mock Interview &rarr;
             </button>
           )}
         </div>
       </div>
 
       {saveError && (
-        <div className="p-3.5 bg-[#FDF2F2] border border-[#F5C2C2] text-[#9E2A2B] text-xs rounded flex items-center justify-between shadow-xs">
-          <div className="flex items-center gap-2">
-            <span className="font-bold">Save Error:</span>
-            <span>{saveError}</span>
-          </div>
-          <button
-            onClick={() => setSaveError(null)}
-            className="text-[#9E2A2B] hover:text-[#7A1E1F] font-bold text-sm px-1"
-          >
-            &times;
-          </button>
+        <div className="p-3.5 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs">
+          {saveError}
         </div>
       )}
 
-      {loading ? (
-        <div className="p-12 text-center text-xs text-[#5C6B60] bg-white border border-[#D2D5C9] rounded">
-          Loading resume document...
+      {/* Editor Main Canvas */}
+      <div className="space-y-6">
+        {/* Contact Info Card */}
+        <div className="rounded-3xl p-6 bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl shadow-lg space-y-4">
+          <span className="font-mono text-[10px] uppercase text-[#71717a] tracking-wider block">
+            01 Contact Information & Links
+          </span>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div>
+              <label className="text-[#a1a1aa] block mb-1">Full Name</label>
+              <input
+                type="text"
+                value={resumeData.contact.name}
+                onChange={(e) => updateContact('name', e.target.value)}
+                className="w-full bg-black/40 border border-white/[0.1] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#7c3aed]"
+              />
+            </div>
+            <div>
+              <label className="text-[#a1a1aa] block mb-1">Email</label>
+              <input
+                type="email"
+                value={resumeData.contact.email}
+                onChange={(e) => updateContact('email', e.target.value)}
+                className="w-full bg-black/40 border border-white/[0.1] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#7c3aed]"
+              />
+            </div>
+            <div>
+              <label className="text-[#a1a1aa] block mb-1">Phone</label>
+              <input
+                type="text"
+                value={resumeData.contact.phone}
+                onChange={(e) => updateContact('phone', e.target.value)}
+                className="w-full bg-black/40 border border-white/[0.1] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#7c3aed]"
+              />
+            </div>
+            <div>
+              <label className="text-[#a1a1aa] block mb-1">Location</label>
+              <input
+                type="text"
+                value={resumeData.contact.location}
+                onChange={(e) => updateContact('location', e.target.value)}
+                className="w-full bg-black/40 border border-white/[0.1] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#7c3aed]"
+              />
+            </div>
+            <div>
+              <label className="text-[#a1a1aa] block mb-1">LinkedIn URL</label>
+              <input
+                type="text"
+                value={resumeData.contact.linkedin}
+                onChange={(e) => updateContact('linkedin', e.target.value)}
+                className="w-full bg-black/40 border border-white/[0.1] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#7c3aed]"
+              />
+            </div>
+            <div>
+              <label className="text-[#a1a1aa] block mb-1">Portfolio / GitHub</label>
+              <input
+                type="text"
+                value={resumeData.contact.portfolio || ''}
+                onChange={(e) => updateContact('portfolio', e.target.value)}
+                className="w-full bg-black/40 border border-white/[0.1] rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#7c3aed]"
+              />
+            </div>
+          </div>
         </div>
-      ) : (
-        <div className="space-y-6">
-          {/* Section 1: Contact & Header */}
-          <div className="p-5 bg-white border border-[#D2D5C9] rounded space-y-4">
-            <div className="flex items-center justify-between border-b border-[#D2D5C9] pb-2">
-              <h3 className="font-serif text-sm font-bold text-[#1A2E22] uppercase tracking-wider">
-                01 / Candidate Contact Information
-              </h3>
-              <span className="text-[10px] font-score-mono text-[#5C6B60]">Header Block</span>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-              <div>
-                <label className="block text-[11px] text-[#5C6B60] mb-1 font-medium">Full Name</label>
-                <input
-                  type="text"
-                  value={resumeData.contact.name}
-                  onChange={(e) => updateContact('name', e.target.value)}
-                  className="w-full px-3 py-1.5 border border-[#D2D5C9] rounded text-xs text-[#1A2E22] bg-[#FAFAF8] focus:border-[#2F6F4E]"
-                />
-              </div>
+        {/* Executive Summary Card */}
+        <div className="rounded-3xl p-6 bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl shadow-lg space-y-3">
+          <span className="font-mono text-[10px] uppercase text-[#71717a] tracking-wider block">
+            02 Executive Professional Summary
+          </span>
+          <textarea
+            value={resumeData.summary}
+            onChange={(e) => setResumeData((prev) => ({ ...prev, summary: e.target.value }))}
+            rows={3}
+            className="w-full bg-black/40 border border-white/[0.1] rounded-xl p-3.5 text-xs text-white focus:outline-none focus:border-[#7c3aed] leading-relaxed resize-none"
+          />
+        </div>
 
-              <div>
-                <label className="block text-[11px] text-[#5C6B60] mb-1 font-medium">Email Address</label>
-                <input
-                  type="email"
-                  value={resumeData.contact.email}
-                  onChange={(e) => updateContact('email', e.target.value)}
-                  className="w-full px-3 py-1.5 border border-[#D2D5C9] rounded text-xs text-[#1A2E22] bg-[#FAFAF8] focus:border-[#2F6F4E]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] text-[#5C6B60] mb-1 font-medium">Phone Number</label>
-                <input
-                  type="text"
-                  value={resumeData.contact.phone}
-                  onChange={(e) => updateContact('phone', e.target.value)}
-                  className="w-full px-3 py-1.5 border border-[#D2D5C9] rounded text-xs text-[#1A2E22] bg-[#FAFAF8] focus:border-[#2F6F4E]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] text-[#5C6B60] mb-1 font-medium">Location (City, State/Country)</label>
-                <input
-                  type="text"
-                  value={resumeData.contact.location}
-                  onChange={(e) => updateContact('location', e.target.value)}
-                  className="w-full px-3 py-1.5 border border-[#D2D5C9] rounded text-xs text-[#1A2E22] bg-[#FAFAF8] focus:border-[#2F6F4E]"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-[11px] text-[#5C6B60] mb-1 font-medium">LinkedIn / Portfolio URL</label>
-                <input
-                  type="text"
-                  value={resumeData.contact.linkedin}
-                  onChange={(e) => updateContact('linkedin', e.target.value)}
-                  className="w-full px-3 py-1.5 border border-[#D2D5C9] rounded text-xs text-[#1A2E22] bg-[#FAFAF8] focus:border-[#2F6F4E]"
-                />
-              </div>
-            </div>
+        {/* Experience Entries Card */}
+        <div className="rounded-3xl p-6 bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl shadow-lg space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-[10px] uppercase text-[#71717a] tracking-wider">
+              03 Work Experience ({resumeData.experience.length} Roles)
+            </span>
+            <button
+              type="button"
+              onClick={addExperience}
+              className="text-xs font-mono text-[#c084fc] hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[14px]">add</span>
+              <span>Add Role</span>
+            </button>
           </div>
 
-          {/* Section 2: Summary */}
-          <div className="p-5 bg-white border border-[#D2D5C9] rounded space-y-3">
-            <div className="flex items-center justify-between border-b border-[#D2D5C9] pb-2">
-              <h3 className="font-serif text-sm font-bold text-[#1A2E22] uppercase tracking-wider">
-                02 / Executive Summary
-              </h3>
-              <span className="text-[10px] font-score-mono text-[#5C6B60]">Narrative Anchor</span>
-            </div>
-            <textarea
-              rows={3}
-              value={resumeData.summary}
-              onChange={(e) => setResumeData(prev => ({ ...prev, summary: e.target.value }))}
-              placeholder="State your technical leadership, discipline focus, and high-impact accomplishments..."
-              className="w-full p-3 border border-[#D2D5C9] rounded text-xs text-[#1A2E22] bg-[#FAFAF8] leading-relaxed focus:border-[#2F6F4E]"
-            />
-          </div>
-
-          {/* Section 3: Work Experience */}
-          <div className="p-5 bg-white border border-[#D2D5C9] rounded space-y-4">
-            <div className="flex items-center justify-between border-b border-[#D2D5C9] pb-2">
-              <h3 className="font-serif text-sm font-bold text-[#1A2E22] uppercase tracking-wider">
-                03 / Professional Experience
-              </h3>
-              <button
-                type="button"
-                onClick={addExperience}
-                className="text-xs text-[#2F6F4E] font-medium hover:underline"
+          <div className="space-y-4">
+            {resumeData.experience.map((exp, idx) => (
+              <div
+                key={idx}
+                className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-3"
               >
-                + Add Role Entry
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              {resumeData.experience.map((exp, idx) => (
-                <div key={idx} className="p-4 bg-[#F7F8F5] border border-[#D2D5C9] rounded space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="font-score-mono text-[10px] text-[#5C6B60] uppercase font-bold">
-                      Position Entry 0{idx + 1}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => removeExperience(idx)}
-                      className="text-[#B23A2E] text-[11px] hover:underline"
-                    >
-                      Remove
-                    </button>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  <div>
+                    <label className="text-[#a1a1aa] block mb-1">Role Title</label>
+                    <input
+                      type="text"
+                      value={exp.title}
+                      onChange={(e) => updateExperience(idx, 'title', e.target.value)}
+                      className="w-full bg-black/40 border border-white/[0.1] rounded-xl px-3 py-1.5 text-white"
+                    />
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                    <div>
-                      <label className="block text-[10px] text-[#5C6B60] mb-0.5">Job Title</label>
-                      <input
-                        type="text"
-                        value={exp.title}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setResumeData(prev => {
-                            const arr = [...prev.experience];
-                            arr[idx].title = val;
-                            return { ...prev, experience: arr };
-                          });
-                        }}
-                        className="w-full px-2.5 py-1.5 border border-[#D2D5C9] rounded text-xs bg-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] text-[#5C6B60] mb-0.5">Company / Organization</label>
-                      <input
-                        type="text"
-                        value={exp.company}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setResumeData(prev => {
-                            const arr = [...prev.experience];
-                            arr[idx].company = val;
-                            return { ...prev, experience: arr };
-                          });
-                        }}
-                        className="w-full px-2.5 py-1.5 border border-[#D2D5C9] rounded text-xs bg-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] text-[#5C6B60] mb-0.5">Date Range</label>
+                  <div>
+                    <label className="text-[#a1a1aa] block mb-1">Company</label>
+                    <input
+                      type="text"
+                      value={exp.company}
+                      onChange={(e) => updateExperience(idx, 'company', e.target.value)}
+                      className="w-full bg-black/40 border border-white/[0.1] rounded-xl px-3 py-1.5 text-white"
+                    />
+                  </div>
+                  <div className="flex items-end justify-between gap-2">
+                    <div className="flex-1">
+                      <label className="text-[#a1a1aa] block mb-1">Dates</label>
                       <input
                         type="text"
                         value={exp.dates}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setResumeData(prev => {
-                            const arr = [...prev.experience];
-                            arr[idx].dates = val;
-                            return { ...prev, experience: arr };
-                          });
-                        }}
-                        className="w-full px-2.5 py-1.5 border border-[#D2D5C9] rounded text-xs bg-white"
+                        onChange={(e) => updateExperience(idx, 'dates', e.target.value)}
+                        className="w-full bg-black/40 border border-white/[0.1] rounded-xl px-3 py-1.5 text-white"
                       />
                     </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] text-[#5C6B60] mb-0.5">Impact Bullets (one per line)</label>
-                    <textarea
-                      rows={2}
-                      value={exp.bullets.join('\n')}
-                      onChange={(e) => {
-                        const bullets = e.target.value.split('\n');
-                        setResumeData(prev => {
-                          const arr = [...prev.experience];
-                          arr[idx].bullets = bullets;
-                          return { ...prev, experience: arr };
-                        });
-                      }}
-                      className="w-full p-2 border border-[#D2D5C9] rounded text-xs bg-white leading-relaxed"
-                    />
+                    {resumeData.experience.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeExperience(idx)}
+                        className="p-1.5 rounded-lg text-red-400 hover:bg-white/[0.04] transition-colors cursor-pointer"
+                        title="Remove Role"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                      </button>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          {/* Section 4: Education */}
-          <div className="p-5 bg-white border border-[#D2D5C9] rounded space-y-4">
-            <div className="flex items-center justify-between border-b border-[#D2D5C9] pb-2">
-              <h3 className="font-serif text-sm font-bold text-[#1A2E22] uppercase tracking-wider">
-                04 / Academic Credentials &amp; Education
-              </h3>
-              <button
-                type="button"
-                onClick={addEducation}
-                className="text-xs text-[#2F6F4E] font-medium hover:underline"
-              >
-                + Add Academic Entry
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {resumeData.education.map((edu, idx) => (
-                <div key={idx} className="p-3 bg-[#F7F8F5] border border-[#D2D5C9] rounded grid grid-cols-1 md:grid-cols-4 gap-3 text-xs items-center">
-                  <div className="md:col-span-2">
-                    <label className="block text-[10px] text-[#5C6B60]">Degree / Certificate</label>
-                    <input
-                      type="text"
-                      value={edu.degree}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setResumeData(prev => {
-                          const arr = [...prev.education];
-                          arr[idx].degree = val;
-                          return { ...prev, education: arr };
-                        });
-                      }}
-                      className="w-full px-2 py-1 border border-[#D2D5C9] rounded bg-white text-xs"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] text-[#5C6B60]">Institution</label>
-                    <input
-                      type="text"
-                      value={edu.school}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setResumeData(prev => {
-                          const arr = [...prev.education];
-                          arr[idx].school = val;
-                          return { ...prev, education: arr };
-                        });
-                      }}
-                      className="w-full px-2 py-1 border border-[#D2D5C9] rounded bg-white text-xs"
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1">
-                      <label className="block text-[10px] text-[#5C6B60]">Year</label>
-                      <input
-                        type="text"
-                        value={edu.year}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setResumeData(prev => {
-                            const arr = [...prev.education];
-                            arr[idx].year = val;
-                            return { ...prev, education: arr };
-                          });
-                        }}
-                        className="w-full px-2 py-1 border border-[#D2D5C9] rounded bg-white text-xs"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeEducation(idx)}
-                      className="text-[#B23A2E] text-xs pt-3 hover:underline"
-                    >
-                      ✕
-                    </button>
-                  </div>
+                <div>
+                  <label className="text-[#a1a1aa] block mb-1 text-xs">
+                    Impact Bullet Points (one per line)
+                  </label>
+                  <textarea
+                    value={exp.bullets.join('\n')}
+                    onChange={(e) =>
+                      updateExperience(idx, 'bullets', e.target.value.split('\n'))
+                    }
+                    rows={3}
+                    className="w-full bg-black/40 border border-white/[0.1] rounded-xl p-3 text-xs font-mono text-white leading-relaxed resize-none"
+                  />
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
-      )}
+
+        {/* Skills & Taxonomy Card */}
+        <div className="rounded-3xl p-6 bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl shadow-lg space-y-4">
+          <span className="font-mono text-[10px] uppercase text-[#71717a] tracking-wider block">
+            04 Technical Skills & Keyword Taxonomy
+          </span>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {resumeData.skills.map((cat, idx) => (
+              <div
+                key={idx}
+                className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-2"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-xs text-white">{cat.category}</span>
+                  <span className="font-mono text-[10px] text-[#71717a]">
+                    {cat.items.length} items
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {cat.items.map((item, itemIdx) => (
+                    <span
+                      key={itemIdx}
+                      className="px-2.5 py-1 rounded-full bg-white/[0.04] text-xs font-mono text-white/90 border border-white/[0.08]"
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
 export default ResumeEditor;
-

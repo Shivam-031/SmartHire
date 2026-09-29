@@ -98,302 +98,315 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
     setError(null);
 
     try {
-      const res = await fetch('http://localhost:5000/api/resume/manual-text', {
+      const res = await fetch('http://localhost:5000/api/resume/upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: rawText }),
+        body: JSON.stringify({ resume_text: rawText }),
       });
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to ingest text content.');
+        throw new Error(data.error || 'Failed to parse resume content.');
       }
 
       setUploadedResumeId(data.resume_id);
       setExtractedSkills(data.extracted_skills || []);
-      setCandidateName(data.candidate_name || 'Direct Ingest');
+      setCandidateName(data.candidate_name || 'Candidate Resume Text');
 
       if (onUploadSuccess) {
         onUploadSuccess(data.resume_id);
       }
     } catch (err: any) {
-      setError(err.message || 'Error processing resume text.');
+      setError(err.message || 'Error uploading resume text.');
     } finally {
       setUploading(false);
     }
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6 text-left animate-fadeIn">
-      {/* Visual Pipeline Stepper (Stitch Screen 06) */}
-      <div className="bg-white rounded-2xl p-5 border border-[#E5E7EB] shadow-xs">
-        <div className="relative flex items-center justify-between">
-          <div className="absolute top-1/2 left-6 right-6 -translate-y-1/2 h-0.5 bg-[#E5E7EB] z-0"></div>
-          <div className="absolute top-1/2 left-6 w-[66%] -translate-y-1/2 h-0.5 bg-[#2E6FF2] z-0 transition-all duration-500"></div>
+    <div className="max-w-5xl mx-auto w-full space-y-6 text-left animate-fadeIn select-none">
+      {/* Top Header Block: Step Indicator & Precision Titles (Stitch Screen 03) */}
+      <div className="flex flex-col gap-2">
+        <div className="inline-flex items-center gap-2 self-start px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] shadow-sm">
+          <span className="w-2 h-2 rounded-full bg-[#22d3ee] shadow-[0_0_8px_#22d3ee] animate-pulse" />
+          <span className="font-mono text-[11px] uppercase tracking-wider text-[#22d3ee] font-semibold">
+            Step 3 of 6 · Resume Intelligence
+          </span>
+          <span className="text-white/20 font-mono text-xs">•</span>
+          <span className="font-mono text-[11px] text-[#a1a1aa]">ATS Parsing & Synthesizer</span>
+        </div>
 
-          {/* Step 1: Field Domain */}
-          <div className="relative z-10 flex items-center gap-3 bg-white pr-3">
-            <div className="w-8 h-8 rounded-full bg-[#2E6FF2] flex items-center justify-center text-white shadow-xs">
-              <span className="material-symbols-outlined text-[18px]">check</span>
-            </div>
-            <div className="hidden sm:flex flex-col">
-              <span className="font-mono text-[10px] uppercase text-[#6B7078] font-bold">Step 01</span>
-              <span className="text-xs font-semibold text-[#17181C]">Track Domain</span>
-            </div>
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-4xl font-bold text-white tracking-tight">
+              Add your{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#60a5fa] via-[#c084fc] to-[#f472b6]">
+                resume
+              </span>
+            </h1>
+            <p className="text-xs sm:text-sm text-[#a1a1aa] max-w-2xl mt-1 leading-relaxed">
+              Upload your CV or build one to auto-calibrate mock interview scenarios, system design prompts, and ATS keyword extraction.
+            </p>
           </div>
 
-          {/* Step 2: Target Role */}
-          <div className="relative z-10 flex items-center gap-3 bg-white px-3">
-            <div className="w-8 h-8 rounded-full bg-[#2E6FF2] flex items-center justify-center text-white shadow-xs">
-              <span className="material-symbols-outlined text-[18px]">check</span>
-            </div>
-            <div className="hidden sm:flex flex-col">
-              <span className="font-mono text-[10px] uppercase text-[#6B7078] font-bold">Step 02</span>
-              <span className="text-xs font-semibold text-[#17181C]">Target Role</span>
-            </div>
-          </div>
-
-          {/* Step 3: Resume Intake (Active) */}
-          <div className="relative z-10 flex items-center gap-3 bg-white px-3">
-            <div className="w-8 h-8 rounded-full bg-[#2E6FF2] flex items-center justify-center text-white font-mono text-xs font-bold ring-4 ring-[#2E6FF2]/20 shadow-xs">
-              3
-            </div>
-            <div className="hidden sm:flex flex-col">
-              <span className="font-mono text-[10px] uppercase text-[#2E6FF2] font-bold">Step 03</span>
-              <span className="text-xs font-bold text-[#17181C]">Resume Intake</span>
-            </div>
-          </div>
-
-          {/* Step 4: Upcoming Live Exam */}
-          <div className="relative z-10 flex items-center gap-3 bg-white pl-3 opacity-60">
-            <div className="w-8 h-8 rounded-full bg-[#E5E7EB] text-[#6B7078] flex items-center justify-center font-mono text-xs font-semibold">
-              4
-            </div>
-            <div className="hidden sm:flex flex-col">
-              <span className="font-mono text-[10px] uppercase text-[#6B7078] font-bold">Step 04</span>
-              <span className="text-xs font-medium text-[#6B7078]">Oral Exam</span>
-            </div>
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/[0.08] text-xs font-mono text-[#a1a1aa]">
+            <span className="material-symbols-outlined text-[#10b981] text-[16px]">verified_user</span>
+            <span>Private & SOC2 Encrypted</span>
           </div>
         </div>
       </div>
 
-      {/* Main Intake Area */}
-      <div className="bg-white rounded-2xl p-6 sm:p-8 border border-[#E5E7EB] shadow-xs space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E5E7EB]">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#6B7078]">
-                INTAKE PROTOCOL // STAGE 03
-              </span>
-              <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#2E6FF2]/10 text-[#2E6FF2]">
-                ATS Telemetry Ready
+      {/* Mode Switcher Pill */}
+      <div className="flex items-center justify-between pb-2 border-b border-white/[0.06]">
+        <div className="flex bg-white/[0.03] p-1 rounded-xl border border-white/[0.08] text-xs font-mono">
+          <button
+            type="button"
+            onClick={() => setActiveMode('file')}
+            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+              activeMode === 'file'
+                ? 'bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white font-semibold shadow-xs'
+                : 'text-[#a1a1aa] hover:text-white'
+            }`}
+          >
+            Upload File (PDF / DOCX)
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveMode('text')}
+            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+              activeMode === 'text'
+                ? 'bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white font-semibold shadow-xs'
+                : 'text-[#a1a1aa] hover:text-white'
+            }`}
+          >
+            Paste Raw Text Content
+          </button>
+        </div>
+
+        <span className="font-mono text-[11px] text-[#71717a] hidden sm:inline">
+          Parsing engine v2.8 (spaCy + regex extraction)
+        </span>
+      </div>
+
+      {/* Dual Action Bento Grid: Upload or Build */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
+        {/* Card A: Drag & Drop Ingestion Hub */}
+        <div className="relative group rounded-3xl p-6 sm:p-7 bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl shadow-lg flex flex-col justify-between transition-all duration-300 hover:border-white/[0.15]">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#3b82f6]" />
+                <span className="font-semibold text-sm text-white">Upload Existing Resume</span>
+              </div>
+              <span className="font-mono text-[10px] text-[#22d3ee] px-2 py-0.5 rounded-full bg-[#0EA5B7]/15 border border-[#0EA5B7]/30">
+                AUTO-PARSE 99.4%
               </span>
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-[#17181C]">
-              Upload Candidate Resume
-            </h1>
-            <p className="text-xs text-[#6B7078]">
-              Automated syntax extraction, keyword frequency indexing, and section parsing.
-            </p>
+
+            {activeMode === 'file' ? (
+              /* Dropzone Interface */
+              <div
+                onDragEnter={handleDrag}
+                onDragOver={handleDrag}
+                onDragLeave={handleDrag}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={`relative rounded-2xl p-7 flex flex-col items-center justify-center text-center cursor-pointer transition-all border-2 border-dashed ${
+                  dragActive
+                    ? 'border-[#3b82f6] bg-[#3b82f6]/10'
+                    : 'border-white/[0.12] hover:border-[#3b82f6]/50 bg-white/[0.015] hover:bg-white/[0.03]'
+                }`}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.docx,.txt"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#3b82f6] to-[#22d3ee] flex items-center justify-center shadow-[0_4px_20px_rgba(59,130,246,0.35)] mb-3 transition-transform group-hover:scale-105">
+                  <span className="material-symbols-outlined text-white text-[24px]">cloud_upload</span>
+                </div>
+
+                <h3 className="font-semibold text-sm text-white">
+                  {file ? file.name : 'Drag & drop or browse'}
+                </h3>
+                <p className="text-xs text-[#a1a1aa] mt-1">
+                  {file ? `${(file.size / 1024).toFixed(1)} KB selected` : 'Supports PDF, DOCX, TXT up to 10MB'}
+                </p>
+
+                <div className="mt-4 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/[0.05] hover:bg-white/[0.1] text-xs font-mono text-white/90 border border-white/[0.1] transition-colors">
+                  <span className="material-symbols-outlined text-[14px]">attach_file</span>
+                  <span>{file ? 'Replace file' : 'Choose local file'}</span>
+                </div>
+              </div>
+            ) : (
+              /* Raw Text Paste Area */
+              <div className="space-y-3">
+                <textarea
+                  value={rawText}
+                  onChange={(e) => setRawText(e.target.value)}
+                  placeholder="Paste your plain text resume here (Work Experience, Education, Skills, Projects)..."
+                  rows={8}
+                  className="w-full bg-black/40 border border-white/[0.1] rounded-2xl p-4 text-xs font-mono text-white placeholder-[#71717a] focus:outline-none focus:border-[#3b82f6] resize-none"
+                />
+              </div>
+            )}
+
+            {/* Error Message */}
+            {error && (
+              <div className="mt-3 p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+                <span className="material-symbols-outlined text-[16px]">error</span>
+                <span>{error}</span>
+              </div>
+            )}
           </div>
 
-          <div className="flex bg-[#F1F2F4] p-1 rounded-xl border border-[#E5E7EB] self-start sm:self-auto font-mono text-xs">
+          <div className="space-y-3 pt-5 border-t border-white/[0.06] mt-4">
+            <div className="flex items-center justify-between font-mono text-[11px] text-[#71717a]">
+              <span className="flex items-center gap-1">
+                <span className="material-symbols-outlined text-[12px] text-[#22d3ee]">check</span> LaTeX parsed
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="material-symbols-outlined text-[12px] text-[#22d3ee]">check</span> Multi-column ready
+              </span>
+            </div>
+
             <button
               type="button"
-              onClick={() => setActiveMode('file')}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
-                activeMode === 'file'
-                  ? 'bg-white text-[#17181C] shadow-xs'
-                  : 'text-[#6B7078] hover:text-[#17181C]'
-              }`}
+              disabled={uploading || (activeMode === 'file' && !file) || (activeMode === 'text' && !rawText.trim())}
+              onClick={activeMode === 'file' ? handleFileUpload : handleTextUpload}
+              className="btn-gradient-primary w-full py-3 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(124,58,237,0.3)]"
             >
-              Document File
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveMode('text')}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
-                activeMode === 'text'
-                  ? 'bg-white text-[#17181C] shadow-xs'
-                  : 'text-[#6B7078] hover:text-[#17181C]'
-              }`}
-            >
-              Direct Text Paste
+              {uploading ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  <span>Parsing Ingestion Pipeline...</span>
+                </>
+              ) : (
+                <>
+                  <span>Upload & Analyze Resume</span>
+                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </>
+              )}
             </button>
           </div>
         </div>
 
-        {activeMode === 'file' ? (
-          <div
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-            onClick={() => fileInputRef.current?.click()}
-            className={`border-2 border-dashed rounded-2xl p-8 sm:p-12 text-center transition-all cursor-pointer ${
-              dragActive
-                ? 'border-[#2E6FF2] bg-[#2E6FF2]/5'
-                : 'border-[#D1D5DB] hover:border-[#2E6FF2] bg-[#F8F9FA]/60 hover:bg-[#F8F9FA]'
-            }`}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf,.docx,.txt"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-            <div className="w-14 h-14 rounded-2xl bg-white border border-[#E5E7EB] shadow-xs flex items-center justify-center mx-auto mb-4 text-[#2E6FF2]">
-              <span className="material-symbols-outlined text-[32px]">cloud_upload</span>
-            </div>
-            <h3 className="text-base font-bold text-[#17181C] mb-1">
-              {file ? file.name : 'Click to select or drag & drop resume'}
-            </h3>
-            <p className="text-xs text-[#6B7078] max-w-sm mx-auto mb-4">
-              Supported formats: <strong className="font-mono text-[#17181C]">PDF</strong>,{' '}
-              <strong className="font-mono text-[#17181C]">DOCX</strong>, or{' '}
-              <strong className="font-mono text-[#17181C]">TXT</strong> (Max 10MB)
-            </p>
-
-            {file && (
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#2E6FF2]/10 text-[#2E6FF2] text-xs font-mono font-semibold">
-                <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                <span>{(file.size / 1024).toFixed(1)} KB selected</span>
+        {/* Card B: Instant Synthetic Resume Builder */}
+        <div className="relative rounded-3xl p-6 sm:p-7 bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl shadow-lg flex flex-col justify-between transition-all duration-300 hover:border-white/[0.15]">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#8b5cf6]" />
+                <span className="font-semibold text-sm text-white">Smart AI Resume Studio</span>
               </div>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-2">
-            <label className="font-mono text-xs uppercase font-bold text-[#6B7078] block">
-              Resume Text Content
-            </label>
-            <textarea
-              rows={8}
-              value={rawText}
-              onChange={(e) => setRawText(e.target.value)}
-              placeholder="Paste the full text of your resume here including contact details, experience, skills, and education..."
-              className="w-full p-4 rounded-xl border border-[#E5E7EB] bg-[#F8F9FA] font-mono text-xs text-[#17181C] focus:outline-hidden focus:border-[#2E6FF2]"
-            ></textarea>
-          </div>
-        )}
+              <span className="font-mono text-[10px] text-[#c084fc] px-2 py-0.5 rounded-full bg-[#8b5cf6]/15 border border-[#8b5cf6]/30">
+                CALIBRATED
+              </span>
+            </div>
 
-        {error && (
-          <div className="p-3.5 rounded-xl bg-[#FEF2F2] border border-[#FECACA] text-[#B23A2E] text-xs font-mono flex items-center gap-2">
-            <span className="material-symbols-outlined text-[16px]">warning</span>
-            <span>{error}</span>
-          </div>
-        )}
+            <div className="flex items-start gap-3 mt-2">
+              <div className="w-10 h-10 rounded-2xl bg-[#8b5cf6]/20 border border-[#8b5cf6]/40 flex items-center justify-center shrink-0 shadow-sm text-[#c084fc]">
+                <span className="material-symbols-outlined text-[20px]">magic_button</span>
+              </div>
+              <div>
+                <p className="text-xs sm:text-sm text-[#a1a1aa] leading-relaxed">
+                  Missing a tailored resume? Synthesize a technical profile modeled on tier-1 engineering job descriptions with interactive markdown studio.
+                </p>
+              </div>
+            </div>
 
-        {/* Upload Trigger Button */}
-        {!uploadedResumeId && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+            <div className="grid grid-cols-1 gap-2.5 mt-5">
+              <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                <span className="material-symbols-outlined text-[#22d3ee] text-[18px]">hub</span>
+                <span className="text-xs text-white/90">Targeted architecture keywords & STAR metrics</span>
+              </div>
+              <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                <span className="material-symbols-outlined text-[#22d3ee] text-[18px]">fact_check</span>
+                <span className="text-xs text-white/90">Fortune 500 ATS compliant markdown formatting</span>
+              </div>
+              <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                <span className="material-symbols-outlined text-[#22d3ee] text-[18px]">timer</span>
+                <span className="text-xs text-white/90">3-minute instant profile synthesis</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-5 border-t border-white/[0.06] mt-4">
             <button
               type="button"
-              onClick={activeMode === 'file' ? handleFileUpload : handleTextUpload}
-              disabled={uploading || (activeMode === 'file' ? !file : !rawText.trim())}
-              className="w-full sm:w-auto px-6 py-3 bg-[#17181C] hover:bg-[#2A2B30] text-white rounded-xl text-xs font-semibold tracking-wide transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
+              onClick={onOpenEditor}
+              className="w-full py-3 px-4 rounded-full bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.1] text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm hover:border-[#8b5cf6]/50"
             >
-              {uploading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Parsing Document Structure...</span>
-                </>
-              ) : (
-                <>
-                  <span className="material-symbols-outlined text-[18px]">upload</span>
-                  <span>Ingest &amp; Extract Telemetry</span>
-                </>
-              )}
+              <span className="material-symbols-outlined text-[18px] text-[#c084fc]">edit_note</span>
+              <span>Open Markdown Studio &rarr;</span>
             </button>
-
-            {onSkip && (
-              <button
-                type="button"
-                onClick={onSkip}
-                className="text-xs font-mono text-[#6B7078] hover:text-[#17181C] transition-colors"
-              >
-                Skip upload &amp; proceed directly &rarr;
-              </button>
-            )}
           </div>
-        )}
+        </div>
+      </div>
 
-        {/* Extracted Skills & Telemetry Ledger */}
-        {uploadedResumeId && (
-          <div className="p-5 rounded-2xl bg-[#ECFDF5] border border-[#A7F3D0] space-y-4 animate-fadeIn">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div className="flex items-center gap-2 text-[#059669]">
-                <span className="material-symbols-outlined text-[20px]">check_circle</span>
-                <span className="text-xs font-bold font-mono">
-                  RESUME PARSED // DOCKET #{uploadedResumeId}
-                </span>
+      {/* Active Ingestion Result Pill (If Uploaded) */}
+      {uploadedResumeId && (
+        <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-emerald-500/10 via-white/[0.02] to-transparent border border-emerald-500/30 backdrop-blur-xl shadow-lg space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-[22px]">task_alt</span>
               </div>
-              {candidateName && (
-                <span className="text-xs font-semibold text-[#17181C]">
-                  Candidate: {candidateName}
-                </span>
-              )}
-            </div>
-
-            <div>
-              <span className="font-mono text-[11px] uppercase text-[#6B7078] block mb-2 font-bold">
-                Extracted Competencies ({extractedSkills.length}):
-              </span>
-              <div className="flex flex-wrap gap-1.5">
-                {extractedSkills.length > 0 ? (
-                  extractedSkills.map((sk, idx) => (
-                    <span
-                      key={idx}
-                      className="px-2.5 py-1 bg-white text-[#17181C] font-mono text-[11px] font-semibold rounded-lg border border-[#A7F3D0] shadow-2xs"
-                    >
-                      {sk}
-                    </span>
-                  ))
-                ) : (
-                  <span className="text-xs font-mono text-[#6B7078]">
-                    No explicit skill keywords recognized in initial extraction.
-                  </span>
-                )}
+              <div>
+                <h4 className="font-semibold text-sm text-white">
+                  Resume Successfully Ingested (ID: #{uploadedResumeId})
+                </h4>
+                <p className="text-xs text-[#a1a1aa]">
+                  Parsed Candidate: <span className="text-white font-medium">{candidateName}</span> • Extracted {extractedSkills.length} key attributes
+                </p>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-[#A7F3D0]/60">
+            <div className="flex items-center gap-2 self-start sm:self-auto">
               {onATSCheckRequested && (
                 <button
                   type="button"
                   onClick={onATSCheckRequested}
-                  className="px-4 py-2 bg-[#2E6FF2] text-white text-xs font-semibold rounded-xl hover:bg-[#2558C4] transition-colors cursor-pointer shadow-xs flex items-center gap-1.5"
+                  className="btn-glass px-3.5 py-2 text-xs font-semibold text-white cursor-pointer"
                 >
-                  <span className="material-symbols-outlined text-[16px]">analytics</span>
-                  <span>Run ATS Compatibility Audit</span>
+                  Run Full ATS Diagnostic
                 </button>
               )}
-
-              {onOpenEditor && (
-                <button
-                  type="button"
-                  onClick={onOpenEditor}
-                  className="px-4 py-2 bg-white text-[#17181C] text-xs font-semibold rounded-xl border border-[#D1D5DB] hover:bg-[#F8F9FA] transition-colors cursor-pointer flex items-center gap-1.5"
-                >
-                  <span className="material-symbols-outlined text-[16px]">edit_note</span>
-                  <span>Edit in In-App Editor</span>
-                </button>
-              )}
-
               {onSkip && (
                 <button
                   type="button"
                   onClick={onSkip}
-                  className="px-4 py-2 bg-[#17181C] text-white text-xs font-semibold rounded-xl hover:bg-[#2A2B30] transition-colors cursor-pointer ml-auto flex items-center gap-1.5"
+                  className="btn-gradient-primary px-4 py-2 text-xs font-semibold text-white cursor-pointer shadow-md"
                 >
-                  <span>Proceed to Oral Exam</span>
-                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  Proceed to Interview &rarr;
                 </button>
               )}
             </div>
           </div>
-        )}
-      </div>
+
+          {/* Extracted Skills Chips */}
+          {extractedSkills.length > 0 && (
+            <div className="pt-3 border-t border-white/[0.06]">
+              <span className="font-mono text-[10px] uppercase text-[#71717a] tracking-wider block mb-2">
+                Detected Technical Keywords:
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {extractedSkills.map((skill, idx) => (
+                  <span
+                    key={idx}
+                    className="font-mono text-[11px] px-2.5 py-1 rounded-full bg-white/[0.04] text-white/90 border border-white/[0.08]"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
