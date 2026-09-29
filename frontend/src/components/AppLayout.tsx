@@ -82,7 +82,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       case 'it':
       default:
         return {
-          title: 'IT & Software Engineering',
+          title: 'IT & Software',
           tag: 'IT',
           gradient: 'from-[#3b82f6] to-[#22d3ee]',
           glowColor: 'rgba(59, 130, 246, 0.4)',
@@ -109,15 +109,15 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       <div className="fixed top-[40%] right-[-100px] w-[500px] h-[500px] rounded-full bg-[#06b6d4]/10 blur-[150px] pointer-events-none z-0" />
       <div className="fixed bottom-[-150px] left-[30%] w-[550px] h-[550px] rounded-full bg-[#3b82f6]/10 blur-[140px] pointer-events-none z-0" />
 
-      {/* Stitch Fixed Top Dock Header (h-16) */}
-      <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-[#09090b]/80 backdrop-blur-2xl border-b border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.06)] px-4 sm:px-6 flex items-center justify-between gap-4">
+      {/* Stitch Fixed Top Dock Header (Strict h-16 / 64px) */}
+      <header className="fixed top-0 left-0 right-0 z-50 h-16 min-h-[64px] max-h-[64px] bg-[#09090b]/80 backdrop-blur-2xl border-b border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.06)] px-4 sm:px-6 flex items-center justify-between gap-3 sm:gap-4 flex-nowrap overflow-hidden">
         {/* Left: Brand Logo & Sidebar Toggle & Track Indicator */}
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-2.5 sm:gap-3.5 shrink-0 min-w-0">
           {/* Hideable Sidebar Toggle Button */}
           <button
             type="button"
             onClick={() => setSidebarOpen((prev) => !prev)}
-            className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-[#a1a1aa] hover:text-white transition-all cursor-pointer flex items-center justify-center group"
+            className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-[#a1a1aa] hover:text-white transition-all cursor-pointer flex items-center justify-center group shrink-0"
             title={sidebarOpen ? 'Hide sidebar (Ctrl+B)' : 'Show sidebar (Ctrl+B)'}
             aria-label="Toggle navigation sidebar"
           >
@@ -129,7 +129,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           {/* SmartHire Logo Mark */}
           <div
             onClick={() => onNavigate('landing')}
-            className="flex items-center gap-2.5 cursor-pointer select-none group"
+            className="flex items-center gap-2.5 cursor-pointer select-none group shrink-0"
             title="Return to Landing Overview"
           >
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#7c3aed] to-[#3b82f6] p-[1px] shadow-[0_0_15px_rgba(124,58,237,0.35)] shrink-0">
@@ -139,7 +139,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                 </svg>
               </div>
             </div>
-            <div className="flex items-baseline gap-1.5">
+            <div className="flex items-baseline gap-1.5 shrink-0">
               <span className="font-bold text-base tracking-tight text-white group-hover:text-white/95">SmartHire</span>
               <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#7c3aed]/20 text-[#c084fc] border border-[#7c3aed]/30 font-mono">
                 PREP
@@ -148,20 +148,22 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           </div>
 
           {/* Active Target Track Badge */}
-          <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-md">
+          <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full border border-white/[0.08] bg-white/[0.03] backdrop-blur-md whitespace-nowrap shrink-0 h-7 max-h-7 leading-none">
             <span
-              className="w-2 h-2 rounded-full animate-pulse"
+              className="w-2 h-2 rounded-full animate-pulse shrink-0"
               style={{ backgroundColor: domain.accentColor, boxShadow: `0 0 8px ${domain.glowColor}` }}
             />
-            <span className="font-mono text-xs font-semibold text-white/90">
+            <span className="font-mono text-xs font-semibold text-white/90 whitespace-nowrap">
               {domain.title}
             </span>
-            <span className="text-[#71717a] text-xs font-mono">• {targetRole}</span>
+            <span className="text-[#71717a] text-xs font-mono whitespace-nowrap truncate max-w-[140px] xl:max-w-[180px]">
+              • {targetRole}
+            </span>
           </div>
         </div>
 
         {/* Center: Stage Progress Tracker Pill (Desktop) */}
-        <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] text-xs font-medium text-[#a1a1aa]">
+        <div className="hidden xl:flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] text-xs font-medium text-[#a1a1aa] whitespace-nowrap shrink-0 h-8 max-h-8">
           <button
             type="button"
             onClick={() => onNavigate('field_select')}
@@ -236,7 +238,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         </div>
 
         {/* Right: Quick Track Switcher & User Profile */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {/* Quick Domain Switcher Dropdown */}
           <div className="relative">
             <button
