@@ -314,50 +314,57 @@ const AppContent = () => {
             onComplete={handleInterviewCompleted}
           />
         ) : (
-          <div className="bg-white p-8 rounded border border-[#D2D5C9] shadow-xs text-left max-w-2xl mx-auto space-y-6">
-            <div className="border-b border-[#D2D5C9] pb-4">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#2F6F4E]" />
-                <span className="text-[10px] font-score-mono uppercase text-[#5C6B60] tracking-wider font-semibold">
-                  SHEET 04 // EXAMINATION INITIALIZATION
-                </span>
-              </div>
-              <h2 className="font-serif text-lg font-semibold text-[#1A2E22]">
-                Oral Examination & Mock Interview Ready
-              </h2>
-              <p className="text-xs text-[#5C6B60] mt-1">
-                Calibrated for track <strong className="text-[#1A2E22] uppercase">{field}</strong> targeting position <strong className="text-[#1A2E22]">{role}</strong>.
-              </p>
-            </div>
+          <div className="max-w-2xl mx-auto w-full my-auto animate-fadeIn select-none">
+            <div className="bg-[#141313]/90 border border-white/[0.08] shadow-[0_20px_60px_rgba(0,0,0,0.8),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl rounded-3xl p-7 sm:p-9 text-left space-y-6 relative overflow-hidden">
+              {/* Refraction Accent Flare */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-[#7c3aed]/15 to-transparent rounded-full blur-3xl pointer-events-none" />
 
-            <div className="p-4 bg-[#F7F8F5] border border-[#D2D5C9] rounded text-xs space-y-2">
-              <div className="flex items-center justify-between text-[11px] font-score-mono text-[#5C6B60]">
-                <span>EXAMINATION FORMAT:</span>
-                <span className="font-semibold text-[#1A2E22]">MCQ Concepts + Scripted Behavioral & Technical Questions</span>
+              <div className="border-b border-white/[0.08] pb-5 relative z-10">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#22d3ee] shadow-[0_0_8px_#22d3ee] animate-pulse" />
+                  <span className="text-[10px] font-mono uppercase text-[#a1a1aa] tracking-wider font-semibold">
+                    STAGE 04 // EXAMINATION INITIALIZATION
+                  </span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                  Oral Examination & Mock Interview Ready
+                </h2>
+                <p className="text-xs sm:text-sm text-[#a1a1aa] mt-1.5 leading-relaxed">
+                  Calibrated for track <strong className="text-white uppercase font-mono">{field}</strong> targeting position <strong className="text-[#c084fc] font-medium">{role}</strong>.
+                </p>
               </div>
-              <div className="flex items-center justify-between text-[11px] font-score-mono text-[#5C6B60]">
-                <span>EVALUATION CRITERIA:</span>
-                <span className="font-semibold text-[#1A2E22]">
-                  {field === 'it' ? 'Code Correctness & Keyword Precision' : field === 'management' ? 'SAR Framework & Structural Clarity' : 'IRAC Legal Reasoning & Analysis'}
-                </span>
-              </div>
-            </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
-              <button
-                type="button"
-                onClick={() => navigateTo('resume')}
-                className="text-xs text-[#5C6B60] hover:text-[#1A2E22]"
-              >
-                &larr; Return to Resume Dossier
-              </button>
-              <button
-                type="button"
-                onClick={initiateInterviewFlow}
-                className="px-6 py-2.5 bg-[#2F6F4E] text-white rounded text-xs font-medium hover:bg-[#25583E] transition-colors cursor-pointer shadow-xs"
-              >
-                Select Mode & Begin Examination &rarr;
-              </button>
+              <div className="p-4 sm:p-5 bg-white/[0.02] border border-white/[0.06] rounded-2xl text-xs space-y-3 shadow-inner relative z-10">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] font-mono text-[#a1a1aa]">
+                  <span className="text-[#71717a] font-semibold">EXAMINATION FORMAT:</span>
+                  <span className="font-semibold text-white/90">MCQ Concepts + Scripted Behavioral & Technical Questions</span>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] font-mono text-[#a1a1aa] pt-2 border-t border-white/[0.05]">
+                  <span className="text-[#71717a] font-semibold">EVALUATION CRITERIA:</span>
+                  <span className="font-semibold text-[#22d3ee]">
+                    {field === 'it' ? 'Code Correctness & Keyword Precision' : field === 'management' ? 'SAR Framework & Structural Clarity' : 'IRAC Legal Reasoning & Analysis'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-4 pt-2 relative z-10">
+                <button
+                  type="button"
+                  onClick={() => navigateTo('resume')}
+                  className="flex items-center gap-1.5 text-xs font-medium text-[#a1a1aa] hover:text-white transition-colors cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                  <span>Return to Resume Dossier</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={initiateInterviewFlow}
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white text-xs font-semibold hover:opacity-95 shadow-[0_0_20px_rgba(124,58,237,0.35)] transition-all cursor-pointer flex items-center gap-1.5 hover:scale-[1.02]"
+                >
+                  <span>Select Mode & Begin Examination</span>
+                  <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </button>
+              </div>
             </div>
           </div>
         )
