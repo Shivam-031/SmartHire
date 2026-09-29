@@ -45,6 +45,47 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   const { user, isAuthenticated } = useAuth();
   const [trackDropdownOpen, setTrackDropdownOpen] = useState(false);
 
+  // Persistent hideable sidebar state across all pages
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('smarthire_sidebar_open');
+      if (saved !== null) {
+        return saved === 'true';
+      }
+      return window.innerWidth >= 1024;
+    }
+    return true;
+  });
+
+  // Persist preference to localStorage
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('smarthire_sidebar_open', String(sidebarOpen));
+    } catch (_) {}
+  }, [sidebarOpen]);
+
+  // Keyboard shortcut: Ctrl+B or Cmd+B to toggle sidebar anywhere
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+        const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+        if (tag !== 'input' && tag !== 'textarea' && !(e.target as HTMLElement)?.isContentEditable) {
+          e.preventDefault();
+          setSidebarOpen((prev) => !prev);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleNavClick = (step: DocketStep) => {
+    onNavigate(step);
+    if (window.innerWidth < 1024) {
+      setSidebarOpen(false);
+    }
+  };
+
   const getDomainConfig = () => {
     switch (targetField) {
       case 'management':
@@ -97,8 +138,20 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
     <div className="min-h-screen flex flex-col bg-[#F8F9FA] text-[#17181C] font-sans antialiased">
       {/* Fixed Top Header (h-16) */}
       <header className="fixed top-0 left-0 right-0 z-50 h-16 bg-white border-b border-[#E5E7EB] shadow-[0_1px_8px_rgba(0,0,0,0.03)] px-4 sm:px-6 flex items-center justify-between gap-4">
-        {/* Left: Brand & Track Indicator */}
-        <div className="flex items-center gap-4 sm:gap-6">
+        {/* Left: Sidebar Toggle, Brand & Track Indicator */}
+        <div className="flex items-center gap-2 sm:gap-4">
+          <button
+            type="button"
+            onClick={() => setSidebarOpen((prev) => !prev)}
+            className="p-2 -ml-1 rounded-lg text-[#6B7078] hover:text-[#17181C] hover:bg-[#F1F2F4] active:bg-[#E5E7EB] transition-colors cursor-pointer flex items-center justify-center group"
+            title={sidebarOpen ? "Hide sidebar (Ctrl+B)" : "Show sidebar (Ctrl+B)"}
+            aria-label="Toggle navigation sidebar"
+          >
+            <span className="material-symbols-outlined text-[22px] transition-transform duration-200 group-hover:scale-105">
+              {sidebarOpen ? 'menu_open' : 'menu'}
+            </span>
+          </button>
+
           <BrandWordmark onClick={() => onNavigate('landing')} />
 
           <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full border border-[#E5E7EB] bg-[#F8F9FA]">
@@ -243,18 +296,42 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         </div>
       </header>
 
-      {/* Main Container with Fixed Left Rail */}
-      <div className="flex-1 flex w-full">
-        {/* Left Execution Workspace Rail (Fixed, w-64, Desktop) */}
-        <aside className="hidden lg:flex fixed left-0 top-16 bottom-0 w-64 bg-white border-r border-[#E5E7EB] z-40 flex-col justify-between p-4 select-none">
+      {/* Mobile Backdrop Overlay when sidebar is open */}
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          className="lg:hidden fixed inset-0 top-16 bg-black/40 backdrop-blur-xs z-30 transition-opacity duration-300"
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Main Container with Collapsible Left Rail */}
+      <div className="flex-1 flex w-full relative">
+        {/* Left Execution Workspace Rail (Collapsible, Fixed, w-64) */}
+        <aside
+          className={`fixed left-0 top-16 bottom-0 w-64 bg-white border-r border-[#E5E7EB] z-40 flex flex-col justify-between p-4 select-none transition-transform duration-300 ease-in-out ${
+            sidebarOpen ? 'translate-x-0 shadow-xl lg:shadow-none' : '-translate-x-full'
+          }`}
+        >
           <div className="space-y-4">
-            <div className="px-3 py-1 font-mono text-[11px] text-[#6B7078] uppercase tracking-wider font-bold">
-              Execution Workspace
+            <div className="flex items-center justify-between px-3 py-1">
+              <span className="font-mono text-[11px] text-[#6B7078] uppercase tracking-wider font-bold">
+                Execution Workspace
+              </span>
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(false)}
+                className="p-1 rounded-md text-[#9CA3AF] hover:text-[#17181C] hover:bg-[#F1F2F4] transition-colors cursor-pointer"
+                title="Collapse sidebar (Ctrl+B)"
+                aria-label="Collapse sidebar"
+              >
+                <span className="material-symbols-outlined text-[18px]">chevron_left</span>
+              </button>
             </div>
 
             <nav className="flex flex-col gap-1 text-xs font-medium">
               <button
-                onClick={() => onNavigate('completed')}
+                onClick={() => handleNavClick('completed')}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left cursor-pointer ${
                   isStepActive(['completed', 'summary'])
                     ? 'bg-[#2E6FF2] text-white font-semibold shadow-xs'
@@ -266,7 +343,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
               </button>
 
               <button
-                onClick={() => onNavigate('interview')}
+                onClick={() => handleNavClick('interview')}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left cursor-pointer ${
                   isStepActive(['interview'])
                     ? 'bg-[#2E6FF2] text-white font-semibold shadow-xs'
@@ -278,7 +355,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
               </button>
 
               <button
-                onClick={() => onNavigate('interview')}
+                onClick={() => handleNavClick('interview')}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#6B7078] hover:bg-[#F8F9FA] hover:text-[#17181C] transition-colors text-left cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[20px]">mic</span>
@@ -286,7 +363,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
               </button>
 
               <button
-                onClick={() => onNavigate('ats_check')}
+                onClick={() => handleNavClick('ats_check')}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left cursor-pointer ${
                   isStepActive(['ats_check'])
                     ? 'bg-[#2E6FF2] text-white font-semibold shadow-xs'
@@ -298,7 +375,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
               </button>
 
               <button
-                onClick={() => onNavigate('resume')}
+                onClick={() => handleNavClick('resume')}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left cursor-pointer ${
                   isStepActive(['resume', 'resume_editor', 'template_picker'])
                     ? 'bg-[#2E6FF2] text-white font-semibold shadow-xs'
@@ -310,7 +387,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
               </button>
 
               <button
-                onClick={() => onNavigate('session_history')}
+                onClick={() => handleNavClick('session_history')}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-left cursor-pointer ${
                   isStepActive(['session_history'])
                     ? 'bg-[#2E6FF2] text-white font-semibold shadow-xs'
@@ -344,7 +421,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             </div>
 
             <button
-              onClick={() => onNavigate('field_select')}
+              onClick={() => handleNavClick('field_select')}
               className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-[#6B7078] hover:bg-[#F8F9FA] hover:text-[#17181C] transition-colors text-left cursor-pointer"
             >
               <span className="material-symbols-outlined text-[18px]">tune</span>
@@ -353,8 +430,30 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           </div>
         </aside>
 
+        {/* Floating Quick-Open Tab when sidebar is collapsed */}
+        {!sidebarOpen && (
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(true)}
+            className="hidden lg:flex fixed left-0 top-20 z-30 items-center gap-1 py-1.5 px-2 bg-white hover:bg-[#F8F9FA] border border-l-0 border-[#E5E7EB] rounded-r-lg shadow-sm text-[#6B7078] hover:text-[#17181C] transition-all cursor-pointer group"
+            title="Open sidebar (Ctrl+B)"
+            aria-label="Open sidebar"
+          >
+            <span className="material-symbols-outlined text-[18px] group-hover:translate-x-0.5 transition-transform text-[#2E6FF2]">
+              chevron_right
+            </span>
+            <span className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[#6B7078]">
+              Menu
+            </span>
+          </button>
+        )}
+
         {/* Main Content Area */}
-        <main className="flex-1 w-full lg:pl-64 pt-16 min-h-screen bg-[#F8F9FA] flex flex-col">
+        <main
+          className={`flex-1 w-full pt-16 min-h-screen bg-[#F8F9FA] flex flex-col transition-all duration-300 ease-in-out ${
+            sidebarOpen ? 'lg:pl-64' : 'pl-0'
+          }`}
+        >
           <div className="w-full max-w-7xl mx-auto p-4 sm:p-8 lg:p-10 flex-1">
             {children}
           </div>
