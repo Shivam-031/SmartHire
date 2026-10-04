@@ -21,6 +21,9 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
   const [uploadedResumeId, setUploadedResumeId] = useState<number | null>(null);
   const [extractedSkills, setExtractedSkills] = useState<string[]>([]);
   const [candidateName, setCandidateName] = useState<string | null>(null);
+  const [contact, setContact] = useState<{ email?: string; phone?: string; github?: string; linkedin?: string; headline?: string } | null>(null);
+  const [isCertificate, setIsCertificate] = useState(false);
+  const [wordCount, setWordCount] = useState<number | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -77,6 +80,9 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
       setUploadedResumeId(data.resume_id);
       setExtractedSkills(data.extracted_skills || []);
       setCandidateName(data.candidate_name || file.name);
+      setContact(data.contact || null);
+      setIsCertificate(Boolean(data.is_certificate));
+      setWordCount(data.word_count || null);
 
       if (onUploadSuccess) {
         onUploadSuccess(data.resume_id);
@@ -112,6 +118,9 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
       setUploadedResumeId(data.resume_id);
       setExtractedSkills(data.extracted_skills || []);
       setCandidateName(data.candidate_name || 'Candidate Resume Text');
+      setContact(data.contact || null);
+      setIsCertificate(Boolean(data.is_certificate));
+      setWordCount(data.word_count || null);
 
       if (onUploadSuccess) {
         onUploadSuccess(data.resume_id);
@@ -360,7 +369,8 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
                   Resume Successfully Ingested (ID: #{uploadedResumeId})
                 </h4>
                 <p className="text-xs text-[#a1a1aa]">
-                  Parsed Candidate: <span className="text-white font-medium">{candidateName}</span> • Extracted {extractedSkills.length} key attributes
+                  Parsed Candidate: <span className="text-white font-medium">{candidateName}</span>
+                  {wordCount ? ` • ${wordCount} words analyzed` : ''} • Extracted {extractedSkills.length} key attributes
                 </p>
               </div>
             </div>
@@ -387,22 +397,81 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
             </div>
           </div>
 
+          {/* Candidate Profile Details (Headline, Contact) */}
+          {(contact?.headline || contact?.email || contact?.phone || contact?.github) && (
+            <div className="flex flex-wrap items-center gap-2 pt-1 text-xs font-mono">
+              {contact.headline && (
+                <span className="px-2.5 py-1 rounded-lg bg-purple-500/15 text-[#c084fc] border border-purple-500/30 flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[14px]">badge</span>
+                  {contact.headline}
+                </span>
+              )}
+              {contact.email && (
+                <span className="px-2.5 py-1 rounded-lg bg-white/[0.04] text-white/80 border border-white/[0.08] flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[14px] text-[#22d3ee]">mail</span>
+                  {contact.email}
+                </span>
+              )}
+              {contact.phone && (
+                <span className="px-2.5 py-1 rounded-lg bg-white/[0.04] text-white/80 border border-white/[0.08] flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[14px] text-[#10b981]">call</span>
+                  {contact.phone}
+                </span>
+              )}
+              {contact.github && (
+                <span className="px-2.5 py-1 rounded-lg bg-white/[0.04] text-white/80 border border-white/[0.08] flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[14px] text-white/60">code</span>
+                  {contact.github}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Special Banner for Single-Page Certificate Ingestion */}
+          {isCertificate && (
+            <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-start gap-3">
+              <span className="material-symbols-outlined text-amber-400 text-[20px] shrink-0 mt-0.5">workspace_premium</span>
+              <div className="text-xs space-y-1">
+                <span className="font-semibold text-amber-300 block">Course Certificate Recognized</span>
+                <p className="text-amber-200/80 leading-relaxed">
+                  This document was identified as a single-page completion certificate. We successfully extracted the credential skills and candidate identity. For complete multi-stage ATS scoring, STAR metrics, and deep interview personalization, you can also paste or synthesize your full resume using the Markdown Studio.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Extracted Skills Chips */}
-          {extractedSkills.length > 0 && (
+          {extractedSkills.length > 0 ? (
             <div className="pt-3 border-t border-white/[0.06]">
-              <span className="font-mono text-[10px] uppercase text-[#71717a] tracking-wider block mb-2">
-                Detected Technical Keywords:
-              </span>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-mono text-[10px] uppercase text-[#71717a] tracking-wider block">
+                  Detected Technical Keywords ({extractedSkills.length}):
+                </span>
+                <span className="text-[11px] font-mono text-[#22d3ee]">Validated by Taxonomy</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto pr-1">
                 {extractedSkills.map((skill, idx) => (
                   <span
                     key={idx}
-                    className="font-mono text-[11px] px-2.5 py-1 rounded-full bg-white/[0.04] text-white/90 border border-white/[0.08]"
+                    className="font-mono text-[11px] px-2.5 py-1 rounded-full bg-white/[0.04] text-white/90 border border-white/[0.08] hover:border-[#3b82f6]/50 transition-colors"
                   >
                     {skill}
                   </span>
                 ))}
               </div>
+            </div>
+          ) : (
+            <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs text-[#a1a1aa]">
+              <span>No specialized keywords were matched. You can enhance your profile in Markdown Studio.</span>
+              {onOpenEditor && (
+                <button
+                  type="button"
+                  onClick={onOpenEditor}
+                  className="text-xs text-[#c084fc] hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  Edit in Studio &rarr;
+                </button>
+              )}
             </div>
           )}
         </div>

@@ -27,7 +27,7 @@ def upload_resume():
     if user:
         user_id = user.id
     else:
-        user_id = request.form.get('user_id')
+        user_id = request.form.get('user_id') or (request.get_json(silent=True) or {}).get('user_id')
         if not user_id:
             user_id = get_default_user_id()
         else:
@@ -36,34 +36,65 @@ def upload_resume():
             except ValueError:
                 return jsonify({"error": "Invalid user_id"}), 400
 
-    # 2. Validate File
+    # 2. Check for JSON / Raw Text Body
+    json_data = request.get_json(silent=True) or {}
+    raw_text = json_data.get('resume_text') or json_data.get('text')
+    if 'file' not in request.files and raw_text:
+        try:
+            parsed = parser.parse_full(raw_text, is_raw_text=True)
+            resume = Resume(
+                user_id=user_id,
+                file_name="manual_entry.txt",
+                extracted_text=parsed["text"],
+                extracted_skills=parsed["skills"]
+            )
+            db.session.add(resume)
+            db.session.commit()
+
+            return jsonify({
+                "message": "Resume text parsed successfully",
+                "resume_id": resume.id,
+                "candidate_name": parsed["candidate_name"],
+                "contact": parsed["contact"],
+                "extracted_skills": parsed["skills"],
+                "summary": parsed["summary"],
+                "experience": parsed["experience"],
+                "education": parsed["education"],
+                "projects": parsed["projects"],
+                "is_certificate": parsed["is_certificate"],
+                "is_scanned": parsed["is_scanned"],
+                "word_count": parsed["word_count"]
+            }), 201
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    # 3. Validate File
     if 'file' not in request.files:
-        return jsonify({"error": "No file part"}), 400
+        return jsonify({"error": "No file part or text content provided"}), 400
 
     file = request.files['file']
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
 
     # Validate extension
-    allowed_extensions = {'.pdf', '.docx'}
+    allowed_extensions = {'.pdf', '.docx', '.txt', '.md'}
     ext = os.path.splitext(file.filename)[1].lower()
     if ext not in allowed_extensions:
         return jsonify({"error": f"Unsupported file type. Allowed: {', '.join(allowed_extensions)}"}), 400
 
-    # 3. Save File
+    # 4. Save File
     filename = secure_filename(file.filename)
     save_path = os.path.join(Config.UPLOAD_FOLDER, filename)
-
-    # Ensure upload folder exists
     os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
-
     file.save(save_path)
 
     try:
-        # 4. Parse Resume
-        text, skills, is_scanned = parser.parse_resume(save_path)
+        # 5. Rich Parse Resume
+        parsed = parser.parse_full(save_path, is_raw_text=False)
+        text = parsed["text"]
+        skills = parsed["skills"]
 
-        # 5. Save to Database
+        # 6. Save to Database
         resume = Resume(
             user_id=user_id,
             file_name=filename,
@@ -76,11 +107,19 @@ def upload_resume():
         return jsonify({
             "message": "Resume uploaded and parsed successfully",
             "resume_id": resume.id,
-            "extracted_skills": skills
+            "candidate_name": parsed["candidate_name"],
+            "contact": parsed["contact"],
+            "extracted_skills": skills,
+            "summary": parsed["summary"],
+            "experience": parsed["experience"],
+            "education": parsed["education"],
+            "projects": parsed["projects"],
+            "is_certificate": parsed["is_certificate"],
+            "is_scanned": parsed["is_scanned"],
+            "word_count": parsed["word_count"]
         }), 201
 
     except Exception as e:
-        # Clean up file on failure
         if os.path.exists(save_path):
             os.remove(save_path)
         return jsonify({"error": str(e)}), 500
@@ -88,11 +127,11 @@ def upload_resume():
 @resume_bp.route('/manual-text', methods=['POST'])
 @optional_auth
 def manual_text():
-    data = request.get_json()
-    if not data or 'text' not in data:
+    data = request.get_json() or {}
+    text = data.get('text') or data.get('resume_text')
+    if not text:
         return jsonify({"error": "No text provided"}), 400
 
-    text = data['text']
     user = g.current_user
     if user:
         user_id = user.id
@@ -107,15 +146,12 @@ def manual_text():
                 return jsonify({"error": "Invalid user_id"}), 400
 
     try:
-        # Extract skills from manual text
-        skills = parser.extract_skills(text)
-
-        # Save to database (use 'manual_entry' as filename)
+        parsed = parser.parse_full(text, is_raw_text=True)
         resume = Resume(
             user_id=user_id,
-            file_name="manual_entry",
-            extracted_text=text,
-            extracted_skills=skills
+            file_name="manual_entry.txt",
+            extracted_text=parsed["text"],
+            extracted_skills=parsed["skills"]
         )
         db.session.add(resume)
         db.session.commit()
@@ -123,7 +159,16 @@ def manual_text():
         return jsonify({
             "message": "Text processed successfully",
             "resume_id": resume.id,
-            "extracted_skills": skills
+            "candidate_name": parsed["candidate_name"],
+            "contact": parsed["contact"],
+            "extracted_skills": parsed["skills"],
+            "summary": parsed["summary"],
+            "experience": parsed["experience"],
+            "education": parsed["education"],
+            "projects": parsed["projects"],
+            "is_certificate": parsed["is_certificate"],
+            "is_scanned": parsed["is_scanned"],
+            "word_count": parsed["word_count"]
         }), 201
 
     except Exception as e:

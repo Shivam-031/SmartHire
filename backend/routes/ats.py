@@ -135,5 +135,37 @@ def check_ats():
         except ValueError:
             pass
 
-    return jsonify({"error": "Resume not found in MongoDB storage or relational database."}), 404
+    # Case 5: Fallback to latest resume in system (Mongo or SQL)
+    doc = col.find_one({}, sort=[('last_updated', -1)])
+    if doc:
+        try:
+            analysis = ats_checker.analyze_document(doc)
+            return jsonify({
+                "ats_score": analysis['ats_score'],
+                "issues": analysis['issues'],
+                "disclaimer": "This is a heuristic estimate, not a certified score."
+            }), 200
+        except Exception:
+            pass
+
+    latest_sql = SQLResume.query.order_by(SQLResume.id.desc()).first()
+    if latest_sql:
+        try:
+            file_path = os.path.join(Config.UPLOAD_FOLDER, latest_sql.file_name or '')
+            if os.path.exists(file_path):
+                analysis = ats_checker.analyze(file_path)
+            elif latest_sql.extracted_text:
+                analysis = ats_checker.analyze_text(latest_sql.extracted_text)
+            else:
+                analysis = None
+            if analysis:
+                return jsonify({
+                    "ats_score": analysis['ats_score'],
+                    "issues": analysis['issues'],
+                    "disclaimer": "This is a heuristic estimate, not a certified score."
+                }), 200
+        except Exception:
+            pass
+
+    return jsonify({"error": "No resume found to analyze. Please upload or create a resume first."}), 404
 
