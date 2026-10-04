@@ -59,78 +59,162 @@ EXTENDED_SKILLS = {
     'graphql': 'GraphQL',
     'jwt': 'JWT Authentication',
     'jwt authentication': 'JWT Authentication',
+    'bcrypt': 'Bcrypt',
+    'responsive design': 'Responsive Design',
+
+    # MERN Stack & Node ecosystem
     'mern': 'MERN Stack',
     'mern stack': 'MERN Stack',
-    'ci/cd': 'CI/CD',
-    'devops': 'DevOps',
-    'cloud computing': 'Cloud Computing',
-    'responsive design': 'Responsive Design',
-    'ui/ux': 'UI/UX Design',
+    'react': 'React',
+    'react.js': 'React',
+    'reactjs': 'React',
+    'node': 'Node.js',
+    'node.js': 'Node.js',
+    'nodejs': 'Node.js',
+    'express': 'Express.js',
+    'express.js': 'Express.js',
+    'expressjs': 'Express.js',
+    'mongodb': 'MongoDB',
+    'mongo': 'MongoDB',
+    'typescript': 'TypeScript',
+    'javascript': 'JavaScript',
+    'js': 'JavaScript',
+    'ts': 'TypeScript',
+    'redux': 'Redux',
+    'redux toolkit': 'Redux',
+    'next.js': 'Next.js',
+    'nextjs': 'Next.js',
     'vite': 'Vite',
     'tailwind': 'Tailwind CSS',
     'tailwind css': 'Tailwind CSS',
     'bootstrap': 'Bootstrap',
-    'express': 'Express.js',
-    'express.js': 'Express.js',
-    'node': 'Node.js',
-    'node.js': 'Node.js',
-    'react': 'React',
-    'react.js': 'React',
-    'typescript': 'TypeScript',
-    'javascript': 'JavaScript',
-    'python': 'Python',
-    'java': 'Java',
-    'c++': 'C++',
-    'c#': 'C#',
-    'sql': 'SQL',
-    'nosql': 'NoSQL',
-    'mongodb': 'MongoDB',
-    'postgresql': 'PostgreSQL',
-    'mysql': 'MySQL',
-    'redis': 'Redis',
-    'git': 'Git',
-    'github': 'GitHub',
-    'docker': 'Docker',
-    'kubernetes': 'Kubernetes',
-    'aws': 'AWS',
-    'azure': 'Azure',
-    'gcp': 'GCP',
-    'linux': 'Linux',
-    'next.js': 'Next.js',
-    'redux': 'Redux',
     'html': 'HTML5',
     'html5': 'HTML5',
     'css': 'CSS3',
     'css3': 'CSS3',
+    'sass': 'SASS',
+    'scss': 'SASS',
 
-    # Management & Strategy Track
-    'product management': 'Product Management',
-    'product manager': 'Product Management',
+    # Programming Languages
+    'python': 'Python',
+    'python3': 'Python',
+    'java': 'Java',
+    'c': 'C',
+    'c++': 'C++',
+    'cpp': 'C++',
+    'c#': 'C#',
+    'csharp': 'C#',
+    '.net': '.NET',
+    'dotnet': '.NET',
+    'golang': 'Go',
+    'go': 'Go',
+    'rust': 'Rust',
+    'php': 'PHP',
+    'ruby': 'Ruby',
+    'rails': 'Ruby on Rails',
+    'ruby on rails': 'Ruby on Rails',
+    'scala': 'Scala',
+    'kotlin': 'Kotlin',
+    'swift': 'Swift',
+
+    # Databases & Caching
+    'sql': 'SQL',
+    'mysql': 'MySQL',
+    'postgresql': 'PostgreSQL',
+    'postgres': 'PostgreSQL',
+    'sqlite': 'SQLite',
+    'redis': 'Redis',
+    'elasticsearch': 'Elasticsearch',
+    'cassandra': 'Cassandra',
+    'dynamodb': 'DynamoDB',
+    'firebase': 'Firebase',
+    'firestore': 'Firebase',
+    'prisma': 'Prisma',
+    'mongoose': 'Mongoose',
+    'sequelize': 'Sequelize',
+
+    # DevOps, Cloud & Tools
+    'docker': 'Docker',
+    'kubernetes': 'Kubernetes',
+    'k8s': 'Kubernetes',
+    'aws': 'AWS',
+    'amazon web services': 'AWS',
+    'azure': 'Azure',
+    'gcp': 'GCP',
+    'google cloud': 'GCP',
+    'git': 'Git',
+    'github': 'GitHub',
+    'gitlab': 'GitLab',
+    'bitbucket': 'Bitbucket',
+    'ci/cd': 'CI/CD',
+    'cicd': 'CI/CD',
+    'jenkins': 'Jenkins',
+    'github actions': 'GitHub Actions',
+    'terraform': 'Terraform',
+    'linux': 'Linux',
+    'nginx': 'NGINX',
+    'apache': 'Apache',
+    'netlify': 'Netlify',
+    'render': 'Render',
+    'vercel': 'Vercel',
+    'heroku': 'Heroku',
+    'cloudinary': 'Cloudinary',
+
+    # Testing & Quality
+    'jest': 'Jest',
+    'mocha': 'Mocha',
+    'cypress': 'Cypress',
+    'selenium': 'Selenium',
+    'unit testing': 'Unit Testing',
+    'integration testing': 'Integration Testing',
+    'tdd': 'TDD',
+
+    # AI & Data
+    'machine learning': 'Machine Learning',
+    'deep learning': 'Deep Learning',
+    'nlp': 'NLP',
+    'artificial intelligence': 'Artificial Intelligence',
+    'ai': 'Artificial Intelligence',
+    'pandas': 'Pandas',
+    'numpy': 'NumPy',
+    'pytorch': 'PyTorch',
+    'tensorflow': 'TensorFlow',
+    'scikit-learn': 'Scikit-Learn',
+    'power bi': 'Power BI',
+    'powerbi': 'Power BI',
+    'tableau': 'Tableau',
+    'excel': 'Microsoft Excel',
+
+    # Management & Soft Skills
+    'agile': 'Agile',
+    'scrum': 'Scrum',
+    'jira': 'Jira',
+    'leadership': 'Leadership',
     'project management': 'Project Management',
-    'scrum': 'Scrum / Agile',
-    'agile': 'Scrum / Agile',
-    'okrs': 'OKRs & KPIs',
-    'kpi': 'OKRs & KPIs',
-    'p&l': 'P&L Management',
-    'stakeholder management': 'Stakeholder Management',
-    'strategic planning': 'Strategic Planning',
-    'roadmapping': 'Roadmapping',
-    'operations management': 'Operations Management',
-
-    # Law & Governance Track
-    'corporate law': 'Corporate Law',
-    'contract drafting': 'Contract Drafting',
-    'contract negotiation': 'Contract Negotiation',
-    'regulatory compliance': 'Regulatory Compliance',
-    'compliance': 'Regulatory Compliance',
-    'gdpr': 'Data Privacy & GDPR',
-    'data privacy': 'Data Privacy & GDPR',
-    'due diligence': 'Due Diligence',
-    'intellectual property': 'Intellectual Property',
-    'm&a': 'M&A Due Diligence',
-    'litigation': 'Litigation & Dispute Resolution',
-    'legal research': 'Legal Research',
+    'communication': 'Communication',
+    'problem solving': 'Problem Solving',
+    'teamwork': 'Team Collaboration'
 }
+
+SECTION_PATTERNS = [
+    ('summary', re.compile(r'^(?:professional\s+summary|summary|profile|about\s+me|career\s+objective|objective)\s*$', re.I)),
+    ('skills', re.compile(r'^(?:technical\s+skills|skills|core\s+competencies|key\s+skills|skills\s*&\s*abilities|technologies)\s*$', re.I)),
+    ('experience', re.compile(r'^(?:professional\s+experience|work\s+experience|experience|employment\s+history|internships|work\s+history)\s*$', re.I)),
+    ('projects', re.compile(r'^(?:projects|academic\s+projects|personal\s+projects|key\s+projects|selected\s+projects)\s*$', re.I)),
+    ('education', re.compile(r'^(?:education|academic\s+background|educational\s+qualifications|academics|qualifications)\s*$', re.I)),
+    ('certifications', re.compile(r'^(?:certifications|licenses\s*&\s*certifications|certificates|credentials|courses\s*&\s*certifications)\s*$', re.I)),
+    ('additional', re.compile(r'^(?:additional\s+information|achievements|awards|publications|activities|extracurricular)\s*$', re.I)),
+]
+
+DATE_PAT = re.compile(
+    r'(?:\((?:(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[\s\.,]*\d{4}|\b\d{4}\b)\s*(?:[-–—to\s]+)\s*(?:(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[\s\.,]*\d{4}|\b\d{4}\b|Present|Current)\)|(?:(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[\s\.,]*\d{4}|\b\d{4}\b)\s*(?:[-–—to\s]+)\s*(?:(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[\s\.,]*\d{4}|\b\d{4}\b|Present|Current))',
+    re.I
+)
+
+DEGREE_PAT = re.compile(
+    r'\b(?:master|bachelor|b\.s|m\.s|b\.tech|m\.tech|bca|mca|bba|mba|phd|associate|diploma|secondary|higher\s+secondary)\b',
+    re.I
+)
 
 class ResumeParser:
     def __init__(self, skill_dict_path=None):
@@ -141,29 +225,26 @@ class ResumeParser:
         self.matcher = self._setup_phrase_matcher()
 
     def _load_skill_dictionary(self):
-        """Loads the skill dictionary and merges with extended industry skill sets."""
-        skill_map = {}
+        """Loads canonical skills and merges them with extended industry mappings."""
+        skill_map = dict(EXTENDED_SKILLS)
         try:
             if os.path.exists(self.skill_dict_path):
                 with open(self.skill_dict_path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     for item in data:
-                        canonical = item['canonical']
-                        skill_map[canonical.lower()] = canonical
-                        for syn in item.get('synonyms', []):
-                            skill_map[syn.lower()] = canonical
+                        canonical = item.get('canonical')
+                        if canonical:
+                            skill_map[canonical.lower()] = canonical
+                            for syn in item.get('synonyms', []):
+                                skill_map[syn.lower()] = canonical
         except Exception as e:
             print(f"[ResumeParser] Error loading skill dictionary: {e}")
-
-        # Merge with extended skills
-        for syn, canonical in EXTENDED_SKILLS.items():
-            skill_map[syn.lower()] = canonical
 
         print(f"[ResumeParser] Successfully initialized {len(skill_map)} skill mappings.")
         return skill_map
 
     def _setup_phrase_matcher(self):
-        """Sets up spaCy PhraseMatcher with synonyms if available."""
+        """Sets up spaCy PhraseMatcher if spaCy is functional."""
         if nlp is not None and PhraseMatcher is not None:
             try:
                 matcher = PhraseMatcher(nlp.vocab, attr="LOWER")
@@ -176,11 +257,23 @@ class ResumeParser:
                 return None
         return None
 
-    def extract_text(self, file_path):
-        """Extracts text from PDF, DOCX, or TXT file, including tables."""
-        ext = os.path.splitext(file_path)[1].lower()
-        text = ""
+    def sanitize_text(self, text):
+        """Normalizes unicode characters, line endings, and bullet points."""
+        if not text:
+            return ""
+        text = text.replace('\r\n', '\n').replace('\r', '\n')
+        text = text.replace('\t', '   ')
+        # Normalize various bullet glyphs
+        text = re.sub(r'[\u2022\u25cf\u25cb\u25aa\u25b6\uf0b7]', '•', text)
+        # Handle replacement character at start of line as bullet
+        text = re.sub(r'(?m)^[\s\ufffd\*\-]\s*', '• ', text)
+        # Inside lines, replacement character becomes a dash
+        text = text.replace('\ufffd', ' - ')
+        return text.strip()
 
+    def extract_text(self, file_path):
+        """Extracts text from PDF or DOCX file, including tables."""
+        ext = os.path.splitext(file_path)[1].lower()
         if ext == '.pdf':
             text = self._extract_pdf_text(file_path)
         elif ext == '.docx':
@@ -191,7 +284,7 @@ class ResumeParser:
         else:
             raise ValueError(f"Unsupported file extension: {ext}")
 
-        return text.strip()
+        return self.sanitize_text(text)
 
     def _extract_pdf_text(self, file_path):
         """Extracts text and tables from PDF using pdfplumber."""
@@ -201,93 +294,122 @@ class ResumeParser:
                 page_text = page.extract_text()
                 if page_text:
                     text_parts.append(page_text)
-
                 tables = page.extract_tables()
-                if tables:
-                    for table in tables:
-                        for row in table:
-                            row_text = " ".join([str(cell) for cell in row if cell])
-                            if row_text.strip():
-                                text_parts.append(row_text)
-
+                for table in tables:
+                    for row in table:
+                        row_text = " ".join([str(cell) for cell in row if cell])
+                        text_parts.append(row_text)
         return "\n".join(text_parts)
 
     def _extract_docx_text(self, file_path):
         """Extracts text and tables from DOCX using python-docx."""
         doc = docx.Document(file_path)
         text_parts = []
-
         for para in doc.paragraphs:
             if para.text.strip():
                 text_parts.append(para.text)
-
         for table in doc.tables:
             for row in table.rows:
                 row_text = " ".join([cell.text.strip() for cell in row.cells])
                 if row_text.strip():
                     text_parts.append(row_text)
-
         return "\n".join(text_parts)
 
-    def extract_candidate_name(self, text, cert_m=None):
-        """Extracts candidate full name with certificate and standard resume heuristics."""
-        # 1. Certificate Pattern
-        if not cert_m:
+    def segment_sections(self, text):
+        """Segments resume into structured logical blocks."""
+        lines = text.split('\n')
+        current_sec = 'header'
+        sections = {'header': []}
+
+        for line in lines:
+            s = line.strip()
+            if not s:
+                continue
+            matched_sec = None
+            for sec_name, pattern in SECTION_PATTERNS:
+                if pattern.match(s):
+                    matched_sec = sec_name
+                    break
+            if matched_sec:
+                current_sec = matched_sec
+                if current_sec not in sections:
+                    sections[current_sec] = []
+            else:
+                if current_sec not in sections:
+                    sections[current_sec] = []
+                sections[current_sec].append(s)
+
+        return sections
+
+    def extract_candidate_name(self, text, is_cert=False):
+        """Extracts candidate full name with high precision for both certificates and resumes."""
+        if is_cert:
             cert_m = re.search(
                 r'(?:is awarded to|awarded to|certifies that|presented to|conferred upon)[^\n]*\n+([^\n\r]+)',
                 text, re.I
             )
-        if cert_m:
-            raw_match = cert_m.group(1).strip()
-            # In case multiple lines matched, take first non-empty line
-            lines = [l.strip() for l in raw_match.split('\n') if l.strip()]
-            if lines:
-                name = lines[0]
-                if 2 <= len(name.split()) <= 5 and not any(kw in name.lower() for kw in ['certificate', 'completion', 'course', 'successful']):
-                    return name.title()
+            if cert_m:
+                raw_match = cert_m.group(1).strip()
+                lines = [l.strip() for l in raw_match.split('\n') if l.strip()]
+                if lines:
+                    name = lines[0]
+                    if 2 <= len(name.split()) <= 4 and not any(kw in name.lower() for kw in ['certificate', 'course', 'successful']):
+                        return name.title()
 
-        # 2. Resume Header Pattern (Top 5 lines)
         clean_lines = [l.strip() for l in text.split('\n') if l.strip()]
         for line in clean_lines[:5]:
             lower = line.lower()
             if any(skip in lower for skip in ['curriculum', 'resume', 'cv', 'page', 'email', 'phone', '@', 'http', 'github', 'linkedin', 'portfolio']):
                 continue
-            # Isolate first segment before delimiters |, -, bullet
             first_token = re.split(r'[\s]*[|•\-\–][\s]*', line)[0].strip()
             words = first_token.split()
             if 2 <= len(words) <= 4 and all(re.match(r'^[A-Za-z\.\'\-]+$', w) for w in words):
-                return first_token.title()
+                if not any(fp in first_token.lower() for fp in [
+                    'engineer', 'developer', 'manager', 'architect', 'skills', 'experience',
+                    'summary', 'profile', 'education', 'candidate', 'trainee'
+                ]):
+                    return first_token.title()
 
         return 'Candidate'
 
-    def extract_contact(self, text):
-        """Extracts candidate contact details."""
+    def extract_contact(self, text, header_lines=None):
+        """Extracts candidate contact details (email, phone, linkedin, github, location, headline)."""
         email_m = re.search(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', text)
         phone_m = re.search(r'(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}', text)
-        
-        # LinkedIn
-        linkedin_m = re.search(r'(?:https?://)?(?:www\.)?linkedin\.com/in/([a-zA-Z0-9_-]+)', text, re.I)
-        linkedin = f"linkedin.com/in/{linkedin_m.group(1)}" if linkedin_m else ''
 
-        # GitHub
-        github_m = re.search(r'(?:https?://)?(?:www\.)?github\.com/([a-zA-Z0-9_-]+)|github:\s*([a-zA-Z0-9_-]+)', text, re.I)
+        linkedin_m = re.search(r'(?:https?://)?(?:www\.)?linkedin\.com/in/([a-zA-Z0-9_-]+)|LinkedIn:\s*([^\n|•]+)', text, re.I)
+        linkedin = ''
+        if linkedin_m:
+            val = linkedin_m.group(1) or linkedin_m.group(2)
+            if val:
+                val = val.strip()
+                linkedin = f"https://linkedin.com/in/{val}" if not val.startswith('http') else val
+
+        github_m = re.search(r'(?:https?://)?(?:www\.)?github\.com/([a-zA-Z0-9_-]+)|GitHub:\s*([a-zA-Z0-9_-]+)', text, re.I)
         github = ''
         if github_m:
-            gh_user = github_m.group(1) or github_m.group(2)
-            if gh_user:
-                github = f"github.com/{gh_user.strip()}"
+            val = github_m.group(1) or github_m.group(2)
+            if val:
+                val = val.strip()
+                github = f"https://github.com/{val}" if not val.startswith('http') else val
 
-        # Target Headline / Role on line 1 or 2
+        location = ''
+        loc_m = re.search(
+            r'([A-Z][a-zA-Z\s]+,\s*[A-Z]{2}\b|[A-Z][a-zA-Z\s]+,\s*(?:India|USA|United States|UK|Canada|California|Texas|Washington|WA|NY|Uttar Pradesh|Rajasthan|Delhi|Maharashtra|Karnataka|Tamil Nadu))',
+            text
+        )
+        if loc_m:
+            location = loc_m.group(0).strip()
+
         headline = ''
-        lines = [l.strip() for l in text.split('\n') if l.strip()]
-        if len(lines) > 1:
-            line2 = lines[1]
+        if header_lines and len(header_lines) > 1:
+            line2 = header_lines[1]
             if not any(kw in line2.lower() for kw in ['@', 'http', '+91', 'phone', 'summary', 'experience']):
                 clean_hd = line2.split(' | ')[0] if ' | ' in line2 else line2.split('|')[0]
                 if clean_hd.count('(') > clean_hd.count(')'):
                     close_idx = line2.find(')')
                     if close_idx != -1:
-                        clean_hd = line2[:close_idx+1].strip()
+                        clean_hd = line2[:close_idx + 1].strip()
                 headline = clean_hd.strip()
 
         return {
@@ -295,33 +417,26 @@ class ResumeParser:
             'phone': phone_m.group(0) if phone_m else '',
             'linkedin': linkedin,
             'github': github,
+            'location': location,
             'headline': headline
         }
 
-    def extract_skills(self, text):
-        """Extracts skills from text and returns a unique list of canonical names."""
-        if not text:
-            return []
+    def parse_skills_section(self, skills_lines, full_text):
+        """Extracts both categorized skill groupings and canonical skill matches."""
+        categorized = {}
+        for line in skills_lines:
+            s = line.strip()
+            if ':' in s:
+                cat_name, raw_skills = s.split(':', 1)
+                cat_name = cat_name.strip('• -–—*')
+                clean_str = re.sub(r'\(basic.*?\)', '', raw_skills)
+                clean_str = clean_str.replace('(', ', ').replace(')', ', ')
+                tokens = [t.strip(' ,;') for t in clean_str.split(',') if t.strip(' ,;')]
+                if tokens:
+                    categorized[cat_name] = tokens
 
         found_skills = set()
-
-        if self.matcher is not None and nlp is not None:
-            try:
-                doc = nlp(text)
-                matches = self.matcher(doc)
-                for match_id, start, end in matches:
-                    span = doc[start:end]
-                    synonym = span.text.lower()
-                    canonical = self.skill_map.get(synonym)
-                    if canonical:
-                        found_skills.add(canonical)
-                if found_skills:
-                    return sorted(list(found_skills))
-            except Exception as e:
-                print(f"[ResumeParser] spaCy matching failed: {e}. Falling back to regex.")
-
-        # Robust pure-Python regex keyword matching fallback
-        text_lower = f" {text.lower()} "
+        text_lower = f" {full_text.lower()} "
         for synonym, canonical in self.skill_map.items():
             if not synonym:
                 continue
@@ -330,117 +445,223 @@ class ResumeParser:
             if re.search(pattern, text_lower):
                 found_skills.add(canonical)
 
-        return sorted(list(found_skills))
+        return sorted(list(found_skills)), categorized
 
-    def extract_sections(self, text):
-        """Extracts structured sections from text."""
-        sections = {
-            'summary': '',
-            'experience': [],
-            'education': [],
-            'projects': []
-        }
+    def parse_experience_section(self, exp_lines):
+        """Parses experience into structured job records with real company, title, dates, and bullets."""
+        entries = []
+        curr = None
+        for line in exp_lines:
+            s = line.strip()
+            if not s:
+                continue
+            date_m = DATE_PAT.search(s)
+            if date_m and not s.startswith(('•', '-', '*')):
+                if curr:
+                    entries.append(curr)
+                dates = date_m.group(0).strip('() ')
+                rest = s[:date_m.start()] + s[date_m.end():]
+                rest = rest.strip(' -–—|,\t()')
+                parts = re.split(r'\s*[-–—|]\s*|\s+at\s+', rest)
+                title = parts[0].strip() if len(parts) > 0 else rest
+                company = parts[1].strip() if len(parts) > 1 else 'Company'
+                curr = {
+                    'title': title,
+                    'company': company,
+                    'dates': dates,
+                    'location': '',
+                    'bullets': []
+                }
+            elif curr is not None:
+                if not curr['location'] and not s.startswith(('•', '-', '*')) and len(s) < 60 and (',' in s or any(st in s for st in ['Noida', 'Delhi', 'Pradesh', 'Rajasthan', 'Bangalore', 'USA', 'India', 'WA', 'CA'])):
+                    curr['location'] = s
+                else:
+                    clean_bullet = re.sub(r'^[•\-\*]\s*', '', s).strip()
+                    if clean_bullet:
+                        if s.startswith(('•', '-', '*')) or not curr['bullets']:
+                            curr['bullets'].append(clean_bullet)
+                        else:
+                            curr['bullets'][-1] += ' ' + clean_bullet
+        if curr:
+            entries.append(curr)
+        return entries
 
-        # Summary extraction
-        sum_m = re.search(r'(?:PROFESSIONAL SUMMARY|SUMMARY|OBJECTIVE)\s*\n+(.*?)(?=\n+[A-Z\s]{4,}|\Z)', text, re.S | re.I)
-        if sum_m:
-            sections['summary'] = " ".join(sum_m.group(1).split())
+    def parse_projects_section(self, proj_lines):
+        """Parses project records with project name, live links, github links, and bullets."""
+        projects = []
+        curr = None
+        for line in proj_lines:
+            s = line.strip()
+            if not s:
+                continue
+            if re.search(r'^(?:Live|Demo|Link|Website)\s*[:\-]\s*', s, re.I):
+                if curr:
+                    curr['live_url'] = s
+                continue
+            if re.search(r'^(?:GitHub|Repo)\s*[:\-]\s*', s, re.I):
+                if curr:
+                    curr['github_url'] = s
+                continue
+            if s.startswith(('•', '-', '*')):
+                if curr:
+                    clean_bullet = re.sub(r'^[•\-\*]\s*', '', s).strip()
+                    curr['bullets'].append(clean_bullet)
+                continue
 
-        # Experience extraction
-        exp_m = re.search(r'(?:PROFESSIONAL EXPERIENCE|WORK EXPERIENCE|EXPERIENCE)\s*\n+(.*?)(?=\n+(?:PROJECTS|EDUCATION|SKILLS|CERTIFICATIONS)|\Z)', text, re.S | re.I)
-        if exp_m:
-            exp_text = exp_m.group(1)
-            # Find bullet points
-            bullets = [b.strip('•*-◦ \t') for b in exp_text.split('\n') if b.strip().startswith(('•', '*', '-', '◦'))]
-            lines = [l.strip() for l in exp_text.split('\n') if l.strip() and not l.strip().startswith(('•', '*', '-', '◦'))]
-            title = lines[0] if lines else 'Developer Role'
-            sections['experience'].append({
-                'title': title,
-                'company': 'Organization',
-                'dates': 'Present',
-                'bullets': bullets[:4] if bullets else [title]
+            if curr and len(curr['bullets']) > 0 and (s.endswith('.') or len(s) > 85 or not re.search(r'[\(\)\-–—\|]', s)):
+                curr['bullets'][-1] += ' ' + s
+            else:
+                if curr:
+                    projects.append(curr)
+                tag_m = re.search(r'\((.*?)\)|(?:Team Project.*)', s)
+                tag = tag_m.group(0).strip() if tag_m else ''
+                name = s
+                if tag:
+                    name = s.replace(tag, '').strip(' -–—|,\t')
+                curr = {
+                    'name': name,
+                    'tag': tag,
+                    'live_url': '',
+                    'github_url': '',
+                    'bullets': []
+                }
+        if curr:
+            projects.append(curr)
+        return projects
+
+    def parse_education_section(self, edu_lines):
+        """Parses educational qualifications with degree, institution, location, and dates."""
+        entries = []
+        curr = None
+        for line in edu_lines:
+            s = line.strip()
+            if not s:
+                continue
+            is_degree_line = bool(DEGREE_PAT.search(s))
+            if is_degree_line:
+                if curr:
+                    entries.append(curr)
+                date_m = DATE_PAT.search(s)
+                dates = date_m.group(0).strip() if date_m else ''
+                rest = s
+                if date_m:
+                    rest = (s[:date_m.start()] + s[date_m.end():]).strip(' -–—|,\t')
+                degree_part = rest
+                school_part = ''
+                parts = re.split(r'\s*[-–—|]\s*', rest)
+                if len(parts) > 1 and DEGREE_PAT.search(parts[0]):
+                    degree_part = parts[0].strip()
+                    school_part = parts[1].strip()
+                curr = {
+                    'degree': degree_part,
+                    'institution': school_part,
+                    'dates': dates,
+                    'location': ''
+                }
+            elif curr is not None:
+                if not curr['institution']:
+                    parts = [p.strip() for p in s.split(',')]
+                    curr['institution'] = parts[0]
+                    if len(parts) > 1:
+                        curr['location'] = ', '.join(parts[1:])
+                elif not curr['location']:
+                    curr['location'] = s
+        if curr:
+            entries.append(curr)
+        return entries
+
+    def parse_certifications_section(self, cert_lines):
+        """Parses certifications list and any trailing additional accomplishments."""
+        full_str = ' '.join(cert_lines)
+        additional_note = ''
+        add_m = re.search(r'Additional\s*:\s*(.*)', full_str, re.I)
+        if add_m:
+            additional_note = add_m.group(1).strip()
+            full_str = full_str[:add_m.start()].strip()
+
+        raw_certs = re.split(r'\s+[-–—|•]\s+', full_str)
+        certs = []
+        for c in raw_certs:
+            c_clean = c.strip(' -–—|•\t\n')
+            if not c_clean or len(c_clean) < 4:
+                continue
+            issuer_m = re.search(r'\(([^)]+)\)\s*$', c_clean)
+            issuer = issuer_m.group(1).strip() if issuer_m else ''
+            name = c_clean
+            if issuer_m:
+                name = c_clean[:issuer_m.start()].strip()
+            certs.append({
+                'name': name,
+                'issuer': issuer
             })
+        return certs, additional_note
 
-        # Education extraction
-        edu_m = re.search(r'(?:EDUCATION|ACADEMIC BACKGROUND)\s*\n+(.*?)(?=\n+[A-Z\s]{4,}|\Z)', text, re.S | re.I)
-        if edu_m:
-            edu_lines = [l.strip() for l in edu_m.group(1).split('\n') if l.strip()]
-            for l in edu_lines[:2]:
-                sections['education'].append({
-                    'degree': l,
-                    'school': 'University / Institution',
-                    'year': '2024'
-                })
-
-        return sections
-
-    def parse_full(self, file_path_or_text, is_raw_text=False):
-        """
-        Comprehensive parsing pipeline returning candidate info, contact, skills, and sections.
-        """
+    def parse_full(self, file_or_text, is_raw_text=False):
+        """Comprehensive parsing pipeline returning detailed candidate profile and resume sections."""
         if is_raw_text:
-            text = file_path_or_text.strip()
+            raw_text = file_or_text
         else:
-            text = self.extract_text(file_path_or_text)
+            raw_text = self.extract_text(file_or_text)
 
+        text = self.sanitize_text(raw_text)
         word_count = len(text.split())
 
-        # 1. Certificate / Credential detection
-        cert_m = re.search(
-            r'(?:is awarded to|awarded to|certifies that|presented to|conferred upon|completion of)[^\n]*\n+([^\n\r]+)',
-            text, re.I
-        )
-        is_certificate = bool(cert_m)
+        # Check if single-page completion certificate
+        cert_kw_matches = sum(1 for kw in ['certificate', 'awarded to', 'certifies that', 'course', 'wingspan'] if kw in text.lower())
+        is_certificate = cert_kw_matches >= 2 and word_count < 120
 
-        # 2. Candidate Name
-        candidate_name = self.extract_candidate_name(text, cert_m=cert_m)
+        # Segment sections
+        sections = self.segment_sections(text)
+        header_lines = sections.get('header', [])
 
-        # 3. Contact Info
-        contact = self.extract_contact(text)
-        if not contact.get('name') or contact.get('name') == 'Candidate':
-            contact['name'] = candidate_name
+        candidate_name = self.extract_candidate_name(text, is_cert=is_certificate)
+        contact = self.extract_contact(text, header_lines)
+        contact['name'] = candidate_name
 
-        # 4. Skills extraction
-        skills = self.extract_skills(text)
+        skills, skills_categorized = self.parse_skills_section(sections.get('skills', []), text)
+        summary = " ".join(sections.get('summary', [])).strip()
+        experience = self.parse_experience_section(sections.get('experience', []))
+        projects = self.parse_projects_section(sections.get('projects', []))
+        education = self.parse_education_section(sections.get('education', []))
+        certifications, additional = self.parse_certifications_section(sections.get('certifications', []))
 
-        # If certificate, also capture course title as a skill
+        # Certificate fallback: if document is a certificate, extract credential course as skill/cert
         if is_certificate:
-            course_m = re.search(
-                r'(?:completing the course|course of|completion of the course|completion of|program in)[^\n]*\n+([^\n\r]+)',
-                text, re.I
-            )
+            course_m = re.search(r'(?:course|completing the course|program in)\s*\n+([^\n\r]+)', text, re.I)
             if course_m:
-                course_title = course_m.group(1).strip().title()
-                if course_title and len(course_title) < 50:
-                    if course_title not in skills:
-                        skills.insert(0, course_title)
+                course_title = course_m.group(1).strip()
+                if course_title and course_title not in skills:
+                    skills.append(course_title)
+                certifications.append({
+                    'name': course_title,
+                    'issuer': 'Credential Provider',
+                    'date': 'Completed'
+                })
 
-        # 5. Extract structured sections
-        sections = self.extract_sections(text)
-
-        is_scanned = word_count < 15 and not bool(skills)
+        is_scanned = (word_count < 50) and not is_certificate
 
         return {
-            "text": text,
-            "skills": skills,
-            "candidate_name": candidate_name,
-            "contact": contact,
-            "summary": sections.get("summary", ""),
-            "experience": sections.get("experience", []),
-            "education": sections.get("education", []),
-            "projects": sections.get("projects", []),
-            "is_certificate": is_certificate,
-            "is_scanned": is_scanned,
-            "word_count": word_count
+            'text': text,
+            'candidate_name': candidate_name,
+            'contact': contact,
+            'skills': skills,
+            'skills_categorized': skills_categorized,
+            'summary': summary,
+            'experience': experience,
+            'projects': projects,
+            'education': education,
+            'certifications': certifications,
+            'additional': additional,
+            'is_certificate': is_certificate,
+            'is_scanned': is_scanned,
+            'word_count': word_count
         }
 
     def parse_resume(self, file_path):
-        """
-        Backward-compatible parsing pipeline.
-        Returns: (text, skills, is_scanned)
-        """
-        data = self.parse_full(file_path, is_raw_text=False)
-        return data["text"], data["skills"], data["is_scanned"]
+        """Backward compatible tuple return (text, skills, is_scanned)."""
+        res = self.parse_full(file_path, is_raw_text=False)
+        return res['text'], res['skills'], res['is_scanned']
 
-# Singleton instance for reuse across requests
+# Module-level singleton instance for route handlers
 parser = ResumeParser()
+

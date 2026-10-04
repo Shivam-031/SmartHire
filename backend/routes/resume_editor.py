@@ -203,10 +203,42 @@ def prefill_from_upload():
     # Build categorized skills
     all_skills = parsed["skills"] or sql_resume.extracted_skills or []
     skill_blocks = []
-    if all_skills:
+    if parsed.get("skills_categorized"):
+        for cat, items in parsed["skills_categorized"].items():
+            skill_blocks.append({'category': cat, 'items': items})
+    elif all_skills:
         skill_blocks.append({
             'category': 'Technical Competencies & Tools',
             'items': all_skills
+        })
+
+    # Map parsed education to editor schema
+    parsed_edu = parsed.get("education") or []
+    education_blocks = []
+    for ed in parsed_edu:
+        education_blocks.append({
+            'degree': ed.get('degree', 'Degree Program'),
+            'school': ed.get('institution') or 'University / Institution',
+            'year': ed.get('dates') or '2024'
+        })
+    if not education_blocks:
+        education_blocks = [
+            {
+                'degree': 'Technical Degree / Course Program',
+                'school': 'University / Verified Institution',
+                'year': '2024'
+            }
+        ]
+
+    # Map parsed projects to editor schema
+    parsed_proj = parsed.get("projects") or []
+    project_blocks = []
+    for pr in parsed_proj:
+        project_blocks.append({
+            'title': pr.get('name', 'Project'),
+            'technologies': pr.get('tag', ''),
+            'description': ' '.join(pr.get('bullets', [])) or 'Technical project implementation.',
+            'link': (pr.get('live_url') or pr.get('github_url') or '').replace('Live:', '').replace('GitHub:', '').strip()
         })
 
     prefilled = {
@@ -216,7 +248,7 @@ def prefill_from_upload():
             'name': candidate_name,
             'email': email,
             'phone': phone,
-            'location': 'Candidate Location',
+            'location': contact.get('location') or 'Candidate Location',
             'linkedin': linkedin or github
         },
         'summary': parsed.get("summary") or f"Dedicated candidate with verified competencies in {', '.join(all_skills[:4])}.",
@@ -231,15 +263,9 @@ def prefill_from_upload():
                 ]
             }
         ],
-        'education': parsed.get("education") or [
-            {
-                'degree': 'Technical Degree / Course Program',
-                'school': 'University / Verified Institution',
-                'year': '2024'
-            }
-        ],
+        'education': education_blocks,
         'skills': skill_blocks,
-        'projects': parsed.get("projects") or []
+        'projects': project_blocks
     }
 
     return jsonify({'resume': prefilled}), 200
