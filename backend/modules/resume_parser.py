@@ -1,16 +1,26 @@
 import os
+import re
 import json
-import spacy
-from spacy.matcher import PhraseMatcher
 import pdfplumber
 import docx
 
-# Load NLP model once at module level
+# Load NLP model once at module level with resilient fallback
+nlp = None
+PhraseMatcher = None
 try:
-    nlp = spacy.load("en_core_web_md")
-except OSError:
-    # Fallback if md is not installed, though handover says it is
-    nlp = spacy.load("en_core_web_sm")
+    import spacy
+    from spacy.matcher import PhraseMatcher
+    try:
+        nlp = spacy.load("en_core_web_md")
+    except Exception:
+        try:
+            nlp = spacy.load("en_core_web_sm")
+        except Exception:
+            nlp = None
+except (ImportError, Exception) as e:
+    print(f"[ResumeParser] spaCy unavailable ({e}). Using pure-Python keyword matcher fallback.")
+    nlp = None
+    PhraseMatcher = None
 
 from backend.config import Config
 
@@ -42,18 +52,18 @@ class ResumeParser:
             return {}
 
     def _setup_phrase_matcher(self):
-        """Sets up spaCy PhraseMatcher with synonyms."""
-        matcher = PhraseMatcher(nlp.vocab, attr="LOWER")
-
-        # Get all unique synonyms across all skills
-        all_synonyms = list(self.skill_map.keys())
-
-        # Add patterns to matcher
-        # Note: PhraseMatcher takes a list of Docs
-        patterns = [nlp.make_doc(syn) for syn in all_synonyms]
-        matcher.add("SKILL", patterns)
-
-        return matcher
+        """Sets up spaCy PhraseMatcher with synonyms if available."""
+        if nlp is not None and PhraseMatcher is not None:
+            try:
+                matcher = PhraseMatcher(nlp.vocab, attr="LOWER")
+                all_synonyms = list(self.skill_map.keys())
+                patterns = [nlp.make_doc(syn) for syn in all_synonyms]
+                matcher.add("SKILL", patterns)
+                return matcher
+            except Exception as e:
+                print(f"[ResumeParser] PhraseMatcher setup failed: {e}. Using regex fallback.")
+                return None
+        return None
 
     def extract_text(self, file_path):
         """Extracts text from PDF or DOCX file, including tables."""
@@ -113,15 +123,31 @@ class ResumeParser:
         if not text:
             return []
 
-        doc = nlp(text)
-        matches = self.matcher(doc)
-
         found_skills = set()
-        for match_id, start, end in matches:
-            span = doc[start:end]
-            synonym = span.text.lower()
-            canonical = self.skill_map.get(synonym)
-            if canonical:
+
+        if self.matcher is not None and nlp is not None:
+            try:
+                doc = nlp(text)
+                matches = self.matcher(doc)
+                for match_id, start, end in matches:
+                    span = doc[start:end]
+                    synonym = span.text.lower()
+                    canonical = self.skill_map.get(synonym)
+                    if canonical:
+                        found_skills.add(canonical)
+                if found_skills:
+                    return list(found_skills)
+            except Exception as e:
+                print(f"[ResumeParser] spaCy matching failed: {e}. Falling back to regex.")
+
+        # Robust pure-Python regex keyword matching fallback
+        text_lower = f" {text.lower()} "
+        for synonym, canonical in self.skill_map.items():
+            if not synonym:
+                continue
+            escaped = re.escape(synonym)
+            pattern = rf"(?<![a-zA-Z0-9]){escaped}(?![a-zA-Z0-9])"
+            if re.search(pattern, text_lower):
                 found_skills.add(canonical)
 
         return list(found_skills)

@@ -1,5 +1,33 @@
 import re
-import textstat
+
+# Safe textstat import with pure-Python Flesch Reading Ease fallback
+textstat = None
+try:
+    import textstat
+except (ImportError, Exception):
+    textstat = None
+
+def _count_syllables(word):
+    word = word.lower().strip(".:;?!\"'")
+    if not word:
+        return 0
+    if len(word) <= 3:
+        return 1
+    count = len(re.findall(r'[aeiouy]+', word))
+    if word.endswith('e') and not word.endswith('le') and count > 1:
+        count -= 1
+    return max(1, count)
+
+def pure_flesch_reading_ease(text):
+    words = re.findall(r'\b[a-zA-Z]+\b', text)
+    sentences = [s.strip() for s in re.split(r'[.!?]+', text) if s.strip()]
+    if not words or not sentences:
+        return 60.0
+    total_words = len(words)
+    total_sentences = max(1, len(sentences))
+    total_syllables = sum(_count_syllables(w) for w in words)
+    score = 206.835 - 1.015 * (total_words / total_sentences) - 84.6 * (total_syllables / total_words)
+    return max(0.0, min(100.0, score))
 
 # Safe Spacy initialization with regex fallback
 _nlp = None
@@ -12,7 +40,7 @@ try:
             _nlp = spacy.load("en_core_web_sm")
         except Exception:
             _nlp = None
-except Exception:
+except (ImportError, Exception):
     _nlp = None
 
 FILLER_WORDS = {
@@ -71,7 +99,10 @@ def calculate_clarity(answer_text):
 
     # 1. Readability (Flesch Reading Ease calibrated for professional interviews)
     try:
-        readability = textstat.flesch_reading_ease(text)
+        if textstat is not None:
+            readability = textstat.flesch_reading_ease(text)
+        else:
+            readability = pure_flesch_reading_ease(text)
         if readability >= 50:
             readability_score = min(1.0, 0.85 + (readability - 50) * 0.003)
         elif readability >= 30:

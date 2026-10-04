@@ -2,14 +2,22 @@ import os
 import re
 import pdfplumber
 import docx
-import spacy
-from backend.config import Config
 
-# Load spacy for action verb detection
+# Resilient spacy loading with regex fallback
+nlp = None
 try:
-    nlp = spacy.load("en_core_web_md")
-except Exception:
-    nlp = spacy.load("en_core_web_sm")
+    import spacy
+    try:
+        nlp = spacy.load("en_core_web_md")
+    except Exception:
+        try:
+            nlp = spacy.load("en_core_web_sm")
+        except Exception:
+            nlp = None
+except (ImportError, Exception):
+    nlp = None
+
+from backend.config import Config
 
 # Constants for ATS analysis
 SECTION_HEADERS = {
@@ -248,8 +256,17 @@ class ATSChecker:
         return {"score": score, "issues": issues}
 
     def _check_keywords(self, text):
-        doc = nlp(text.lower())
-        found_verbs = {token.lemma_ for token in doc if token.lemma_ in POWER_VERBS}
+        found_verbs = set()
+        if nlp is not None:
+            try:
+                doc = nlp(text.lower())
+                found_verbs = {token.lemma_ for token in doc if token.lemma_ in POWER_VERBS}
+            except Exception:
+                words = set(re.findall(r'\b[a-z]+\b', text.lower()))
+                found_verbs = words.intersection(POWER_VERBS)
+        else:
+            words = set(re.findall(r'\b[a-z]+\b', text.lower()))
+            found_verbs = words.intersection(POWER_VERBS)
 
         score = (len(found_verbs) / 10) * 20
         score = min(20, score)
@@ -279,7 +296,16 @@ class ATSChecker:
             first_word = words[0].lower().strip('•*-◦ ')
             if not first_word:
                 continue
-            token_lemma = nlp(first_word)[0].lemma_ if len(nlp(first_word)) > 0 else first_word
+
+            token_lemma = first_word
+            if nlp is not None:
+                try:
+                    parsed = nlp(first_word)
+                    if len(parsed) > 0:
+                        token_lemma = parsed[0].lemma_
+                except Exception:
+                    token_lemma = first_word
+
             if first_word in POWER_VERBS or token_lemma in POWER_VERBS:
                 verb_count += 1
 
