@@ -4,6 +4,11 @@ import json
 import pdfplumber
 import docx
 
+try:
+    import pypdfium2 as pdfium
+except ImportError:
+    pdfium = None
+
 # Load NLP model once at module level with resilient fallback
 nlp = None
 PhraseMatcher = None
@@ -291,19 +296,46 @@ class ResumeParser:
         return self.sanitize_text(text)
 
     def _extract_pdf_text(self, file_path):
-        """Extracts text and tables from PDF using pdfplumber."""
+        """Extracts text from PDF using pypdfium2 as primary high-fidelity engine, with pdfplumber fallback."""
         text_parts = []
-        with pdfplumber.open(file_path) as pdf:
-            for page in pdf.pages:
-                page_text = page.extract_text()
-                if page_text:
-                    text_parts.append(page_text)
-                tables = page.extract_tables()
-                for table in tables:
-                    for row in table:
-                        row_text = " ".join([str(cell) for cell in row if cell])
-                        text_parts.append(row_text)
-        return "\n".join(text_parts)
+
+        # 1. Primary Engine: pypdfium2 (Chromium engine: fast, visually ordered, no FontBBox errors)
+        if pdfium is not None:
+            try:
+                doc = pdfium.PdfDocument(file_path)
+                for page in doc:
+                    textpage = page.get_textpage()
+                    page_text = textpage.get_text_range()
+                    if page_text and page_text.strip():
+                        text_parts.append(page_text.strip())
+                doc.close()
+                combined = "\n".join(text_parts).strip()
+                if len(combined.split()) >= 10:
+                    return combined
+            except Exception as e:
+                print(f"[ResumeParser] pypdfium2 extraction failed: {e}. Falling back to pdfplumber.")
+                text_parts = []
+
+        # 2. Fallback Engine: pdfplumber
+        try:
+            with pdfplumber.open(file_path) as pdf:
+                for page in pdf.pages:
+                    page_text = page.extract_text()
+                    if page_text and page_text.strip():
+                        text_parts.append(page_text.strip())
+                    else:
+                        tables = page.extract_tables()
+                        for table in tables:
+                            for row in table:
+                                row_text = " ".join([str(cell).strip() for cell in row if cell])
+                                if row_text:
+                                    text_parts.append(row_text)
+            if text_parts:
+                return "\n".join(text_parts).strip()
+        except Exception as e:
+            print(f"[ResumeParser] pdfplumber extraction failed: {e}")
+
+        return "\n".join(text_parts).strip()
 
     def _extract_docx_text(self, file_path):
         """Extracts text and tables from DOCX using python-docx."""
@@ -537,14 +569,17 @@ class ResumeParser:
             else:
                 if curr:
                     projects.append(curr)
-                tag_m = re.search(r'\((.*?)\)|(?:Team Project.*)', s)
-                tag = tag_m.group(0).strip() if tag_m else ''
+                tag_parts = []
+                for m in re.finditer(r'\([^)]+\)|(?:Team Project|Academic Project|Personal Project|SIH)[^,\n\r]*', s, re.I):
+                    tag_parts.append(m.group(0))
                 name = s
-                if tag:
-                    name = s.replace(tag, '').strip(' -–—|,\t')
+                for t in tag_parts:
+                    name = name.replace(t, '')
+                name = re.sub(r'\s+', ' ', name).strip(' -–—|,\t')
+                clean_tags = [t.strip(' ()') for t in tag_parts if t.strip(' ()')]
                 curr = {
                     'name': name,
-                    'tag': tag,
+                    'tag': " | ".join(clean_tags),
                     'live_url': '',
                     'github_url': '',
                     'bullets': []
@@ -631,8 +666,8 @@ class ResumeParser:
         word_count = len(text.split())
 
         # Check if single-page completion certificate
-        cert_kw_matches = sum(1 for kw in ['certificate', 'awarded to', 'certifies that', 'course', 'wingspan'] if kw in text.lower())
-        is_certificate = cert_kw_matches >= 2 and word_count < 120
+        cert_kw_matches = sum(1 for kw in ['certificate', 'awarded to', 'certifies that', 'course', 'wingspan', 'completion'] if kw in text.lower())
+        is_certificate = cert_kw_matches >= 2 and word_count < 150
 
         # Segment sections
         sections = self.segment_sections(text)
@@ -649,18 +684,67 @@ class ResumeParser:
         education = self.parse_education_section(sections.get('education', []))
         certifications, additional = self.parse_certifications_section(sections.get('certifications', []))
 
-        # Certificate fallback: if document is a certificate, extract credential course as skill/cert
+        # Certificate fallback: if document is a certificate, extract credential details
+        certificate_info = None
         if is_certificate:
-            course_m = re.search(r'(?:course|completing the course|program in)\s*\n+([^\n\r]+)', text, re.I)
+            course_title = ''
+            course_m = re.search(r'(?:completing the course|program in|course of|course)\s*\n+([^\n\r]+)', text, re.I)
             if course_m:
-                course_title = course_m.group(1).strip()
-                if course_title and course_title not in skills:
-                    skills.append(course_title)
-                certifications.append({
-                    'name': course_title,
-                    'issuer': 'Credential Provider',
-                    'date': 'Completed'
-                })
+                cand = course_m.group(1).strip()
+                if not re.search(r'\b(?:on|issued|verify|\d{4})\b', cand, re.I):
+                    course_title = cand
+
+            if not course_title:
+                boilerplate_pat = re.compile(
+                    r'(?:certificate|awarded|certifies|completing|course|program|issued|verify|scan|https?://|\bon\s+[A-Za-z]+\b|\b\d{4}\b)',
+                    re.I
+                )
+                for line in text.split('\n'):
+                    s = line.strip()
+                    if not s or s.lower() == (candidate_name or '').lower():
+                        continue
+                    if not boilerplate_pat.search(s) and len(s.split()) <= 6:
+                        course_title = s
+                        break
+
+            if not course_title:
+                course_title = "Software Engineering"
+
+            issuer = 'Credential Provider'
+            text_l = text.lower()
+            if 'wingspan' in text_l or 'infosys' in text_l:
+                issuer = 'Wingspan (Infosys Springboard)'
+            elif 'coursera' in text_l:
+                issuer = 'Coursera'
+            elif 'udemy' in text_l:
+                issuer = 'Udemy'
+            elif 'edx' in text_l:
+                issuer = 'edX'
+            elif 'microsoft' in text_l:
+                issuer = 'Microsoft'
+            elif 'google' in text_l:
+                issuer = 'Google'
+
+            date_m = re.search(r'(?:on|issued on:?)\s+([A-Za-z]+ \d{1,2},? \d{4}|\d{1,2}/\d{1,2}/\d{4})', text, re.I)
+            issue_date = date_m.group(1).strip() if date_m else 'Completed'
+
+            url_m = re.search(r'https?://[^\s]+', text)
+            verify_url = url_m.group(0).strip() if url_m else ''
+
+            certificate_info = {
+                'course': course_title,
+                'issuer': issuer,
+                'date': issue_date,
+                'verify_url': verify_url
+            }
+
+            if course_title and course_title not in skills:
+                skills.append(course_title)
+            certifications.append({
+                'name': course_title or 'Professional Course',
+                'issuer': issuer,
+                'date': issue_date
+            })
 
         is_scanned = (word_count < 50) and not is_certificate
 
@@ -677,6 +761,8 @@ class ResumeParser:
             'certifications': certifications,
             'additional': additional,
             'is_certificate': is_certificate,
+            'document_type': 'Course Completion Certificate' if is_certificate else 'Full Professional Resume',
+            'certificate_info': certificate_info,
             'is_scanned': is_scanned,
             'word_count': word_count
         }

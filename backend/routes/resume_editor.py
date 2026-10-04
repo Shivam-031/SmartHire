@@ -196,10 +196,19 @@ def prefill_from_upload():
             pass
 
     if not sql_resume:
+        candidates = []
         if g.current_user:
-            sql_resume = SQLResume.query.filter_by(user_id=g.current_user.id).order_by(SQLResume.id.desc()).first()
-        if not sql_resume:
-            sql_resume = SQLResume.query.order_by(SQLResume.id.desc()).first()
+            candidates = SQLResume.query.filter_by(user_id=g.current_user.id).order_by(SQLResume.id.desc()).all()
+        if not candidates:
+            candidates = SQLResume.query.order_by(SQLResume.id.desc()).all()
+
+        # Prioritize full multi-section resumes (>100 words) so a single-page certificate doesn't wipe candidate profile
+        for c in candidates:
+            if len((c.extracted_text or '').split()) >= 80:
+                sql_resume = c
+                break
+        if not sql_resume and candidates:
+            sql_resume = candidates[0]
 
     if not sql_resume:
         return jsonify({'error': 'No uploaded resume found to prefill from.'}), 404

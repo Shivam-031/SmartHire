@@ -65,6 +65,8 @@ def upload_resume():
                 "certifications": parsed.get("certifications", []),
                 "additional": parsed.get("additional", ""),
                 "is_certificate": parsed["is_certificate"],
+                "document_type": parsed.get("document_type", "Full Professional Resume"),
+                "certificate_info": parsed.get("certificate_info"),
                 "is_scanned": parsed["is_scanned"],
                 "word_count": parsed["word_count"]
             }), 201
@@ -121,6 +123,8 @@ def upload_resume():
             "certifications": parsed.get("certifications", []),
             "additional": parsed.get("additional", ""),
             "is_certificate": parsed["is_certificate"],
+            "document_type": parsed.get("document_type", "Full Professional Resume"),
+            "certificate_info": parsed.get("certificate_info"),
             "is_scanned": parsed["is_scanned"],
             "word_count": parsed["word_count"]
         }), 201

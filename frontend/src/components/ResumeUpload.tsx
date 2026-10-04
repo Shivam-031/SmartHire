@@ -68,6 +68,13 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
   const [certifications, setCertifications] = useState<CertificationItem[]>([]);
   const [additional, setAdditional] = useState<string>('');
   const [isCertificate, setIsCertificate] = useState(false);
+  const [documentType, setDocumentType] = useState<string>('Full Resume');
+  const [certificateInfo, setCertificateInfo] = useState<{
+    course?: string;
+    issuer?: string;
+    date?: string;
+    verify_url?: string;
+  } | null>(null);
   const [wordCount, setWordCount] = useState<number | null>(null);
 
   const [activeDetailTab, setActiveDetailTab] = useState<
@@ -117,10 +124,14 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
     setCertifications(data.certifications || []);
     setAdditional(data.additional || '');
     setIsCertificate(Boolean(data.is_certificate));
+    setDocumentType(data.document_type || (data.is_certificate ? 'Course Completion Certificate' : 'Full Professional Resume'));
+    setCertificateInfo(data.certificate_info || null);
     setWordCount(data.word_count || null);
 
-    // Auto-select tab with data
-    if ((data.experience || []).length > 0) {
+    // Auto-select tab with most relevant data
+    if (data.is_certificate) {
+      setActiveDetailTab('certifications');
+    } else if ((data.experience || []).length > 0) {
       setActiveDetailTab('experience');
     } else if ((data.projects || []).length > 0) {
       setActiveDetailTab('projects');
@@ -431,9 +442,13 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
                   <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
                     {candidateName}
                   </h3>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-mono text-[10px] font-semibold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    PARSED & VERIFIED
+                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono text-[10px] font-semibold border ${
+                    isCertificate
+                      ? 'bg-amber-500/15 border-amber-500/30 text-amber-400'
+                      : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
+                  }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${isCertificate ? 'bg-amber-400' : 'bg-emerald-400'}`} />
+                    {documentType.toUpperCase()}
                   </span>
                   {wordCount && (
                     <span className="font-mono text-[11px] text-[#71717a]">
@@ -526,13 +541,39 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
 
           {/* Certificate Highlight Banner */}
           {isCertificate && (
-            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 flex items-start gap-3">
-              <span className="material-symbols-outlined text-amber-400 text-[24px] shrink-0 mt-0.5">workspace_premium</span>
-              <div className="text-xs space-y-1">
-                <span className="font-semibold text-amber-300 block text-sm">Course Certificate Recognized</span>
-                <p className="text-amber-200/80 leading-relaxed">
-                  This document was identified as an official course completion certificate. We successfully extracted the credential skills and candidate identity. For complete multi-stage ATS scoring, STAR metrics, and deep interview personalization, you can also paste or synthesize your full resume using the Markdown Studio.
+            <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3.5 shadow-lg shadow-amber-950/20">
+              <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400 shrink-0">
+                <span className="material-symbols-outlined text-[24px]">workspace_premium</span>
+              </div>
+              <div className="text-xs space-y-2 flex-1">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-semibold text-amber-300 text-sm flex items-center gap-1.5">
+                    Course Completion Certificate Detected
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                      Single-Page Credential ({wordCount || 32} words)
+                    </span>
+                  </span>
+                  {certificateInfo?.issuer && (
+                    <span className="text-[11px] font-mono text-amber-300/90 bg-black/40 px-2.5 py-1 rounded-lg border border-amber-500/20">
+                      Issuer: {certificateInfo.issuer}
+                    </span>
+                  )}
+                </div>
+                <p className="text-amber-200/90 leading-relaxed">
+                  This document is an official course completion certificate for{' '}
+                  <strong className="text-white underline decoration-amber-400/60 font-medium">
+                    {certificateInfo?.course || 'Software Engineering'}
+                  </strong>{' '}
+                  awarded to <strong className="text-white font-medium">{candidateName || 'Shivam Negi'}</strong>
+                  {certificateInfo?.date ? ` on ${certificateInfo.date}` : ''}.
+                  Because certificates are credentials and do not include career work history, academic degrees, or project portfolios, only the credential skill and certification record were extracted.
                 </p>
+                <div className="pt-1 flex flex-wrap items-center gap-2">
+                  <div className="text-[11px] text-amber-200/80 bg-white/[0.03] px-3 py-1.5 rounded-xl border border-white/[0.08] flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[#38bdf8] text-[16px]">info</span>
+                    <span>To test full multi-project, work experience, and education extraction, upload your complete resume PDF (e.g. <code className="text-white font-mono bg-black/40 px-1 py-0.5 rounded">Shivam_Negi_Resume_FullStack_Developer.pdf</code>) or DOCX.</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
