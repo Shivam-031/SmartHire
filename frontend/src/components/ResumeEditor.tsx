@@ -124,29 +124,58 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
 
   useEffect(() => {
     const fetchLatest = async () => {
-      if (!token) return;
       setLoading(true);
       try {
-        const url = mongoResumeId
-          ? `http://localhost:5000/api/resume/editor?id=${mongoResumeId}`
-          : 'http://localhost:5000/api/resume/editor';
-        const res = await fetch(url, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.resume) {
-            setResumeData(data.resume);
+        const storedToken = token || localStorage.getItem('token');
+        const headers: HeadersInit = {
+          'Content-Type': 'application/json',
+          ...(storedToken ? { Authorization: `Bearer ${storedToken}` } : {}),
+        };
+
+        // 1. If mongoResumeId specified, load that saved mongo document
+        if (mongoResumeId) {
+          const res = await fetch(`http://localhost:5000/api/resume/editor?id=${mongoResumeId}`, { headers });
+          if (res.ok) {
+            const data = await res.json();
+            if (data?.resume) {
+              setResumeData(data.resume);
+              return;
+            }
           }
         }
-      } catch {
-        // ignore
+
+        // 2. Prefill from uploaded resume (using sqlResumeId if available, or fallback to latest uploaded)
+        const prefillUrl = sqlResumeId
+          ? `http://localhost:5000/api/resume/editor/prefill?sql_resume_id=${sqlResumeId}`
+          : 'http://localhost:5000/api/resume/editor/prefill';
+
+        const resPrefill = await fetch(prefillUrl, { headers });
+        if (resPrefill.ok) {
+          const data = await resPrefill.json();
+          if (data?.resume) {
+            setResumeData(data.resume);
+            return;
+          }
+        }
+
+        // 3. Fallback: if user is logged in, check user's saved resume
+        if (storedToken) {
+          const res = await fetch('http://localhost:5000/api/resume/editor', { headers });
+          if (res.ok) {
+            const data = await res.json();
+            if (data?.resume) {
+              setResumeData(data.resume);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load resume editor data:', err);
       } finally {
         setLoading(false);
       }
     };
     fetchLatest();
-  }, [token, mongoResumeId]);
+  }, [token, mongoResumeId, sqlResumeId]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -179,25 +208,30 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
   };
 
   const handlePrefillFromUpload = async () => {
-    if (!sqlResumeId) return;
     setSaving(true);
+    setSaveError(null);
     try {
-      const res = await fetch('http://localhost:5000/api/resume/editor/prefill', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sql_resume_id: sqlResumeId }),
-      });
+      const storedToken = token || localStorage.getItem('token');
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+        ...(storedToken ? { Authorization: `Bearer ${storedToken}` } : {}),
+      };
+      const url = sqlResumeId
+        ? `http://localhost:5000/api/resume/editor/prefill?sql_resume_id=${sqlResumeId}`
+        : 'http://localhost:5000/api/resume/editor/prefill';
+      const res = await fetch(url, { headers });
       const data = await res.json();
       setSaving(false);
-      if (data.resume) {
-        setResumeData((prev) => ({
-          ...prev,
-          ...data.resume,
-          contact: { ...prev.contact, ...data.resume.contact },
-        }));
+      if (data?.resume) {
+        setResumeData(data.resume);
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 2500);
+      } else {
+        setSaveError('No uploaded resume found to prefill from.');
       }
-    } catch {
+    } catch (err: any) {
       setSaving(false);
+      setSaveError(err.message || 'Error prefilling from upload.');
     }
   };
 
@@ -258,15 +292,15 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {sqlResumeId && (
-            <button
-              type="button"
-              onClick={handlePrefillFromUpload}
-              className="px-3 py-2 text-xs font-mono text-[#c084fc] border border-[#c084fc]/30 rounded-xl hover:bg-white/[0.04] transition-colors cursor-pointer"
-            >
-              Pre-fill from Upload
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handlePrefillFromUpload}
+            className="px-3 py-2 text-xs font-mono text-[#c084fc] border border-[#c084fc]/30 rounded-xl hover:bg-white/[0.04] transition-colors cursor-pointer flex items-center gap-1.5"
+            title="Import information from your uploaded resume"
+          >
+            <span className="material-symbols-outlined text-[15px]">sync</span>
+            <span>Pre-fill from Upload</span>
+          </button>
 
           <button
             type="button"

@@ -177,18 +177,32 @@ def save_resume():
         'last_updated': doc_data['last_updated']
     }), 200
 
-@resume_editor_bp.route('/editor/prefill', methods=['POST'])
+@resume_editor_bp.route('/editor/prefill', methods=['GET', 'POST'])
 @optional_auth
 def prefill_from_upload():
-    data = request.get_json() or {}
-    sql_resume_id = data.get('sql_resume_id')
+    data = request.get_json(silent=True) or {}
+    sql_resume_id = (
+        data.get('sql_resume_id') or
+        data.get('resume_id') or
+        request.args.get('sql_resume_id') or
+        request.args.get('resume_id')
+    )
 
-    if not sql_resume_id:
-        return jsonify({'error': 'sql_resume_id is required.'}), 400
+    sql_resume = None
+    if sql_resume_id:
+        try:
+            sql_resume = SQLResume.query.get(int(sql_resume_id))
+        except (ValueError, TypeError):
+            pass
 
-    sql_resume = SQLResume.query.get(sql_resume_id)
     if not sql_resume:
-        return jsonify({'error': 'Uploaded resume not found.'}), 404
+        if g.current_user:
+            sql_resume = SQLResume.query.filter_by(user_id=g.current_user.id).order_by(SQLResume.id.desc()).first()
+        if not sql_resume:
+            sql_resume = SQLResume.query.order_by(SQLResume.id.desc()).first()
+
+    if not sql_resume:
+        return jsonify({'error': 'No uploaded resume found to prefill from.'}), 404
 
     extracted_text = sql_resume.extracted_text or ''
     parsed = parser.parse_full(extracted_text, is_raw_text=True)

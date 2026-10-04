@@ -100,11 +100,10 @@ export const ResumeContainer: React.FC<ResumeContainerProps> = ({
         <ResumeUpload
           onUploadSuccess={(id) => {
             onUploadSuccess(id);
-            setActiveSubTab('editor');
           }}
           onATSCheckRequested={onATSCheckRequested}
           onSkip={onProceedToInterview}
-          onOpenEditor={() => setActiveSubTab('editor')}
+          onOpenEditor={() => handleTabChange('editor')}
         />
       )}
 

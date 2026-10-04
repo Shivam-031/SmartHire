@@ -505,13 +505,34 @@ class ResumeParser:
                 if curr:
                     curr['github_url'] = s
                 continue
-            if s.startswith(('•', '-', '*')):
+            if s.startswith(('•', '-', '*', '▹', '●')):
                 if curr:
-                    clean_bullet = re.sub(r'^[•\-\*]\s*', '', s).strip()
+                    clean_bullet = re.sub(r'^[•\-\*▹●]\s*', '', s).strip()
                     curr['bullets'].append(clean_bullet)
                 continue
 
-            if curr and len(curr['bullets']) > 0 and (s.endswith('.') or len(s) > 85 or not re.search(r'[\(\)\-–—\|]', s)):
+            first_word = s.split()[0].lower().rstrip(':,;.') if s.split() else ''
+            is_action_bullet = (
+                first_word in {
+                    'built', 'developed', 'architected', 'contributed', 'designed', 'engineered',
+                    'created', 'implemented', 'spearheaded', 'optimized', 'led', 'mentored',
+                    'utilized', 'constructed', 'programmed', 'authored', 'managed', 'deployed',
+                    'configured', 'conducted', 'integrated', 'achieved', 'enabled', 'collaborated',
+                    'building', 'developing', 'architecting', 'designing', 'implementing'
+                } or
+                (len(s) > 65 and s.endswith('.')) or
+                first_word.endswith('ing') or
+                first_word.endswith('ed')
+            )
+
+            if curr and is_action_bullet:
+                clean_bullet = re.sub(r'^[•\-\*▹●]\s*', '', s).strip()
+                curr['bullets'].append(clean_bullet)
+                continue
+
+            is_continuation = curr and len(curr['bullets']) > 0 and (not curr['bullets'][-1].rstrip().endswith(('.', '!', '?')) or s[0].islower())
+
+            if is_continuation:
                 curr['bullets'][-1] += ' ' + s
             else:
                 if curr:
