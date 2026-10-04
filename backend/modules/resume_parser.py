@@ -263,12 +263,17 @@ class ResumeParser:
             return ""
         text = text.replace('\r\n', '\n').replace('\r', '\n')
         text = text.replace('\t', '   ')
+        # Em-dash, en-dash, figure dash, horizontal bar to standard clean dash
+        text = re.sub(r'[\u2012\u2013\u2014\u2015]', ' - ', text)
         # Normalize various bullet glyphs
         text = re.sub(r'[\u2022\u25cf\u25cb\u25aa\u25b6\uf0b7]', '•', text)
         # Handle replacement character at start of line as bullet
         text = re.sub(r'(?m)^[\s\ufffd\*\-]\s*', '• ', text)
         # Inside lines, replacement character becomes a dash
         text = text.replace('\ufffd', ' - ')
+        # Normalize multiple spaces and repeated dashes
+        text = re.sub(r'[ \t]+', ' ', text)
+        text = re.sub(r'(\s*-\s*)+', ' - ', text)
         return text.strip()
 
     def extract_text(self, file_path):
