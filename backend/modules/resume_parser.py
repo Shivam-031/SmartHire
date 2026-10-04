@@ -263,7 +263,7 @@ class ResumeParser:
             return ""
         text = text.replace('\r\n', '\n').replace('\r', '\n')
         text = text.replace('\t', '   ')
-        # Em-dash, en-dash, figure dash, horizontal bar to standard clean dash
+        # Em-dash, en-dash, figure dash, horizontal bar to standard clean dash with spaces
         text = re.sub(r'[\u2012\u2013\u2014\u2015]', ' - ', text)
         # Normalize various bullet glyphs
         text = re.sub(r'[\u2022\u25cf\u25cb\u25aa\u25b6\uf0b7]', '•', text)
@@ -271,9 +271,8 @@ class ResumeParser:
         text = re.sub(r'(?m)^[\s\ufffd\*\-]\s*', '• ', text)
         # Inside lines, replacement character becomes a dash
         text = text.replace('\ufffd', ' - ')
-        # Normalize multiple spaces and repeated dashes
+        # Normalize whitespace without collapsing hyphens in usernames or titles
         text = re.sub(r'[ \t]+', ' ', text)
-        text = re.sub(r'(\s*-\s*)+', ' - ', text)
         return text.strip()
 
     def extract_text(self, file_path):
@@ -390,12 +389,11 @@ class ResumeParser:
                 val = val.strip()
                 linkedin = f"https://linkedin.com/in/{val}" if not val.startswith('http') else val
 
-        github_m = re.search(r'(?:https?://)?(?:www\.)?github\.com/([a-zA-Z0-9_-]+)|GitHub:\s*([a-zA-Z0-9_-]+)', text, re.I)
+        github_m = re.search(r'(?:https?://)?(?:www\.)?github\.com/([^\s|•,\n]+)|GitHub:\s*([^\s|•,\n]+)', text, re.I)
         github = ''
         if github_m:
-            val = github_m.group(1) or github_m.group(2)
+            val = (github_m.group(1) or github_m.group(2)).strip().rstrip('.,;')
             if val:
-                val = val.strip()
                 github = f"https://github.com/{val}" if not val.startswith('http') else val
 
         location = ''
@@ -584,7 +582,7 @@ class ResumeParser:
             additional_note = add_m.group(1).strip()
             full_str = full_str[:add_m.start()].strip()
 
-        raw_certs = re.split(r'\s+[-–—|•]\s+', full_str)
+        raw_certs = re.split(r'\s+(?:[—–•|]|\s-\s)\s*', full_str)
         certs = []
         for c in raw_certs:
             c_clean = c.strip(' -–—|•\t\n')
