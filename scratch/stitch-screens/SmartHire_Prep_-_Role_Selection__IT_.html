@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"surface-bright":"#3a3939","secondary-fixed":"#d8e2ff","on-primary-fixed":"#23005c","tertiary-fixed":"#71f8e4","on-tertiary-container":"#00302a","on-primary-container":"#340080","secondary-container":"#0566d9","primary-container":"#a078ff","error-container":"#93000a","outline-variant":"#494454","surface-tint":"#d0bcff","error":"#ffb4ab","on-tertiary-fixed-variant":"#005048","secondary":"#adc6ff","surface-variant":"#353434","on-tertiary-fixed":"#00201c","surface":"#141313","on-surface-variant":"#cbc3d7","background":"#141313","on-primary":"#3c0091","inverse-on-surface":"#313030","on-error":"#690005","tertiary-container":"#00a392","inverse-surface":"#e5e2e1","on-primary-fixed-variant":"#5516be","primary-fixed":"#e9ddff","surface-container":"#201f1f","on-background":"#e5e2e1","on-error-container":"#ffdad6","surface-dim":"#141313","outline":"#958ea0","on-secondary":"#002e6a","tertiary":"#4fdbc8","surface-container-low":"#1c1b1b","inverse-primary":"#6d3bd7","primary-fixed-dim":"#d0bcff","on-surface":"#e5e2e1","secondary-fixed-dim":"#adc6ff","on-tertiary":"#003731","on-secondary-container":"#e6ecff","on-secondary-fixed-variant":"#004395","surface-container-highest":"#353434","surface-container-high":"#2a2a2a","primary":"#d0bcff","on-secondary-fixed":"#001a42","surface-container-lowest":"#0e0e0e","tertiary-fixed-dim":"#4fdbc8"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-xl":"2rem","gutter":"1.5rem","space-lg":"1.5rem","space-xs":"0.25rem","space-md":"1rem","space-sm":"0.5rem","margin":"1.5rem"},"fontFamily":{"body-lg":["Inter"],"headline-md":["Inter"],"headline-sm":["Inter"],"body-sm":["Inter"],"metric-md":["JetBrains Mono"],"headline-lg":["Inter"],"display-md":["Inter"],"metric-xl":["JetBrains Mono"],"code-sm":["JetBrains Mono"],"display-lg":["Inter"],"body-md":["Inter"],"label-caps":["Inter"]},"fontSize":{"body-lg":["16px",{"lineHeight":"26px","letterSpacing":"-0.005em","fontWeight":"400"}],"headline-md":["20px",{"lineHeight":"28px","letterSpacing":"-0.015em","fontWeight":"600"}],"headline-sm":["16px",{"lineHeight":"24px","letterSpacing":"-0.01em","fontWeight":"600"}],"body-sm":["12px",{"lineHeight":"18px","letterSpacing":"0.01em","fontWeight":"400"}],"metric-md":["20px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"500"}],"headline-lg":["24px",{"lineHeight":"32px","letterSpacing":"-0.02em","fontWeight":"600"}],"display-md":["32px",{"lineHeight":"40px","letterSpacing":"-0.025em","fontWeight":"600"}],"metric-xl":["36px",{"lineHeight":"44px","letterSpacing":"-0.02em","fontWeight":"600"}],"code-sm":["12px",{"lineHeight":"16px","letterSpacing":"0.02em","fontWeight":"400"}],"display-lg":["40px",{"lineHeight":"48px","letterSpacing":"-0.03em","fontWeight":"700"}],"body-md":["14px",{"lineHeight":"22px","letterSpacing":"0em","fontWeight":"400"}],"label-caps":["11px",{"lineHeight":"16px","letterSpacing":"0.08em","fontWeight":"600"}]}}}};</script></head><body class="bg-surface-container-lowest text-on-surface font-body-md text-body-md min-h-screen relative selection:bg-tertiary-container selection:text-on-tertiary"><div class="fixed inset-0 pointer-events-none z-0 overflow-hidden"><div class="absolute -top-32 left-1/4 w-[600px] h-[600px] bg-secondary-container/10 rounded-full blur-[140px]"></div><div class="absolute top-1/3 -right-20 w-[500px] h-[500px] bg-tertiary-container/10 rounded-full blur-[160px]"></div><div class="absolute -bottom-24 left-10 w-[450px] h-[450px] bg-secondary/5 rounded-full blur-[120px]"></div></div><header class="fixed top-0 left-0 right-0 h-16 z-20 px-margin flex items-center"><div class="w-full h-14 mx-auto rounded-full bg-surface-container/60 backdrop-blur-2xl shadow-[0_4px_30px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)] px-space-md flex items-center justify-between"><div class="flex items-center gap-space-sm"><img alt="Brand logo. - Primary color: #8b5cf6
+- Font: inter
+- Mode: dark
+- Roundness: rounded-md
+" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1W0wOgf4OxcIIy4Gp14nBWEaojKKB5VYKaQ26I4M706COQtWjQVVFDW1JDkj6OUQoesseFr53k59ekGEHpwUbMJO2HKE1Q_v9DNNWT6os4V18WRdKsgGQwoTbmzjbzm5XLBAUWIJsN6miJugpNyHBTh82oJN7yB0o8GRO3lCTYptNil8dkOiwlsQXMsSIWJG7a6ZEW0_R0rLD-IQAzp3TlZgMuntKTY4LLeRlKg9ir9CCMLs2ooRRwwa3RE"/><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight ml-space-xs">SmartHire Prep</span><div class="flex items-center gap-space-xs ml-space-xs"><span class="text-on-surface-variant font-code-sm text-code-sm">/</span><div class="inline-flex items-center px-space-xs py-0.5 rounded-full bg-secondary-container/20 text-secondary font-label-caps text-label-caps uppercase"><span class="w-1.5 h-1.5 rounded-full bg-tertiary mr-1"></span>IT Track</div></div></div><div class="flex items-center gap-space-md"><button class="w-9 h-9 rounded-full bg-surface-container-high/40 hover:bg-surface-container-high hover:text-on-surface text-on-surface-variant flex items-center justify-center transition-colors relative"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-tertiary"></span></button><div class="flex items-center gap-space-xs"><div class="relative flex items-center"><img alt="Profile" class="w-8 h-8 rounded-full object-cover shadow-[0_0_0_1px_rgba(255,255,255,0.1)]" src="https://lh3.googleusercontent.com/aida/AEtjO1WNHd6AqTaAlzZNRWCg0v4S6CC0SzGQnCQWMSMitg5JUvP7RoVwS3F0QEP4oZnXY97sH-CawYtyA5rGxafccTigfaC5j98wDk5xGCoSKqGwtMx_fOn7-icxYcFKX4CNoshN-ReJJbiAllA-De6Vvqqhfrh712y435YLaHHXd8WpsnGpMmcxAjf9UP97ZvI8S4Rp0TitcKm5g4DqPKK5eMxDK5AQ8UAhOPClPGXIpG7dRWGXeU8i-80eLUmM"/><span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-tertiary ring-2 ring-surface-container-lowest"></span></div></div></div></div></header><aside class="fixed top-16 left-margin bottom-margin w-64 z-20 flex flex-col pt-space-xs"><div class="w-full h-full rounded-xl bg-surface-container/40 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.05)] p-space-md flex flex-col justify-between overflow-hidden"><div class="flex flex-col gap-space-md"><div class="p-space-sm rounded-lg bg-surface-container-high/40 flex items-center justify-between"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-tertiary text-[20px]">terminal</span><div class="flex flex-col"><span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Selected Track</span><span class="font-headline-sm text-headline-sm text-on-surface">IT &amp; Software</span></div></div><span class="material-symbols-outlined text-on-surface-variant text-[18px]">verified</span></div><nav class="flex flex-col gap-space-xs mt-space-xs" data-active-classes="bg-secondary-container/30 text-on-secondary-container shadow-[0_0_20px_rgba(5,102,217,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] font-semibold"><a class="group flex items-center gap-space-sm px-space-sm py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high/50 hover:text-on-surface transition-all" data-path="field-selection" href="#"><span class="w-6 h-6 rounded-full bg-tertiary-container/30 text-tertiary flex items-center justify-center"><span class="material-symbols-outlined text-[16px]">check</span></span><div class="flex flex-col flex-1"><span class="font-body-sm text-body-sm font-medium">Field</span><span class="font-code-sm text-code-sm text-tertiary">Completed</span></div></a><a aria-current="page" class="group flex items-center gap-space-sm px-space-sm py-2.5 rounded-lg transition-all bg-secondary-container/30 text-on-secondary-container shadow-[0_0_20px_rgba(5,102,217,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] font-semibold" data-path="role-selection" href="#"><span class="w-6 h-6 rounded-full bg-gradient-to-r from-secondary-container to-tertiary-container text-on-secondary flex items-center justify-center font-metric-md text-[11px] shadow-[0_0_12px_rgba(79,219,200,0.4)]">2</span><div class="flex flex-col flex-1"><span class="font-body-sm text-body-sm font-medium">Role</span><span class="font-code-sm text-code-sm text-secondary">In Progress</span></div><span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span></a><a class="group flex items-center gap-space-sm px-space-sm py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high/50 hover:text-on-surface transition-all" data-path="resume-analysis" href="#"><span class="w-6 h-6 rounded-full bg-surface-container-high/50 text-on-surface-variant flex items-center justify-center font-metric-md text-[11px]">3</span><div class="flex flex-col flex-1"><span class="font-body-sm text-body-sm font-medium">Resume</span><span class="font-code-sm text-code-sm text-outline">Upcoming</span></div></a><a class="group flex items-center gap-space-sm px-space-sm py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high/50 hover:text-on-surface transition-all" data-path="vibe-culture-fit" href="#"><span class="w-6 h-6 rounded-full bg-surface-container-high/50 text-on-surface-variant flex items-center justify-center font-metric-md text-[11px]">4</span><div class="flex flex-col flex-1"><span class="font-body-sm text-body-sm font-medium">Vibe</span><span class="font-code-sm text-code-sm text-outline">Upcoming</span></div></a><a class="group flex items-center gap-space-sm px-space-sm py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high/50 hover:text-on-surface transition-all" data-path="mock-interview" href="#"><span class="w-6 h-6 rounded-full bg-surface-container-high/50 text-on-surface-variant flex items-center justify-center font-metric-md text-[11px]">5</span><div class="flex flex-col flex-1"><span class="font-body-sm text-body-sm font-medium">Interview</span><span class="font-code-sm text-code-sm text-outline">Upcoming</span></div></a><a class="group flex items-center gap-space-sm px-space-sm py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high/50 hover:text-on-surface transition-all" data-path="interview-results" href="#"><span class="w-6 h-6 rounded-full bg-surface-container-high/50 text-on-surface-variant flex items-center justify-center font-metric-md text-[11px]">6</span><div class="flex flex-col flex-1"><span class="font-body-sm text-body-sm font-medium">Results</span><span class="font-code-sm text-code-sm text-outline">Upcoming</span></div></a></nav></div><div class="p-space-sm rounded-lg bg-surface-container-high/20 border-0 flex items-center justify-between"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[18px] text-tertiary">bolt</span><span class="font-label-caps text-label-caps text-on-surface-variant">AI Evaluator Active</span></div><span class="font-code-sm text-code-sm text-tertiary">v2.4</span></div></div></aside><div class="pl-72 pr-margin"><main class="relative pt-16 w-full min-h-[calc(100vh-4rem)] pb-margin z-10"><div class="flex flex-col w-full">
+<div class="relative w-full max-w-[960px] mx-auto flex flex-col justify-between h-[calc(100vh-6rem)] py-space-xs px-space-md">
+<!-- Top Ambient Flare (IT Cyan/Blue spectrum) -->
+<div class="absolute -top-12 left-1/2 -translate-x-1/2 w-[540px] h-[180px] bg-gradient-to-r from-secondary-container/20 to-tertiary/20 blur-[90px] pointer-events-none rounded-full"></div>
+<!-- Header Section -->
+<div class="relative z-10 flex flex-col items-start gap-space-xs shrink-0">
+<!-- Stepper Pill Counter -->
+<div class="inline-flex items-center gap-space-xs px-3 py-1 rounded-full bg-surface-container-high/60 backdrop-blur-xl shadow-sm">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-tertiary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-tertiary shadow-[0_0_8px_#4fdbc8]"></span>
+</span>
+<span class="font-label-caps text-label-caps text-on-surface tracking-wider uppercase">Step 2 of 6</span>
+<span class="font-code-sm text-code-sm text-outline">·</span>
+<span class="font-label-caps text-label-caps text-tertiary font-semibold uppercase tracking-wider">IT Specialization</span>
+</div>
+<!-- Main Heading with IT Gradient -->
+<div class="mt-1">
+<h1 class="font-display-md text-display-md text-on-surface tracking-tight leading-tight">
+          Which <span class="bg-gradient-to-r from-secondary-container via-secondary to-tertiary bg-clip-text text-transparent underline decoration-tertiary/30 decoration-2 underline-offset-4">role</span> in IT are you targeting?
+        </h1>
+<p class="font-body-md text-body-md text-outline mt-1 max-w-2xl">
+          Tailor your resume analysis, technical challenges, and AI mock interviews to your specific discipline.
+        </p>
+</div>
+<!-- Live Role Target Intelligence Badge Bar -->
+<div class="flex items-center gap-space-md pt-1 font-code-sm text-code-sm text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-tertiary text-[16px]">psychology</span>
+<span>Adaptive Interview Protocol v3.8</span>
+</div>
+<span class="text-surface-bright">•</span>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-secondary text-[16px]">dataset</span>
+<span class="text-on-surface">1,420+</span> vetted engineering questions
+        </div>
+<span class="text-surface-bright">•</span>
+<div class="flex items-center gap-1.5">
+<span class="inline-block w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span>Market benchmark: Tier-1 Tech</span>
+</div>
+</div>
+</div>
+<!-- Vertical Role Selection List (5 Interactive Cards, 56px precise target) -->
+<div aria-label="Target IT Roles" class="relative z-10 flex flex-col gap-2.5 my-auto w-full" id="role-selector-list" role="radiogroup">
+<!-- Option 1: Backend Developer (Pre-selected by default) -->
+<div aria-checked="true" class="role-card group relative h-14 w-full rounded-xl bg-surface-container-high/40 hover:bg-surface-container-high/70 backdrop-blur-xl px-5 flex items-center justify-between cursor-pointer transition-all duration-200 select-none shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_4px_20px_rgba(5,102,217,0.15)] ring-1 ring-secondary-container/80 bg-secondary-container/10" data-role-id="backend" role="radio" tabindex="0">
+<!-- Left vertical gradient anchor bar -->
+<span class="selected-indicator absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r bg-gradient-to-b from-secondary-container via-secondary to-tertiary shadow-[0_0_12px_#4fdbc8]"></span>
+<div class="flex items-center gap-4 min-w-0">
+<div class="icon-box w-9 h-9 rounded-lg flex items-center justify-center bg-secondary-container/20 text-tertiary shadow-inner transition-transform group-hover:scale-105">
+<span class="material-symbols-outlined text-[20px]">dns</span>
+</div>
+<div class="flex items-center gap-3 truncate">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold tracking-tight">Backend Developer</span>
+<span class="px-2.5 py-0.5 rounded-full bg-surface-container-highest/60 text-secondary font-code-sm text-code-sm">
+              Distributed Systems &amp; APIs
+            </span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-code-sm text-code-sm text-tertiary hidden sm:inline-block">Match 98%</span>
+<div class="action-icon w-7 h-7 rounded-full flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+</div>
+<!-- Option 2: Frontend Developer -->
+<div aria-checked="false" class="role-card group relative h-14 w-full rounded-xl bg-surface-container-low/60 hover:bg-surface-container-high/50 backdrop-blur-xl px-5 flex items-center justify-between cursor-pointer transition-all duration-200 select-none shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] hover:shadow-[0_2px_12px_rgba(0,0,0,0.3)]" data-role-id="frontend" role="radio" tabindex="0">
+<span class="selected-indicator hidden absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r bg-gradient-to-b from-secondary-container via-secondary to-tertiary shadow-[0_0_12px_#4fdbc8]"></span>
+<div class="flex items-center gap-4 min-w-0">
+<div class="icon-box w-9 h-9 rounded-lg flex items-center justify-center bg-surface-container-highest/40 text-on-surface-variant group-hover:text-secondary group-hover:bg-secondary-container/20 transition-all">
+<span class="material-symbols-outlined text-[20px]">view_quilt</span>
+</div>
+<div class="flex items-center gap-3 truncate">
+<span class="font-headline-sm text-headline-sm text-on-surface font-medium tracking-tight">Frontend Developer</span>
+<span class="px-2.5 py-0.5 rounded-full bg-surface-container-highest/30 text-outline font-code-sm text-code-sm group-hover:text-on-surface-variant transition-colors">
+              UI Engineering &amp; Web Apps
+            </span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-code-sm text-code-sm text-outline hidden sm:inline-block opacity-0 group-hover:opacity-100 transition-opacity">Match 94%</span>
+<div class="action-icon w-7 h-7 rounded-full flex items-center justify-center text-outline group-hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+</div>
+</div>
+</div>
+<!-- Option 3: Full Stack Developer -->
+<div aria-checked="false" class="role-card group relative h-14 w-full rounded-xl bg-surface-container-low/60 hover:bg-surface-container-high/50 backdrop-blur-xl px-5 flex items-center justify-between cursor-pointer transition-all duration-200 select-none shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] hover:shadow-[0_2px_12px_rgba(0,0,0,0.3)]" data-role-id="fullstack" role="radio" tabindex="0">
+<span class="selected-indicator hidden absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r bg-gradient-to-b from-secondary-container via-secondary to-tertiary shadow-[0_0_12px_#4fdbc8]"></span>
+<div class="flex items-center gap-4 min-w-0">
+<div class="icon-box w-9 h-9 rounded-lg flex items-center justify-center bg-surface-container-highest/40 text-on-surface-variant group-hover:text-secondary group-hover:bg-secondary-container/20 transition-all">
+<span class="material-symbols-outlined text-[20px]">layers</span>
+</div>
+<div class="flex items-center gap-3 truncate">
+<span class="font-headline-sm text-headline-sm text-on-surface font-medium tracking-tight">Full Stack Developer</span>
+<span class="px-2.5 py-0.5 rounded-full bg-surface-container-highest/30 text-outline font-code-sm text-code-sm group-hover:text-on-surface-variant transition-colors">
+              End-to-End Architecture
+            </span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-code-sm text-code-sm text-outline hidden sm:inline-block opacity-0 group-hover:opacity-100 transition-opacity">Match 91%</span>
+<div class="action-icon w-7 h-7 rounded-full flex items-center justify-center text-outline group-hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+</div>
+</div>
+</div>
+<!-- Option 4: Data Analyst -->
+<div aria-checked="false" class="role-card group relative h-14 w-full rounded-xl bg-surface-container-low/60 hover:bg-surface-container-high/50 backdrop-blur-xl px-5 flex items-center justify-between cursor-pointer transition-all duration-200 select-none shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] hover:shadow-[0_2px_12px_rgba(0,0,0,0.3)]" data-role-id="data-analyst" role="radio" tabindex="0">
+<span class="selected-indicator hidden absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r bg-gradient-to-b from-secondary-container via-secondary to-tertiary shadow-[0_0_12px_#4fdbc8]"></span>
+<div class="flex items-center gap-4 min-w-0">
+<div class="icon-box w-9 h-9 rounded-lg flex items-center justify-center bg-surface-container-highest/40 text-on-surface-variant group-hover:text-secondary group-hover:bg-secondary-container/20 transition-all">
+<span class="material-symbols-outlined text-[20px]">query_stats</span>
+</div>
+<div class="flex items-center gap-3 truncate">
+<span class="font-headline-sm text-headline-sm text-on-surface font-medium tracking-tight">Data Analyst</span>
+<span class="px-2.5 py-0.5 rounded-full bg-surface-container-highest/30 text-outline font-code-sm text-code-sm group-hover:text-on-surface-variant transition-colors">
+              Pipelines, SQL &amp; Modeling
+            </span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-code-sm text-code-sm text-outline hidden sm:inline-block opacity-0 group-hover:opacity-100 transition-opacity">Match 89%</span>
+<div class="action-icon w-7 h-7 rounded-full flex items-center justify-center text-outline group-hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+</div>
+</div>
+</div>
+<!-- Option 5: QA Engineer -->
+<div aria-checked="false" class="role-card group relative h-14 w-full rounded-xl bg-surface-container-low/60 hover:bg-surface-container-high/50 backdrop-blur-xl px-5 flex items-center justify-between cursor-pointer transition-all duration-200 select-none shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] hover:shadow-[0_2px_12px_rgba(0,0,0,0.3)]" data-role-id="qa-engineer" role="radio" tabindex="0">
+<span class="selected-indicator hidden absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r bg-gradient-to-b from-secondary-container via-secondary to-tertiary shadow-[0_0_12px_#4fdbc8]"></span>
+<div class="flex items-center gap-4 min-w-0">
+<div class="icon-box w-9 h-9 rounded-lg flex items-center justify-center bg-surface-container-highest/40 text-on-surface-variant group-hover:text-secondary group-hover:bg-secondary-container/20 transition-all">
+<span class="material-symbols-outlined text-[20px]">bug_report</span>
+</div>
+<div class="flex items-center gap-3 truncate">
+<span class="font-headline-sm text-headline-sm text-on-surface font-medium tracking-tight">QA Engineer</span>
+<span class="px-2.5 py-0.5 rounded-full bg-surface-container-highest/30 text-outline font-code-sm text-code-sm group-hover:text-on-surface-variant transition-colors">
+              Automation &amp; Reliability
+            </span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-code-sm text-code-sm text-outline hidden sm:inline-block opacity-0 group-hover:opacity-100 transition-opacity">Match 86%</span>
+<div class="action-icon w-7 h-7 rounded-full flex items-center justify-center text-outline group-hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[20px]">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Action Footer (Back Link + Pill CTA) -->
+<div class="relative z-10 flex items-center justify-between pt-space-xs shrink-0">
+<!-- Back to Field Selection -->
+<a class="inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-all font-body-md text-body-md group" data-path="field-selection" href="#">
+<span class="material-symbols-outlined text-[18px] transition-transform group-hover:-translate-x-1 text-outline group-hover:text-on-surface">arrow_back</span>
+<span>Change field</span>
+</a>
+<!-- Current Selection Telemetry summary (inline) -->
+<div class="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-low/80 font-code-sm text-code-sm text-outline">
+<span>Selected:</span>
+<span class="text-tertiary font-medium" id="role-summary-name">Backend Developer</span>
+</div>
+<!-- Primary Gradient Pill Button -->
+<button class="group relative inline-flex items-center gap-2.5 px-7 py-3 rounded-full bg-gradient-to-r from-[#3b82f6] to-[#22d3ee] text-surface-container-lowest font-body-md text-body-md font-semibold tracking-tight shadow-[0_0_24px_rgba(34,211,238,0.35),inset_0_1px_0_rgba(255,255,255,0.4)] hover:shadow-[0_0_36px_rgba(34,211,238,0.55)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-200" data-path="resume-analysis" id="continue-btn">
+<span>Continue to resume</span>
+<span class="material-symbols-outlined text-[18px] transition-transform group-hover:translate-x-1 font-bold">arrow_forward</span>
+</button>
+</div>
+</div>
+<script>
+    (function initRoleSelector() {
+      const cards = document.querySelectorAll('.role-card');
+      const summaryText = document.getElementById('role-summary-name');
+      const continueBtn = document.getElementById('continue-btn');
+
+      cards.forEach(card => {
+        card.addEventListener('click', () => selectCard(card));
+        card.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            selectCard(card);
+          }
+        });
+      });
+
+      function selectCard(selected) {
+        cards.forEach(c => {
+          c.setAttribute('aria-checked', 'false');
+          c.classList.remove(
+            'bg-secondary-container/10',
+            'ring-1',
+            'ring-secondary-container/80',
+            'shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_4px_20px_rgba(5,102,217,0.15)]'
+          );
+          c.classList.add('bg-surface-container-low/60');
+          
+          const ind = c.querySelector('.selected-indicator');
+          if (ind) ind.classList.add('hidden');
+
+          const iconBox = c.querySelector('.icon-box');
+          if (iconBox) {
+            iconBox.className = 'icon-box w-9 h-9 rounded-lg flex items-center justify-center bg-surface-container-highest/40 text-on-surface-variant group-hover:text-secondary group-hover:bg-secondary-container/20 transition-all';
+          }
+
+          const action = c.querySelector('.action-icon');
+          if (action) {
+            action.className = 'action-icon w-7 h-7 rounded-full flex items-center justify-center text-outline group-hover:text-on-surface transition-colors';
+            action.innerHTML = '<span class="material-symbols-outlined text-[20px]">chevron_right</span>';
+          }
+
+          const title = c.querySelector('.font-headline-sm');
+          if (title) title.classList.replace('font-semibold', 'font-medium');
+        });
+
+        // Activate clicked
+        selected.setAttribute('aria-checked', 'true');
+        selected.classList.remove('bg-surface-container-low/60');
+        selected.classList.add(
+          'bg-secondary-container/10',
+          'ring-1',
+          'ring-secondary-container/80',
+          'shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_4px_20px_rgba(5,102,217,0.15)]'
+        );
+
+        const activeInd = selected.querySelector('.selected-indicator');
+        if (activeInd) activeInd.classList.remove('hidden');
+
+        const activeIconBox = selected.querySelector('.icon-box');
+        if (activeIconBox) {
+          activeIconBox.className = 'icon-box w-9 h-9 rounded-lg flex items-center justify-center bg-secondary-container/20 text-tertiary shadow-inner transition-transform group-hover:scale-105';
+        }
+
+        const activeAction = selected.querySelector('.action-icon');
+        if (activeAction) {
+          activeAction.className = 'action-icon w-7 h-7 rounded-full flex items-center justify-center text-tertiary';
+          activeAction.innerHTML = '<span class="material-symbols-outlined text-[22px]" style="font-variation-settings: \'FILL\' 1;">check_circle</span>';
+        }
+
+        const activeTitle = selected.querySelector('.font-headline-sm');
+        if (activeTitle) {
+          activeTitle.classList.replace('font-medium', 'font-semibold');
+          if (summaryText) summaryText.textContent = activeTitle.textContent.trim();
+        }
+      }
+
+      if (continueBtn) {
+        continueBtn.addEventListener('click', () => {
+          const selectedRole = document.querySelector('.role-card[aria-checked="true"]');
+          const roleId = selectedRole ? selectedRole.getAttribute('data-role-id') : 'backend';
+          console.log('Proceeding to Resume Analysis with role:', roleId);
+        });
+      }
+    })();
+  </script>
+</div></main></div></body></html>
