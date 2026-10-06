@@ -7,7 +7,7 @@ from backend.modules.question_selector import select_questions
 from backend.modules.mock_interview_engine import (
     get_interviewer_persona, get_next_mock_turn,
     record_transcript_turn, get_session_transcript,
-    init_mock_transcript
+    init_mock_transcript, evaluate_ai_mock_turn
 )
 from backend.modules.auth import require_auth, optional_auth
 
@@ -255,11 +255,42 @@ def submit_answer():
             pass
 
     field = field_override or session.field or 'it'
-    scoring_result = evaluate_answer_by_field(field, answer_text, expected_keywords)
-
-    relevance = scoring_result.get('relevance_score', 0.5)
-    clarity = scoring_result.get('clarity_score', 0.5)
-    overall = scoring_result.get('overall_score', (relevance + clarity) / 2)
+    
+    # Check if session is mock interview
+    if session.mode == 'mock':
+        ai_turn = evaluate_ai_mock_turn(
+            field=field,
+            role=session.role or 'Software Engineer',
+            question_text=question_text,
+            candidate_answer=answer_text,
+            expected_keywords=expected_keywords
+        )
+        overall = ai_turn['overall_score']
+        relevance = ai_turn['relevance_score']
+        clarity = ai_turn['clarity_score']
+        interviewer_remark = ai_turn['interviewer_remark']
+        branch_type = ai_turn.get('branch_type', 'challenging')
+        branch_question = ai_turn.get('branch_question')
+        strengths = ai_turn.get('strengths', [])
+        improvements = ai_turn.get('improvements', [])
+        suggestions = ai_turn.get('suggestions', [])
+        matched_kws = ai_turn.get('matched_keywords', [])
+        missing_kws = ai_turn.get('missing_keywords', [])
+        model_used = ai_turn.get('model_used', 'AI Examiner')
+    else:
+        scoring_result = evaluate_answer_by_field(field, answer_text, expected_keywords)
+        relevance = scoring_result.get('relevance_score', 0.5)
+        clarity = scoring_result.get('clarity_score', 0.5)
+        overall = scoring_result.get('overall_score', (relevance + clarity) / 2)
+        interviewer_remark = ""
+        branch_type = None
+        branch_question = None
+        strengths = []
+        improvements = []
+        suggestions = scoring_result.get('suggestions', [])
+        matched_kws = scoring_result.get('matched_keywords', [])
+        missing_kws = scoring_result.get('missing_keywords', [])
+        model_used = 'Standard Rubric Engine'
 
     # Resolve SQL question_id placeholder for SQLite backward-compatibility
     sql_qid = None
@@ -286,7 +317,6 @@ def submit_answer():
     db.session.add(answer)
     db.session.commit()
 
-
     # Log to transcript if mock mode
     if session.mode == 'mock':
         turn_data = {
@@ -294,9 +324,12 @@ def submit_answer():
             'question_id': question_id,
             'question_text': question_text,
             'question_type': 'long_answer',
+            'interviewer_remark': interviewer_remark,
             'user_answer': answer_text,
             'score': overall,
-            'suggestions': scoring_result.get('suggestions', []),
+            'suggestions': suggestions,
+            'strengths': strengths,
+            'improvements': improvements,
             'field': session.field,
             'role': session.role
         }
@@ -304,17 +337,20 @@ def submit_answer():
 
     return jsonify({
         'field': field,
-        'rubric_name': scoring_result.get('rubric_name'),
         'overall_score': overall,
+        'score': overall,
         'relevance_score': relevance,
         'clarity_score': clarity,
-        'concept_score': scoring_result.get('concept_score'),
-        'sar_score': scoring_result.get('sar_score'),
-        'sar_breakdown': scoring_result.get('sar_breakdown'),
-        'rubric_dimensions': scoring_result.get('rubric_dimensions', {}),
-        'matched_keywords': scoring_result.get('matched_keywords', []),
-        'missing_keywords': scoring_result.get('missing_keywords', []),
-        'suggestions': scoring_result.get('suggestions', [])
+        'interviewer_remark': interviewer_remark,
+        'branch_type': branch_type,
+        'branch_question': branch_question,
+        'next_question': branch_question,
+        'strengths': strengths,
+        'improvements': improvements,
+        'suggestions': suggestions,
+        'matched_keywords': matched_kws,
+        'missing_keywords': missing_kws,
+        'model_used': model_used
     }), 201
 
 @interview_bp.route('/mock/start', methods=['POST'])
@@ -331,7 +367,7 @@ def start_mock_interview():
 @require_auth
 def submit_mock_answer():
     """
-    Build Spec 3.5 & Section 6: Submit an answer; returns score, canned interviewer remark, and next question (branching).
+    Build Spec 3.5 & Section 6: Submit an answer; returns AI score, verbal spoken remark, and adaptive next challenge.
     """
     data = request.get_json() or {}
     session_id = data.get('session_id')
@@ -376,11 +412,20 @@ def submit_mock_answer():
             pass
 
     field = field_override or session.field or 'it'
-    scoring_result = evaluate_answer_by_field(field, answer_text, expected_keywords)
-    overall = scoring_result.get('overall_score', 0.5)
-
-    # 2. Determine next turn remark and branching question
-    mock_turn = get_next_mock_turn(field, overall, follow_up_rules)
+    
+    # 2. Evaluate with AI Agent (Groq / Gemini / Smart Fallback)
+    ai_turn = evaluate_ai_mock_turn(
+        field=field,
+        role=session.role or 'Software Engineer',
+        question_text=question_text,
+        candidate_answer=answer_text,
+        expected_keywords=expected_keywords,
+        follow_up_rules=follow_up_rules
+    )
+    overall = ai_turn['overall_score']
+    relevance = ai_turn['relevance_score']
+    clarity = ai_turn['clarity_score']
+    interviewer_remark = ai_turn['interviewer_remark']
 
     # 3. Save to SQL Answer table
     sql_qid = None
@@ -400,8 +445,8 @@ def submit_mock_answer():
         mongo_question_id=str(question_id),
         question_type='long_answer',
         answer_text=answer_text,
-        relevance_score=scoring_result.get('relevance_score', 0.5),
-        clarity_score=scoring_result.get('clarity_score', 0.5)
+        relevance_score=relevance,
+        clarity_score=clarity
     )
     db.session.add(answer)
     db.session.commit()
@@ -412,10 +457,12 @@ def submit_mock_answer():
         'question_id': question_id,
         'question_text': question_text,
         'question_type': 'long_answer',
-        'interviewer_remark': mock_turn['interviewer_remark'],
+        'interviewer_remark': interviewer_remark,
         'user_answer': answer_text,
         'score': overall,
-        'suggestions': scoring_result.get('suggestions', []),
+        'suggestions': ai_turn.get('suggestions', []),
+        'strengths': ai_turn.get('strengths', []),
+        'improvements': ai_turn.get('improvements', []),
         'field': field,
         'role': session.role
     }
@@ -424,11 +471,19 @@ def submit_mock_answer():
     return jsonify({
         'session_id': session.id,
         'score': overall,
-        'interviewer_remark': mock_turn['interviewer_remark'],
-        'branch_type': mock_turn['branch_type'],
-        'branch_question': mock_turn['branch_question'],
-        'next_question': mock_turn['branch_question'],
-        'feedback': scoring_result
+        'overall_score': overall,
+        'relevance_score': relevance,
+        'clarity_score': clarity,
+        'interviewer_remark': interviewer_remark,
+        'branch_type': ai_turn.get('branch_type'),
+        'branch_question': ai_turn.get('branch_question'),
+        'next_question': ai_turn.get('branch_question'),
+        'strengths': ai_turn.get('strengths', []),
+        'improvements': ai_turn.get('improvements', []),
+        'suggestions': ai_turn.get('suggestions', []),
+        'matched_keywords': ai_turn.get('matched_keywords', []),
+        'missing_keywords': ai_turn.get('missing_keywords', []),
+        'model_used': ai_turn.get('model_used', 'AI Examiner')
     }), 200
 
 @interview_bp.route('/mock/turn', methods=['POST'])

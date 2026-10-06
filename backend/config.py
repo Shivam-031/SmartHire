@@ -34,3 +34,9 @@ class Config:
     UPLOAD_FOLDER = os.path.join(BASE_DIR, 'backend', 'uploads')
     MAX_CONTENT_LENGTH = 5 * 1024 * 1024  # 5MB
     BASE_DIR = BASE_DIR
+
+    # AI Agent LLM Configuration (Free Models: Groq & Google Gemini)
+    GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
+    GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
+    GROQ_MODEL = os.environ.get('GROQ_MODEL', 'llama-3.3-70b-versatile')
+    GEMINI_MODEL = os.environ.get('GEMINI_MODEL', 'gemini-1.5-flash')
