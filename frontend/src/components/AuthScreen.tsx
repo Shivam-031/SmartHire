@@ -20,6 +20,8 @@ declare global {
 interface AuthScreenProps {
   initialMode?: 'login' | 'signup';
   onSuccess?: () => void;
+  notice?: string;
+  onBackToLanding?: () => void;
 }
 
 const GOOGLE_CLIENT_ID =
@@ -29,6 +31,8 @@ const GOOGLE_CLIENT_ID =
 export const AuthScreen: React.FC<AuthScreenProps> = ({
   initialMode = 'login',
   onSuccess,
+  notice,
+  onBackToLanding,
 }) => {
   const { login, signup, loginWithGoogle } = useAuth();
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
@@ -193,6 +197,14 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
             : 'Select your Google account from Chrome to immediately calibrate your workspace.'}
         </p>
       </div>
+
+      {/* Access Gate Notice */}
+      {notice && (
+        <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-2.5 text-xs text-amber-300">
+          <span className="material-symbols-outlined text-[18px] text-amber-400 shrink-0 mt-0.5">lock</span>
+          <span className="leading-relaxed">{notice}</span>
+        </div>
+      )}
 
       {/* Mode Switcher Tabs */}
       <div className="flex bg-white/[0.03] p-1 rounded-2xl border border-white/[0.08] text-xs font-semibold">
@@ -363,6 +375,19 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
           )}
         </button>
       </form>
+
+      {onBackToLanding && (
+        <div className="pt-2 text-center border-t border-white/[0.06]">
+          <button
+            type="button"
+            onClick={onBackToLanding}
+            className="inline-flex items-center gap-1.5 text-xs text-[#a1a1aa] hover:text-white transition-colors cursor-pointer py-1"
+          >
+            <span className="material-symbols-outlined text-[15px]">arrow_back</span>
+            <span>Return to Landing Page</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };

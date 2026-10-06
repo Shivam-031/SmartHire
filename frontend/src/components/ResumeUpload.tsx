@@ -154,11 +154,17 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
     setError(null);
 
     try {
+      const storedToken = localStorage.getItem('token') || localStorage.getItem('smarthire_token');
+      const headers: HeadersInit = {
+        ...(storedToken ? { Authorization: `Bearer ${storedToken}` } : {}),
+      };
+
       const formData = new FormData();
       formData.append('file', file);
 
       const res = await fetch('http://localhost:5000/api/resume/upload', {
         method: 'POST',
+        headers,
         body: formData,
       });
 
@@ -185,9 +191,13 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
     setError(null);
 
     try {
+      const storedToken = localStorage.getItem('token') || localStorage.getItem('smarthire_token');
       const res = await fetch('http://localhost:5000/api/resume/upload', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(storedToken ? { Authorization: `Bearer ${storedToken}` } : {}),
+        },
         body: JSON.stringify({ resume_text: rawText }),
       });
 

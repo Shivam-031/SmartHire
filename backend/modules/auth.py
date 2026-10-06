@@ -77,9 +77,5 @@ def optional_auth(f):
                 pass
 
         
-        # Fallback to default user (id=1) if available and not authenticated
-        if g.current_user is None:
-            g.current_user = User.query.first()
-
         return f(*args, **kwargs)
     return decorated_function

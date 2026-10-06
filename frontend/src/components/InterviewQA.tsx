@@ -166,9 +166,13 @@ export const InterviewQA: React.FC<InterviewQAProps> = ({
         payload['field'] = field;
       }
 
+      const storedToken = localStorage.getItem('token') || localStorage.getItem('smarthire_token');
       const res = await fetch('http://localhost:5000/api/interview/answer', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(storedToken ? { Authorization: `Bearer ${storedToken}` } : {}),
+        },
         body: JSON.stringify(payload),
       });
 
@@ -217,9 +221,13 @@ export const InterviewQA: React.FC<InterviewQAProps> = ({
       setFeedback(null);
     } else {
       try {
+        const storedToken = localStorage.getItem('token') || localStorage.getItem('smarthire_token');
         await fetch('http://localhost:5000/api/interview/end', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(storedToken ? { Authorization: `Bearer ${storedToken}` } : {}),
+          },
           body: JSON.stringify({ session_id: sessionId }),
         });
       } catch {

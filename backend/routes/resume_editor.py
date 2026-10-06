@@ -105,10 +105,10 @@ def get_templates():
     return jsonify({'templates': TEMPLATES}), 200
 
 @resume_editor_bp.route('/editor/current', methods=['GET'])
-@optional_auth
+@require_auth
 def get_current_resume():
     user = g.current_user
-    user_id = user.id if user else 1
+    user_id = user.id
     col = get_resumes_col()
 
     doc = col.find_one({'user_id': user_id}, sort=[('last_updated', -1)])
@@ -118,13 +118,13 @@ def get_current_resume():
 
     seed = dict(DEFAULT_RESUME_SEED)
     seed['user_id'] = user_id
-    if user:
-        seed['contact']['name'] = user.name
-        seed['contact']['email'] = user.email
+    seed['contact']['name'] = user.name
+    seed['contact']['email'] = user.email
 
     return jsonify({'resume': seed, 'is_seed': True}), 200
 
 @resume_editor_bp.route('/editor/<resume_id>', methods=['GET'])
+@require_auth
 def get_resume_by_id(resume_id):
     col = get_resumes_col()
     try:
@@ -139,11 +139,11 @@ def get_resume_by_id(resume_id):
     return jsonify({'resume': doc}), 200
 
 @resume_editor_bp.route('/editor', methods=['POST'])
-@optional_auth
+@require_auth
 def save_resume():
     data = request.get_json() or {}
     user = g.current_user
-    user_id = user.id if user else 1
+    user_id = user.id
 
     resume_id = data.get('id')
     doc_data = {
@@ -178,7 +178,7 @@ def save_resume():
     }), 200
 
 @resume_editor_bp.route('/editor/prefill', methods=['GET', 'POST'])
-@optional_auth
+@require_auth
 def prefill_from_upload():
     data = request.get_json(silent=True) or {}
     sql_resume_id = (
@@ -299,7 +299,7 @@ def prefill_from_upload():
 @resume_editor_bp.route('/export/pdf', methods=['GET', 'POST'])
 @resume_editor_bp.route('/editor/export/pdf', methods=['GET', 'POST'])
 @resume_editor_bp.route('/editor/export', methods=['GET', 'POST'])
-@optional_auth
+@require_auth
 def export_pdf():
     data = request.get_json(silent=True) or {}
     resume_data = data.get('resume_data')

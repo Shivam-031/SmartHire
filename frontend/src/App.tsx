@@ -61,14 +61,38 @@ const STEP_TO_HASH: Record<DocketStep, string> = {
   signup: '#/signup',
 };
 
+// Only the Landing Page, Login, and Signup screens are publicly accessible
+const PUBLIC_STEPS: DocketStep[] = ['landing', 'login', 'signup'];
+
 const getInitialStep = (): DocketStep => {
   const hash = window.location.hash.toLowerCase();
   return HASH_MAP[hash] || 'landing';
 };
 
 const AppContent = () => {
-  const { user } = useAuth();
-  const [step, setStep] = useState<DocketStep>(getInitialStep);
+  const { user, token, isAuthenticated, logout } = useAuth();
+
+  const [intendedStep, setIntendedStep] = useState<DocketStep | null>(() => {
+    try {
+      const stored = sessionStorage.getItem('smarthire_intended_step') as DocketStep;
+      if (stored && stored in STEP_TO_HASH && !PUBLIC_STEPS.includes(stored)) {
+        return stored;
+      }
+    } catch (_) {}
+    return null;
+  });
+
+  const [step, setStep] = useState<DocketStep>(() => {
+    const initial = getInitialStep();
+    if (!isAuthenticated && !PUBLIC_STEPS.includes(initial)) {
+      try {
+        sessionStorage.setItem('smarthire_intended_step', initial);
+      } catch (_) {}
+      return 'login';
+    }
+    return initial;
+  });
+
   const [field, setField] = useState<string>(user?.target_field || 'it');
   const [role, setRole] = useState<string>(user?.target_role || 'Frontend Developer');
   const [sqlResumeId, setSqlResumeId] = useState<number | null>(null);
@@ -85,26 +109,85 @@ const AppContent = () => {
   const [modeModalOpen, setModeModalOpen] = useState(false);
   const [, setInterviewMode] = useState<'standard' | 'mock'>('standard');
 
-  // Synchronize browser back/forward and hash changes
+  // Synchronize browser back/forward and hash changes with auth guard
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.toLowerCase();
       const mapped = HASH_MAP[hash];
       if (mapped) {
-        setStep(mapped);
+        if (!isAuthenticated && !PUBLIC_STEPS.includes(mapped)) {
+          setIntendedStep(mapped);
+          try {
+            sessionStorage.setItem('smarthire_intended_step', mapped);
+          } catch (_) {}
+          setStep('login');
+          if (window.location.hash !== '#/login') {
+            window.location.hash = '#/login';
+          }
+        } else {
+          setStep(mapped);
+        }
       }
     };
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  }, [isAuthenticated]);
 
-  // Update hash when navigating to step
+  // Enforce auth protection if authentication state changes or user lands unauthenticated
+  useEffect(() => {
+    if (!isAuthenticated && !PUBLIC_STEPS.includes(step)) {
+      setIntendedStep(step);
+      try {
+        sessionStorage.setItem('smarthire_intended_step', step);
+      } catch (_) {}
+      setStep('login');
+      if (window.location.hash !== '#/login') {
+        window.location.hash = '#/login';
+      }
+    }
+  }, [isAuthenticated, step]);
+
+  // Update hash when navigating to step, intercepting if unauthenticated
   const navigateTo = (newStep: DocketStep) => {
+    // Pipeline protection: Only landing page, login, and signup are public
+    if (!isAuthenticated && !PUBLIC_STEPS.includes(newStep)) {
+      setIntendedStep(newStep);
+      try {
+        sessionStorage.setItem('smarthire_intended_step', newStep);
+      } catch (_) {}
+      setStep('login');
+      const loginHash = STEP_TO_HASH['login'];
+      if (window.location.hash !== loginHash) {
+        window.location.hash = loginHash;
+      }
+      return;
+    }
+
     setStep(newStep);
     const targetHash = STEP_TO_HASH[newStep];
     if (targetHash && window.location.hash !== targetHash) {
       window.location.hash = targetHash;
     }
+  };
+
+  const handleAuthSuccess = () => {
+    const target = intendedStep && !PUBLIC_STEPS.includes(intendedStep)
+      ? intendedStep
+      : 'field_select';
+    setIntendedStep(null);
+    try {
+      sessionStorage.removeItem('smarthire_intended_step');
+    } catch (_) {}
+    navigateTo(target);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setIntendedStep(null);
+    try {
+      sessionStorage.removeItem('smarthire_intended_step');
+    } catch (_) {}
+    navigateTo('landing');
   };
 
   // Step 01 -> Step 02
@@ -141,11 +224,14 @@ const AppContent = () => {
     setModeModalOpen(false);
 
     try {
+      const storedToken = token || localStorage.getItem('token') || localStorage.getItem('smarthire_token');
       const response = await fetch('http://localhost:5000/api/interview/start', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(storedToken ? { Authorization: `Bearer ${storedToken}` } : {}),
+        },
         body: JSON.stringify({
-          user_id: user?.id || 1,
           field: field,
           role: role,
           mode: chosenMode,
@@ -198,6 +284,16 @@ const AppContent = () => {
             else if (f === 'it') setRole('Frontend Developer');
             else if (f === 'management') setRole('Product Manager');
             else if (f === 'law') setRole('Corporate Counsel');
+
+            if (isAuthenticated) {
+              navigateTo('role_select');
+            } else {
+              setIntendedStep('role_select');
+              try {
+                sessionStorage.setItem('smarthire_intended_step', 'role_select');
+              } catch (_) {}
+              navigateTo('login');
+            }
           }}
         />
         <AuthModal />
@@ -211,24 +307,39 @@ const AppContent = () => {
       targetField={field}
       targetRole={role}
       onNavigate={navigateTo}
+      onLogout={handleLogout}
       onFieldChange={(newField) => {
         setField(newField);
         if (newField === 'it') setRole('Frontend Developer');
         else if (newField === 'management') setRole('Product Manager');
         else if (newField === 'law') setRole('Corporate Counsel');
       }}
-      canNavigateToField={true}
-      canNavigateToRole={true}
-      canNavigateToResume={true}
-      canNavigateToInterview={true}
-      canNavigateToATS={true}
-      canNavigateToSummary={true}
+      canNavigateToField={isAuthenticated}
+      canNavigateToRole={isAuthenticated}
+      canNavigateToResume={isAuthenticated}
+      canNavigateToInterview={isAuthenticated}
+      canNavigateToATS={isAuthenticated}
+      canNavigateToSummary={isAuthenticated}
     >
       {/* 00 Screen: Candidate Login & Signup */}
       {(step === 'login' || step === 'signup') && (
         <AuthScreen
           initialMode={step === 'signup' ? 'signup' : 'login'}
-          onSuccess={() => navigateTo('profile')}
+          onSuccess={handleAuthSuccess}
+          notice={
+            intendedStep && !PUBLIC_STEPS.includes(intendedStep)
+              ? `Sign in required: Please log in or create an account to access ${
+                  intendedStep === 'resume' || intendedStep === 'resume_editor'
+                    ? 'Resume Dossier & ATS Tools'
+                    : intendedStep === 'interview'
+                    ? 'Oral Examination & Mock Interview'
+                    : intendedStep === 'ats_check'
+                    ? 'ATS Compatibility Diagnostic'
+                    : 'the SmartHire preparation pipeline'
+                }.`
+              : undefined
+          }
+          onBackToLanding={() => navigateTo('landing')}
         />
       )}
 

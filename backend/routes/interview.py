@@ -9,7 +9,7 @@ from backend.modules.mock_interview_engine import (
     record_transcript_turn, get_session_transcript,
     init_mock_transcript
 )
-from backend.modules.auth import optional_auth
+from backend.modules.auth import require_auth, optional_auth
 
 interview_bp = Blueprint('interview', __name__)
 
@@ -50,31 +50,22 @@ def get_questions():
     }), 200
 
 @interview_bp.route('/start', methods=['POST'])
-@optional_auth
+@require_auth
 def start_interview():
     data = request.get_json() or {}
     user = g.current_user
-    user_id = data.get('user_id') or (user.id if user else 1)
-    field = (data.get('field') or (user.target_field if user else 'it') or 'it').strip().lower()
-    role = (data.get('role') or (user.target_role if user else 'Frontend Developer') or 'Frontend Developer').strip()
+    user_id = user.id
+    field = (data.get('field') or user.target_field or 'it').strip().lower()
+    role = (data.get('role') or user.target_role or 'Frontend Developer').strip()
     mode = (data.get('mode') or 'standard').strip().lower()
     resume_id = data.get('resume_id')
     mongo_resume_id = data.get('mongo_resume_id')
 
     try:
-        user_id = int(user_id)
         if resume_id:
             resume_id = int(resume_id)
     except (ValueError, TypeError):
-        return jsonify({"error": "Invalid user_id or resume_id format."}), 400
-
-    db_user = db.session.get(User, user_id) if hasattr(db.session, 'get') else User.query.get(user_id)
-    if not db_user:
-        db_user = User.query.first()
-        if db_user:
-            user_id = db_user.id
-        else:
-            return jsonify({"error": "No valid user account registered."}), 404
+        return jsonify({"error": "Invalid resume_id format."}), 400
 
     # 1. Create Interview Session in SQL
     session = InterviewSession(
@@ -139,7 +130,7 @@ def start_interview():
 
 @interview_bp.route('/submit-mcq', methods=['POST'])
 @interview_bp.route('/mcq/answer', methods=['POST'])
-@optional_auth
+@require_auth
 def submit_mcq():
     data = request.get_json() or {}
     session_id = data.get('session_id')
@@ -218,6 +209,7 @@ def submit_mcq():
     return jsonify(result), 200
 
 @interview_bp.route('/answer', methods=['POST'])
+@require_auth
 def submit_answer():
     data = request.get_json() or {}
     if data.get('selected_option'):
@@ -326,7 +318,7 @@ def submit_answer():
     }), 201
 
 @interview_bp.route('/mock/start', methods=['POST'])
-@optional_auth
+@require_auth
 def start_mock_interview():
     """
     Build Spec 3.5 & Section 6: Start a Mock Interview session (mode = 'mock').
@@ -336,7 +328,7 @@ def start_mock_interview():
     return start_interview()
 
 @interview_bp.route('/mock/answer', methods=['POST'])
-@optional_auth
+@require_auth
 def submit_mock_answer():
     """
     Build Spec 3.5 & Section 6: Submit an answer; returns score, canned interviewer remark, and next question (branching).
@@ -469,6 +461,7 @@ def get_transcript(session_id):
 
 @interview_bp.route('/complete', methods=['POST'])
 @interview_bp.route('/end', methods=['POST'])
+@require_auth
 def complete_interview():
     data = request.get_json() or {}
     session_id = data.get('session_id')

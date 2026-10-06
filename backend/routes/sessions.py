@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, send_file, g
 from bson import ObjectId
 from backend.models import db, User, Resume, InterviewSession, Answer, ATSReport, Question
-from backend.modules.auth import optional_auth
+from backend.modules.auth import require_auth
 from backend.modules.report_generator import report_generator
 from backend.mongo_db import get_resumes_col, get_transcripts_col, get_questions_col
 
@@ -9,23 +9,17 @@ sessions_bp = Blueprint('sessions', __name__)
 
 @sessions_bp.route('/', methods=['GET'])
 @sessions_bp.route('', methods=['GET'])
-@optional_auth
+@require_auth
 def list_sessions():
     """
-    List past interview sessions.
-    If authenticated via token, returns sessions for the candidate;
-    otherwise returns the global archive of recent sessions.
+    List past interview sessions for the authenticated candidate.
     """
-    auth_header = request.headers.get('Authorization')
-    user = getattr(g, 'current_user', None)
-    if auth_header and user:
-        sessions = (
-            InterviewSession.query.filter_by(user_id=user.id)
-            .order_by(InterviewSession.created_at.desc())
-            .all()
-        )
-    else:
-        sessions = InterviewSession.query.order_by(InterviewSession.created_at.desc()).all()
+    user = g.current_user
+    sessions = (
+        InterviewSession.query.filter_by(user_id=user.id)
+        .order_by(InterviewSession.created_at.desc())
+        .all()
+    )
 
     results = []
     for s in sessions:
@@ -44,7 +38,7 @@ def list_sessions():
     return jsonify(results), 200
 
 @sessions_bp.route('/<int:session_id>', methods=['GET'])
-@optional_auth
+@require_auth
 def get_session_detail(session_id):
     """
     Fetch comprehensive details for an interview session, hydrating question text
@@ -171,7 +165,7 @@ def get_session_detail(session_id):
 
 @sessions_bp.route('/<int:session_id>/report', methods=['GET'])
 @sessions_bp.route('/<int:session_id>/report/pdf', methods=['GET'])
-@optional_auth
+@require_auth
 def download_report(session_id):
     """
     Generates and streams an official PDF performance report dossier

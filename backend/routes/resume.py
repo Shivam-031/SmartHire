@@ -4,37 +4,16 @@ import os
 from backend.models import db, Resume, User
 from backend.config import Config
 from backend.modules.resume_parser import parser
-from backend.modules.auth import optional_auth
+from backend.modules.auth import require_auth
 
 resume_bp = Blueprint('resume', __name__)
 
-def get_default_user_id():
-    """Helper to get the demo user ID for testing."""
-    user = User.query.filter_by(email='demo@smarthire.com').first()
-    if user:
-        return user.id
-    # If demo user doesn't exist, create one quickly
-    user = User(name="Demo User", email="demo@smarthire.com")
-    db.session.add(user)
-    db.session.commit()
-    return user.id
-
 @resume_bp.route('/upload', methods=['POST'])
-@optional_auth
+@require_auth
 def upload_resume():
     # 1. Validate User
     user = g.current_user
-    if user:
-        user_id = user.id
-    else:
-        user_id = request.form.get('user_id') or (request.get_json(silent=True) or {}).get('user_id')
-        if not user_id:
-            user_id = get_default_user_id()
-        else:
-            try:
-                user_id = int(user_id)
-            except ValueError:
-                return jsonify({"error": "Invalid user_id"}), 400
+    user_id = user.id
 
     # 2. Check for JSON / Raw Text Body
     json_data = request.get_json(silent=True) or {}
@@ -135,7 +114,7 @@ def upload_resume():
         return jsonify({"error": str(e)}), 500
 
 @resume_bp.route('/manual-text', methods=['POST'])
-@optional_auth
+@require_auth
 def manual_text():
     data = request.get_json() or {}
     text = data.get('text') or data.get('resume_text')
@@ -143,17 +122,7 @@ def manual_text():
         return jsonify({"error": "No text provided"}), 400
 
     user = g.current_user
-    if user:
-        user_id = user.id
-    else:
-        user_id = data.get('user_id')
-        if not user_id:
-            user_id = get_default_user_id()
-        else:
-            try:
-                user_id = int(user_id)
-            except ValueError:
-                return jsonify({"error": "Invalid user_id"}), 400
+    user_id = user.id
 
     try:
         parsed = parser.parse_full(text, is_raw_text=True)

@@ -184,8 +184,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const handleLaunchTrack = (field: 'it' | 'management' | 'law', defaultRole?: string) => {
     if (onSelectTrack) {
       onSelectTrack(field, defaultRole);
+    } else {
+      onNavigate('role_select');
     }
-    onNavigate('role_select');
   };
 
   // Telemetry preview data for AI Cockpit
@@ -427,11 +428,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
                   <button
                     type="button"
-                    onClick={() => onNavigate('field_select')}
+                    onClick={() => onNavigate('signup')}
                     className="btn-gradient-primary px-4 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer shadow-md hover:shadow-lg transition-all"
-                    title="Enter Google Stitch Workspace (Step 1: Track Setup)"
+                    title="Get Started with SmartHire"
                   >
-                    <span>Launch App</span>
+                    <span>Get Started</span>
                     <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
@@ -591,11 +592,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                       type="button"
                       onClick={() => {
                         setMobileMenuOpen(false);
-                        onNavigate('field_select');
+                        onNavigate('signup');
                       }}
                       className="w-full py-2.5 rounded-full btn-gradient-primary text-xs font-semibold text-white cursor-pointer"
                     >
-                      Start for free &rarr;
+                      Get Started &rarr;
                     </button>
                   </>
                 )}

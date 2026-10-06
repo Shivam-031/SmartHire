@@ -23,6 +23,7 @@ interface AppLayoutProps {
   targetField?: string;
   targetRole?: string;
   onNavigate: (step: DocketStep) => void;
+  onLogout?: () => void;
   onFieldChange?: (field: string) => void;
   canNavigateToField?: boolean;
   canNavigateToRole?: boolean;
@@ -38,6 +39,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   targetField = 'it',
   targetRole = 'Frontend Developer',
   onNavigate,
+  onLogout,
   onFieldChange,
   children,
 }) => {
@@ -97,6 +99,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
 
   const handleTrackSelect = (field: string) => {
     setTrackDropdownOpen(false);
+    if (!isAuthenticated) {
+      onNavigate('field_select');
+      return;
+    }
     if (onFieldChange) onFieldChange(field);
   };
 
@@ -163,79 +169,87 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         </div>
 
         {/* Center: Stage Progress Tracker Pill (Desktop) */}
-        <div className="hidden xl:flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] text-xs font-medium text-[#a1a1aa] whitespace-nowrap shrink-0 h-8 max-h-8">
-          <button
-            type="button"
-            onClick={() => onNavigate('field_select')}
-            className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
-              isStepActive(['field_select'])
-                ? 'bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white font-semibold shadow-xs'
-                : 'hover:text-white'
-            }`}
-          >
-            01 Field
-          </button>
-          <span className="text-white/20">/</span>
-          <button
-            type="button"
-            onClick={() => onNavigate('role_select')}
-            className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
-              isStepActive(['role_select'])
-                ? 'bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white font-semibold shadow-xs'
-                : 'hover:text-white'
-            }`}
-          >
-            02 Role
-          </button>
-          <span className="text-white/20">/</span>
-          <button
-            type="button"
-            onClick={() => onNavigate('resume')}
-            className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
-              isStepActive(['resume', 'resume_editor', 'template_picker'])
-                ? 'bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white font-semibold shadow-xs'
-                : 'hover:text-white'
-            }`}
-          >
-            03 Resume
-          </button>
-          <span className="text-white/20">/</span>
-          <button
-            type="button"
-            onClick={() => onNavigate('interview')}
-            className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
-              isStepActive(['interview'])
-                ? 'bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white font-semibold shadow-xs'
-                : 'hover:text-white'
-            }`}
-          >
-            04 Interview
-          </button>
-          <span className="text-white/20">/</span>
-          <button
-            type="button"
-            onClick={() => onNavigate('ats_check')}
-            className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
-              isStepActive(['ats_check'])
-                ? 'bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white font-semibold shadow-xs'
-                : 'hover:text-white'
-            }`}
-          >
-            05 ATS Scan
-          </button>
-          <span className="text-white/20">/</span>
-          <button
-            type="button"
-            onClick={() => onNavigate('completed')}
-            className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
-              isStepActive(['summary', 'completed', 'session_history', 'session_detail'])
-                ? 'bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white font-semibold shadow-xs'
-                : 'hover:text-white'
-            }`}
-          >
-            06 Summary
-          </button>
-        </div>
+        {!isAuthenticated ? (
+          <div className="hidden xl:flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-xs font-medium text-amber-300 whitespace-nowrap shrink-0 h-8 max-h-8 shadow-xs">
+            <span className="material-symbols-outlined text-[15px]">lock</span>
+            <span className="font-mono text-[11px] font-semibold">CANDIDATE PIPELINE LOCKED</span>
+            <span className="text-amber-400/60 text-[11px]">• Sign In to Access Stages</span>
+          </div>
+        ) : (
+          <div className="hidden xl:flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] text-xs font-medium text-[#a1a1aa] whitespace-nowrap shrink-0 h-8 max-h-8">
+            <button
+              type="button"
+              onClick={() => onNavigate('field_select')}
+              className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
+                isStepActive(['field_select'])
+                  ? 'bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white font-semibold shadow-xs'
+                  : 'hover:text-white'
+              }`}
+            >
+              01 Field
+            </button>
+            <span className="text-white/20">/</span>
+            <button
+              type="button"
+              onClick={() => onNavigate('role_select')}
+              className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
+                isStepActive(['role_select'])
+                  ? 'bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white font-semibold shadow-xs'
+                  : 'hover:text-white'
+              }`}
+            >
+              02 Role
+            </button>
+            <span className="text-white/20">/</span>
+            <button
+              type="button"
+              onClick={() => onNavigate('resume')}
+              className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
+                isStepActive(['resume', 'resume_editor', 'template_picker'])
+                  ? 'bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white font-semibold shadow-xs'
+                  : 'hover:text-white'
+              }`}
+            >
+              03 Resume
+            </button>
+            <span className="text-white/20">/</span>
+            <button
+              type="button"
+              onClick={() => onNavigate('interview')}
+              className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
+                isStepActive(['interview'])
+                  ? 'bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white font-semibold shadow-xs'
+                  : 'hover:text-white'
+              }`}
+            >
+              04 Interview
+            </button>
+            <span className="text-white/20">/</span>
+            <button
+              type="button"
+              onClick={() => onNavigate('ats_check')}
+              className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
+                isStepActive(['ats_check'])
+                  ? 'bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white font-semibold shadow-xs'
+                  : 'hover:text-white'
+              }`}
+            >
+              05 ATS Scan
+            </button>
+            <span className="text-white/20">/</span>
+            <button
+              type="button"
+              onClick={() => onNavigate('completed')}
+              className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
+                isStepActive(['summary', 'completed', 'session_history', 'session_detail'])
+                  ? 'bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white font-semibold shadow-xs'
+                  : 'hover:text-white'
+              }`}
+            >
+              06 Summary
+            </button>
+          </div>
+        )}
 
         {/* Right: Quick Track Switcher & User Profile */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
@@ -321,7 +335,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
               </button>
               <button
                 type="button"
-                onClick={() => logout()}
+                onClick={() => (onLogout ? onLogout() : logout())}
                 className="text-xs text-[#71717a] hover:text-white transition-colors p-1.5 cursor-pointer"
                 title="Sign Out"
               >
@@ -329,13 +343,30 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
               </button>
             </div>
           ) : (
-            <button
-              type="button"
-              onClick={() => onNavigate('login')}
-              className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white text-xs font-semibold hover:opacity-90 transition-opacity cursor-pointer shadow-[0_0_15px_rgba(124,58,237,0.3)]"
-            >
-              Sign In
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => onNavigate('login')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  currentStep === 'login'
+                    ? 'bg-white/10 text-white border border-white/20'
+                    : 'text-[#a1a1aa] hover:text-white'
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => onNavigate('signup')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-[0_0_15px_rgba(124,58,237,0.3)] ${
+                  currentStep === 'signup'
+                    ? 'bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white ring-2 ring-white/20'
+                    : 'bg-gradient-to-r from-[#7c3aed] to-[#3b82f6] text-white hover:opacity-90'
+                }`}
+              >
+                Sign Up
+              </button>
+            </div>
           )}
         </div>
       </header>
@@ -378,6 +409,12 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             </div>
 
             {/* Preparation Pipeline Steps (Stitch Style with Connected Line) */}
+            {!isAuthenticated && (
+              <div className="mx-1 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-2 text-[11px] text-amber-300">
+                <span className="material-symbols-outlined text-[15px] shrink-0">lock</span>
+                <span className="leading-snug">Pipeline Locked: Sign in to unlock features</span>
+              </div>
+            )}
             <nav className="flex flex-col gap-1 text-xs font-medium relative">
               {/* Step 01: Field Selection */}
               <button
@@ -401,9 +438,15 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                   </div>
                   <span>01 Field Track</span>
                 </div>
-                <span className="text-[10px] font-mono text-[#71717a] group-hover:text-white/60">
-                  {domain.tag}
-                </span>
+                {!isAuthenticated ? (
+                  <span className="material-symbols-outlined text-[13px] text-amber-400/80" title="Sign in required">
+                    lock
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-mono text-[#71717a] group-hover:text-white/60">
+                    {domain.tag}
+                  </span>
+                )}
               </button>
 
               {/* Step 02: Role Specification */}
@@ -428,7 +471,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                   </div>
                   <span>02 Target Role</span>
                 </div>
-                <span className="material-symbols-outlined text-[14px] text-[#71717a]">chevron_right</span>
+                {!isAuthenticated ? (
+                  <span className="material-symbols-outlined text-[13px] text-amber-400/80" title="Sign in required">
+                    lock
+                  </span>
+                ) : (
+                  <span className="material-symbols-outlined text-[14px] text-[#71717a]">chevron_right</span>
+                )}
               </button>
 
               {/* Step 03: Resume Dossier */}
@@ -453,7 +502,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                   </div>
                   <span>03 Resume Dossier</span>
                 </div>
-                <span className="material-symbols-outlined text-[14px] text-[#71717a]">chevron_right</span>
+                {!isAuthenticated ? (
+                  <span className="material-symbols-outlined text-[13px] text-amber-400/80" title="Sign in required">
+                    lock
+                  </span>
+                ) : (
+                  <span className="material-symbols-outlined text-[14px] text-[#71717a]">chevron_right</span>
+                )}
               </button>
 
               {/* Step 04: Oral Mock Interview */}
@@ -478,7 +533,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                   </div>
                   <span>04 Mock Interview</span>
                 </div>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
+                {!isAuthenticated ? (
+                  <span className="material-symbols-outlined text-[13px] text-amber-400/80" title="Sign in required">
+                    lock
+                  </span>
+                ) : (
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
+                )}
               </button>
 
               {/* Step 05: ATS Diagnostic Report */}
@@ -503,7 +564,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                   </div>
                   <span>05 ATS Diagnostic</span>
                 </div>
-                <span className="material-symbols-outlined text-[14px] text-[#71717a]">chevron_right</span>
+                {!isAuthenticated ? (
+                  <span className="material-symbols-outlined text-[13px] text-amber-400/80" title="Sign in required">
+                    lock
+                  </span>
+                ) : (
+                  <span className="material-symbols-outlined text-[14px] text-[#71717a]">chevron_right</span>
+                )}
               </button>
 
               {/* Step 06: Performance Summary */}
@@ -528,7 +595,13 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                   </div>
                   <span>06 Readiness</span>
                 </div>
-                <span className="material-symbols-outlined text-[14px] text-[#71717a]">chevron_right</span>
+                {!isAuthenticated ? (
+                  <span className="material-symbols-outlined text-[13px] text-amber-400/80" title="Sign in required">
+                    lock
+                  </span>
+                ) : (
+                  <span className="material-symbols-outlined text-[14px] text-[#71717a]">chevron_right</span>
+                )}
               </button>
             </nav>
 
@@ -540,38 +613,53 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate('resume_editor')}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer text-left ${
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer text-left ${
                   isStepActive(['resume_editor'])
                     ? 'bg-white/[0.08] text-white font-medium'
                     : 'text-[#a1a1aa] hover:bg-white/[0.04] hover:text-white'
                 }`}
               >
-                <span className="material-symbols-outlined text-[16px] text-[#c084fc]">edit_note</span>
-                <span>Markdown Resume Studio</span>
+                <div className="flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-[16px] text-[#c084fc]">edit_note</span>
+                  <span>Markdown Resume Studio</span>
+                </div>
+                {!isAuthenticated && (
+                  <span className="material-symbols-outlined text-[13px] text-amber-400/80" title="Sign in required">lock</span>
+                )}
               </button>
               <button
                 type="button"
                 onClick={() => onNavigate('template_picker')}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer text-left ${
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer text-left ${
                   isStepActive(['template_picker'])
                     ? 'bg-white/[0.08] text-white font-medium'
                     : 'text-[#a1a1aa] hover:bg-white/[0.04] hover:text-white'
                 }`}
               >
-                <span className="material-symbols-outlined text-[16px] text-[#22d3ee]">palette</span>
-                <span>Template Picker</span>
+                <div className="flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-[16px] text-[#22d3ee]">palette</span>
+                  <span>Template Picker</span>
+                </div>
+                {!isAuthenticated && (
+                  <span className="material-symbols-outlined text-[13px] text-amber-400/80" title="Sign in required">lock</span>
+                )}
               </button>
               <button
                 type="button"
                 onClick={() => onNavigate('session_history')}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer text-left ${
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-colors cursor-pointer text-left ${
                   isStepActive(['session_history'])
                     ? 'bg-white/[0.08] text-white font-medium'
                     : 'text-[#a1a1aa] hover:bg-white/[0.04] hover:text-white'
                 }`}
               >
-                <span className="material-symbols-outlined text-[16px] text-[#10b981]">history</span>
-                <span>Session Telemetry</span>
+                <div className="flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-[16px] text-[#10b981]">history</span>
+                  <span>Session Telemetry</span>
+                </div>
+                {!isAuthenticated && (
+                  <span className="material-symbols-outlined text-[13px] text-amber-400/80" title="Sign in required">lock</span>
+                )}
               </button>
             </div>
           </div>
@@ -607,7 +695,11 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
                 <span className="material-symbols-outlined text-[16px]">person</span>
                 <span>Candidate Profile</span>
               </div>
-              <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+              {!isAuthenticated ? (
+                <span className="material-symbols-outlined text-[13px] text-amber-400/80" title="Sign in required">lock</span>
+              ) : (
+                <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+              )}
             </button>
           </div>
         </aside>

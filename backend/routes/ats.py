@@ -3,14 +3,14 @@ from bson import ObjectId
 import os
 from backend.models import db, Resume as SQLResume, ATSReport as SQLATSReport
 from backend.modules.ats_checker import ats_checker
-from backend.modules.auth import optional_auth
+from backend.modules.auth import require_auth
 from backend.mongo_db import get_resumes_col, get_db
 from backend.config import Config
 
 ats_bp = Blueprint('ats', __name__)
 
 @ats_bp.route('/check', methods=['POST'])
-@optional_auth
+@require_auth
 def check_ats():
     data = request.get_json() or {}
 

@@ -70,8 +70,11 @@ export const ResumeTemplatePicker: React.FC<ResumeTemplatePickerProps> = ({
     setDownloadError(null);
 
     try {
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const storedToken = token || localStorage.getItem('token') || localStorage.getItem('smarthire_token');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (storedToken) headers['Authorization'] = `Bearer ${storedToken}`;
 
       const res = await fetch('http://localhost:5000/api/resume/export-pdf', {
         method: 'POST',
