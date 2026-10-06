@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import BrandWordmark from './BrandWordmark';
 
 const GOOGLE_CLIENT_ID =
+  (import.meta.env as any).GOOGLE_CLIENT_ID ||
   import.meta.env.VITE_GOOGLE_CLIENT_ID ||
   '228003091405-8p3lrjrfg1mo4nal0sru1417j95hqgef.apps.googleusercontent.com';
 

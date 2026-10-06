@@ -11,7 +11,7 @@ This guide details how to deploy **SmartHire** when hosting the **Frontend** and
 |               FRONTEND (Client)                    |
 |   Platform: Vercel                                 |
 |   URL: https://smart-hire-two-gules.vercel.app     |
-|   Config: VITE_API_BASE_URL                        |
+|   Config: API_BASE_URL                             |
 +----------------------------------------------------+
                           |
                           | HTTPS REST Requests (CORS Allowed)
@@ -75,7 +75,7 @@ This guide details how to deploy **SmartHire** when hosting the **Frontend** and
 5. Expand **Environment Variables** and add:
    | Key | Value |
    |---|---|
-   | `VITE_API_BASE_URL` | `https://smarthire-o5an.onrender.com` |
+   | `API_BASE_URL` | `https://smarthire-o5an.onrender.com` |
    *(Important: Paste your deployed Backend URL with **no trailing slash**).*
 6. Click **Deploy**.
 
@@ -89,7 +89,7 @@ This guide details how to deploy **SmartHire** when hosting the **Frontend** and
    - **Build command**: `npm run build`
    - **Publish directory**: `frontend/dist`
 4. In **Site Configuration** > **Environment Variables**, add:
-   - `VITE_API_BASE_URL` = `https://smarthire-backend-xxxx.onrender.com`
+   - `API_BASE_URL` = `https://smarthire-o5an.onrender.com`
 5. Click **Deploy Site**.
 
 ---
@@ -97,7 +97,7 @@ This guide details how to deploy **SmartHire** when hosting the **Frontend** and
 ## How Cross-Platform Communication Works
 
 1. **Centralized Client Config (`frontend/src/config/api.ts`)**:
-   During build time, Vite injects `import.meta.env.VITE_API_BASE_URL`.
+   During build time, Vite injects `import.meta.env.API_BASE_URL`.
    All frontend requests (`/api/auth/login`, `/api/interview/start`, etc.) dynamically target the configured backend domain.
 2. **CORS Headers (`backend/app.py`)**:
    Flask returns `Access-Control-Allow-Origin: *` (or specific allowed domains), allowing the browser to send cross-origin requests and bearer tokens without CORS blocks.
@@ -119,7 +119,7 @@ This guide details how to deploy **SmartHire** when hosting the **Frontend** and
    ```bash
    cd frontend
    # In .env:
-   VITE_API_BASE_URL=https://smarthire-backend-xxxx.onrender.com
+   API_BASE_URL=https://smarthire-o5an.onrender.com
    npm run dev
    ```
 
