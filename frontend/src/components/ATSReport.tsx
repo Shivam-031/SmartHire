@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { buildApiUrl } from '../config/api';
 
 interface ATSIssue {
   type: string;
@@ -60,7 +61,7 @@ export const ATSReport: React.FC<ATSReportProps> = ({
           payload['resume_id'] = resumeId;
         }
 
-        const res = await fetch('http://localhost:5000/api/ats/check', {
+        const res = await fetch(buildApiUrl('/api/ats/check'), {
           method: 'POST',
           headers,
           body: JSON.stringify(payload),

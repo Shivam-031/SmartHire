@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { buildApiUrl } from '../config/api';
 
 interface TemplateItem {
   id: number;
@@ -76,7 +77,7 @@ export const ResumeTemplatePicker: React.FC<ResumeTemplatePickerProps> = ({
       };
       if (storedToken) headers['Authorization'] = `Bearer ${storedToken}`;
 
-      const res = await fetch('http://localhost:5000/api/resume/export-pdf', {
+      const res = await fetch(buildApiUrl('/api/resume/export-pdf'), {
         method: 'POST',
         headers,
         body: JSON.stringify({

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { buildApiUrl } from '../config/api';
 
 export interface QuestionOption {
   label: string;
@@ -399,7 +400,7 @@ export const InterviewQA: React.FC<InterviewQAProps> = ({
 
       const storedToken = localStorage.getItem('token') || localStorage.getItem('smarthire_token');
       // In mock interview mode, route to the AI agent mock endpoint
-      const endpoint = mode === 'mock' ? 'http://localhost:5000/api/interview/mock/answer' : 'http://localhost:5000/api/interview/answer';
+      const endpoint = mode === 'mock' ? buildApiUrl('/api/interview/mock/answer') : buildApiUrl('/api/interview/answer');
 
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -507,7 +508,7 @@ export const InterviewQA: React.FC<InterviewQAProps> = ({
     } else {
       try {
         const storedToken = localStorage.getItem('token') || localStorage.getItem('smarthire_token');
-        await fetch('http://localhost:5000/api/interview/end', {
+        await fetch(buildApiUrl('/api/interview/end'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

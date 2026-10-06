@@ -20,7 +20,14 @@ from backend.config import Config
 
 
 app = Flask(__name__)
-CORS(app)
+
+# Configure CORS for cross-platform deployments (Vercel, Netlify, Render, Railway)
+cors_origins_env = os.environ.get('CORS_ORIGINS', '*').strip()
+if cors_origins_env == '*':
+    CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+else:
+    allowed_origins = [o.strip() for o in cors_origins_env.split(',') if o.strip()]
+    CORS(app, resources={r"/*": {"origins": allowed_origins}}, supports_credentials=True)
 
 # Configuration
 app.config.from_object(Config)
@@ -75,8 +82,20 @@ def index():
         ]
     })
 
+@app.route('/health')
+@app.route('/api/health')
+def health():
+    return jsonify({
+        "status": "healthy",
+        "service": "SmartHire API",
+        "environment": os.environ.get('FLASK_ENV', 'production')
+    }), 200
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-    app.run(debug=True, use_reloader=False, port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    host = os.environ.get('HOST', '0.0.0.0')
+    debug = os.environ.get('FLASK_DEBUG', 'false').lower() in ('true', '1')
+    app.run(host=host, port=port, debug=debug)
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { buildApiUrl } from '../config/api';
 
 interface PastSessionSummary {
   id: number;
@@ -69,8 +70,8 @@ export const SessionDetail: React.FC<SessionDetailProps> = ({
         const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
 
         const [sessionRes, allSessionsRes] = await Promise.all([
-          fetch(`http://localhost:5000/api/sessions/${sessionId}`, { headers }),
-          fetch('http://localhost:5000/api/sessions', { headers }).catch(() => null),
+          fetch(buildApiUrl(`/api/sessions/${sessionId}`), { headers }),
+          fetch(buildApiUrl('/api/sessions'), { headers }).catch(() => null),
         ]);
 
         if (!sessionRes.ok) {

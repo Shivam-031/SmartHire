@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { buildApiUrl } from '../config/api';
 
 export interface User {
   id: number;
@@ -69,11 +70,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Check token validity on mount (clears expired tokens gracefully)
   useEffect(() => {
     if (token) {
-      fetch('http://localhost:5000/api/auth/me', {
+      fetch(buildApiUrl('/api/auth/me'), {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => {
-          if (!res.ok) throw new Error('Token invalid');
           if (!res.ok) throw new Error('Token invalid or expired');
           return res.json();
         })
@@ -93,7 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
+      const res = await fetch(buildApiUrl('/api/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -118,7 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     target_role = 'Frontend Developer'
   ) => {
     try {
-      const res = await fetch('http://localhost:5000/api/auth/signup', {
+      const res = await fetch(buildApiUrl('/api/auth/signup'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password, target_field, target_role })
@@ -141,7 +141,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     target_role = 'Frontend Developer'
   ) => {
     try {
-      const res = await fetch('http://localhost:5000/api/auth/google', {
+      const res = await fetch(buildApiUrl('/api/auth/google'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ credential, target_field, target_role }),
@@ -169,7 +169,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateUserProfile = async (data: Partial<User>) => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:5000/api/profile', {
+      const res = await fetch(buildApiUrl('/api/profile'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
