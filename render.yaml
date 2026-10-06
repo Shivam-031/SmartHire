@@ -1,4 +1,4 @@
-# Render Blueprint Deployment Specification
+# Render Blueprint Deployment Specification (Optimized for 512MB RAM Free Tier)
 # https://render.com/docs/blueprint-spec
 services:
   # 1. Backend Web Service (Flask API)
@@ -8,11 +8,17 @@ services:
     region: oregon
     plan: free
     buildCommand: "pip install -r backend/requirements.txt"
-    startCommand: "gunicorn wsgi:app --workers 2 --timeout 120"
+    startCommand: "gunicorn wsgi:app --workers 1 --threads 4 --worker-class gthread --max-requests 500 --max-requests-jitter 50 --timeout 120"
     healthCheckPath: /api/health
     envVars:
       - key: FLASK_ENV
         value: production
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: MALLOC_TRIM_THRESHOLD_
+        value: "65536"
+      - key: WEB_CONCURRENCY
+        value: "1"
       - key: SECRET_KEY
         generateValue: true
       - key: JWT_SECRET_KEY
@@ -40,4 +46,3 @@ services:
           type: web
           name: smarthire-backend
           property: host
-

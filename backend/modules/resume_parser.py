@@ -9,23 +9,9 @@ try:
 except ImportError:
     pdfium = None
 
-# Load NLP model once at module level with resilient fallback
+# Lightweight NLP and skill matching initialization (optimized for 512MB RAM)
 nlp = None
 PhraseMatcher = None
-try:
-    import spacy
-    from spacy.matcher import PhraseMatcher
-    try:
-        nlp = spacy.load("en_core_web_md")
-    except Exception:
-        try:
-            nlp = spacy.load("en_core_web_sm")
-        except Exception:
-            nlp = None
-except (ImportError, Exception) as e:
-    print(f"[ResumeParser] spaCy unavailable ({e}). Using pure-Python keyword matcher fallback.")
-    nlp = None
-    PhraseMatcher = None
 
 from backend.config import Config
 

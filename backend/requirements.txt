@@ -40,7 +40,6 @@ httpcore==1.0.9
 spacy==3.8.16
 textstat==0.7.13
 nltk==3.10.3
-en_core_web_md @ https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.8.0/en_core_web_md-3.8.0-py3-none-any.whl
 
 # --- SpaCy & NLP Dependencies ---
 blis==1.3.3

@@ -29,20 +29,6 @@ def pure_flesch_reading_ease(text):
     score = 206.835 - 1.015 * (total_words / total_sentences) - 84.6 * (total_syllables / total_words)
     return max(0.0, min(100.0, score))
 
-# Safe Spacy initialization with regex fallback
-_nlp = None
-try:
-    import spacy
-    try:
-        _nlp = spacy.load("en_core_web_md")
-    except Exception:
-        try:
-            _nlp = spacy.load("en_core_web_sm")
-        except Exception:
-            _nlp = None
-except (ImportError, Exception):
-    _nlp = None
-
 FILLER_WORDS = {
     'um', 'uh', 'like', 'basically', 'actually', 'you know',
     'sort of', 'kind of', 'maybe', 'i mean', 'right', 'honestly'

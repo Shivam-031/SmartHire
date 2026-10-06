@@ -40,11 +40,14 @@ This guide details how to deploy **SmartHire** when hosting the **Frontend** and
    - **Root Directory**: Leave blank (uses repo root)
    - **Environment**: `Python 3`
    - **Build Command**: `pip install -r backend/requirements.txt`
-   - **Start Command**: `gunicorn wsgi:app --workers 2 --timeout 120`
+   - **Start Command**: `gunicorn wsgi:app --workers 1 --threads 4 --worker-class gthread --max-requests 500 --max-requests-jitter 50 --timeout 120`
 5. Under **Advanced** > **Environment Variables**, add:
    | Key | Example Value | Description |
    |---|---|---|
    | `FLASK_ENV` | `production` | Production mode |
+   | `PYTHONUNBUFFERED` | `1` | Stream output without RAM buffering |
+   | `MALLOC_TRIM_THRESHOLD_` | `65536` | Optimizes Linux memory reclaiming for 512MB RAM |
+   | `WEB_CONCURRENCY` | `1` | Ensures single worker process for 512MB limit |
    | `SECRET_KEY` | *(generate a random string)* | Flask session secret |
    | `JWT_SECRET_KEY` | *(generate a random string)* | JWT auth secret |
    | `CORS_ORIGINS` | `*` or your Vercel URL | Allowed origins |
