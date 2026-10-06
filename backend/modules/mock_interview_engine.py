@@ -127,6 +127,54 @@ def get_next_mock_turn(field, current_score, follow_up_rules=None):
         'branch_question': formatted_branch
     }
 
+def evaluate_ai_mock_turn(field, role, question_text, candidate_answer, expected_keywords=None, follow_up_rules=None):
+    """
+    Evaluates candidate's verbal/written answer using the AI agent (Groq/Gemini/Fallback)
+    and produces an oral spoken remark, structured rubric score, and adaptive follow-up.
+    """
+    from backend.modules.ai_agent import evaluate_candidate_answer
+    persona = get_interviewer_persona(field)
+    ai_result = evaluate_candidate_answer(
+        field=field,
+        role=role,
+        question_text=question_text,
+        candidate_answer=candidate_answer,
+        expected_keywords=expected_keywords
+    )
+
+    branch_type = ai_result.get('branch_type', 'challenging' if ai_result.get('overall_score', 0.5) >= 0.60 else 'clarifying')
+
+    # Construct dynamic follow-up probe
+    branch_q = None
+    if ai_result.get('follow_up_question'):
+        branch_q = {
+            'question_text': ai_result['follow_up_question'],
+            'expected_keywords': ai_result.get('matched_keywords', []),
+            'focus_dimension': 'AI Adaptive Follow-Up Probe' if branch_type == 'challenging' else 'Clarifying Core Fundamentals',
+            'branch_type': branch_type
+        }
+    else:
+        canned_turn = get_next_mock_turn(field, ai_result.get('overall_score', 0.5), follow_up_rules)
+        branch_q = canned_turn.get('branch_question')
+
+    return {
+        'persona': persona,
+        'interviewer_remark': ai_result.get('interviewer_remark', ''),
+        'score': ai_result.get('overall_score', 0.5),
+        'overall_score': ai_result.get('overall_score', 0.5),
+        'relevance_score': ai_result.get('relevance_score', 0.5),
+        'clarity_score': ai_result.get('clarity_score', 0.5),
+        'technical_depth': ai_result.get('technical_depth', 0.5),
+        'strengths': ai_result.get('strengths', []),
+        'improvements': ai_result.get('improvements', []),
+        'suggestions': ai_result.get('suggestions', []),
+        'matched_keywords': ai_result.get('matched_keywords', []),
+        'missing_keywords': ai_result.get('missing_keywords', []),
+        'branch_type': branch_type,
+        'branch_question': branch_q,
+        'model_used': ai_result.get('model_used', 'AI Examiner')
+    }
+
 def init_mock_transcript(session_id, field='it', role='', persona_name=''):
     """
     Initializes a new transcript document in MongoDB and links it to SQLite InterviewSession.
