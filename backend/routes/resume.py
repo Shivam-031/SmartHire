@@ -60,11 +60,11 @@ def upload_resume():
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
 
-    # Validate extension
-    allowed_extensions = {'.pdf', '.docx', '.txt', '.md'}
+    # Validate extension - strictly only .docx
+    allowed_extensions = {'.docx'}
     ext = os.path.splitext(file.filename)[1].lower()
     if ext not in allowed_extensions:
-        return jsonify({"error": f"Unsupported file type. Allowed: {', '.join(allowed_extensions)}"}), 400
+        return jsonify({"error": "Unsupported file type. Please upload a Word Document (.docx) file."}), 400
 
     # 4. Save File
     filename = secure_filename(file.filename)

@@ -281,17 +281,17 @@ class ResumeParser:
         return text.strip()
 
     def extract_text(self, file_path):
-        """Extracts text from PDF or DOCX file, including tables."""
+        """Extracts text from DOCX file, including tables."""
         ext = os.path.splitext(file_path)[1].lower()
-        if ext == '.pdf':
-            text = self._extract_pdf_text(file_path)
-        elif ext == '.docx':
+        if ext == '.docx':
             text = self._extract_docx_text(file_path)
+        elif ext == '.pdf':
+            raise ValueError("PDF parsing is disabled. Please upload a Word Document (.docx) file.")
         elif ext in ('.txt', '.md'):
             with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                 text = f.read()
         else:
-            raise ValueError(f"Unsupported file extension: {ext}")
+            raise ValueError(f"Unsupported file extension: {ext}. Only .docx files are supported.")
 
         return self.sanitize_text(text)
 

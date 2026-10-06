@@ -99,14 +99,26 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
     e.stopPropagation();
     setDragActive(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setFile(e.dataTransfer.files[0]);
+      const dropped = e.dataTransfer.files[0];
+      if (!dropped.name.toLowerCase().endsWith('.docx')) {
+        setError('Unsupported file format. Please upload a Microsoft Word Document (.docx) file.');
+        setFile(null);
+        return;
+      }
+      setFile(dropped);
       setError(null);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      const chosen = e.target.files[0];
+      if (!chosen.name.toLowerCase().endsWith('.docx')) {
+        setError('Unsupported file format. Please upload a Microsoft Word Document (.docx) file.');
+        setFile(null);
+        return;
+      }
+      setFile(chosen);
       setError(null);
     }
   };
@@ -146,7 +158,11 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
 
   const handleFileUpload = async () => {
     if (!file) {
-      setError('Please select a PDF, DOCX, or TXT file to upload.');
+      setError('Please select a Microsoft Word Document (.docx) file to upload.');
+      return;
+    }
+    if (!file.name.toLowerCase().endsWith('.docx')) {
+      setError('Unsupported file format. Only Microsoft Word Document (.docx) files are supported.');
       return;
     }
 
@@ -259,7 +275,7 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
                 : 'text-[#a1a1aa] hover:text-white'
             }`}
           >
-            Upload File (PDF / DOCX)
+            Upload File (.DOCX)
           </button>
           <button
             type="button"
@@ -287,7 +303,7 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[#3b82f6]" />
-                <span className="font-semibold text-sm text-white">Upload Existing Resume</span>
+                <span className="font-semibold text-sm text-white">Upload Existing Resume (.docx)</span>
               </div>
               <span className="font-mono text-[10px] text-[#22d3ee] px-2 py-0.5 rounded-full bg-[#0EA5B7]/15 border border-[#0EA5B7]/30">
                 PRECISION 99.8%
@@ -311,25 +327,25 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".pdf,.docx,.txt"
+                  accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                   onChange={handleFileChange}
                   className="hidden"
                 />
 
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#3b82f6] to-[#22d3ee] flex items-center justify-center shadow-[0_4px_20px_rgba(59,130,246,0.35)] mb-3 transition-transform group-hover:scale-105">
-                  <span className="material-symbols-outlined text-white text-[24px]">cloud_upload</span>
+                  <span className="material-symbols-outlined text-white text-[24px]">description</span>
                 </div>
 
                 <h3 className="font-semibold text-sm text-white">
-                  {file ? file.name : 'Drag & drop or browse'}
+                  {file ? file.name : 'Drag & drop or browse .docx'}
                 </h3>
                 <p className="text-xs text-[#a1a1aa] mt-1">
-                  {file ? `${(file.size / 1024).toFixed(1)} KB selected` : 'Supports PDF, DOCX, TXT up to 10MB'}
+                  {file ? `${(file.size / 1024).toFixed(1)} KB selected` : 'Supports Microsoft Word (.docx) files up to 10MB'}
                 </p>
 
                 <div className="mt-4 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/[0.05] hover:bg-white/[0.1] text-xs font-mono text-white/90 border border-white/[0.1] transition-colors">
                   <span className="material-symbols-outlined text-[14px]">attach_file</span>
-                  <span>{file ? 'Replace file' : 'Choose local file'}</span>
+                  <span>{file ? 'Replace file' : 'Choose .docx file'}</span>
                 </div>
               </div>
             ) : (
@@ -581,7 +597,7 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
                 <div className="pt-1 flex flex-wrap items-center gap-2">
                   <div className="text-[11px] text-amber-200/80 bg-white/[0.03] px-3 py-1.5 rounded-xl border border-white/[0.08] flex items-center gap-2">
                     <span className="material-symbols-outlined text-[#38bdf8] text-[16px]">info</span>
-                    <span>To test full multi-project, work experience, and education extraction, upload your complete resume PDF (e.g. <code className="text-white font-mono bg-black/40 px-1 py-0.5 rounded">Shivam_Negi_Resume_FullStack_Developer.pdf</code>) or DOCX.</span>
+                    <span>To test full multi-project, work experience, and education extraction, upload your complete resume in <code className="text-white font-mono bg-black/40 px-1 py-0.5 rounded">.docx</code> format.</span>
                   </div>
                 </div>
               </div>
