@@ -9,8 +9,8 @@ This guide details how to deploy **SmartHire** when hosting the **Frontend** and
 ```
 +----------------------------------------------------+
 |               FRONTEND (Client)                    |
-|   Platform: Vercel / Netlify                       |
-|   URL: https://smarthire-client.vercel.app         |
+|   Platform: Vercel                                 |
+|   URL: https://smart-hire-two-gules.vercel.app     |
 |   Config: VITE_API_BASE_URL                        |
 +----------------------------------------------------+
                           |
@@ -18,8 +18,8 @@ This guide details how to deploy **SmartHire** when hosting the **Frontend** and
                           v
 +----------------------------------------------------+
 |               BACKEND (API Service)                |
-|   Platform: Render / Railway / Fly.io              |
-|   URL: https://smarthire-api.onrender.com          |
+|   Platform: Render                                 |
+|   URL: https://smarthire-o5an.onrender.com         |
 |   WSGI: Gunicorn (wsgi:app)                        |
 |   Storage: SQLite (or PostgreSQL) + MongoDB        |
 |   CORS: CORS_ORIGINS=*                             |
@@ -75,8 +75,8 @@ This guide details how to deploy **SmartHire** when hosting the **Frontend** and
 5. Expand **Environment Variables** and add:
    | Key | Value |
    |---|---|
-   | `VITE_API_BASE_URL` | `https://smarthire-backend-xxxx.onrender.com` |
-   *(Important: Paste your deployed Backend URL from Step 1 with **no trailing slash**).*
+   | `VITE_API_BASE_URL` | `https://smarthire-o5an.onrender.com` |
+   *(Important: Paste your deployed Backend URL with **no trailing slash**).*
 6. Click **Deploy**.
 
 ---

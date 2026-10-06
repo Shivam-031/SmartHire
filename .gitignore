@@ -6,6 +6,7 @@
 *.env
 .env.local
 .env.*.local
+!frontend/.env.production
 mcp_config.json
 *mcp*.json
 .mcp/

@@ -4,7 +4,8 @@
  * In production: reads VITE_API_BASE_URL (e.g. 'https://smarthire-api.onrender.com').
  */
 export const API_BASE_URL: string = (
-  import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.PROD ? 'https://smarthire-o5an.onrender.com' : 'http://localhost:5000')
 ).replace(/\/+$/, '');
 
 /**
