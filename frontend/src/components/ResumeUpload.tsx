@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { buildApiUrl } from '../config/api';
 
 interface ResumeUploadProps {
   onUploadSuccess?: (resumeId: number) => void;
@@ -178,7 +179,7 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('http://localhost:5000/api/resume/upload', {
+      const res = await fetch(buildApiUrl('/api/resume/upload'), {
         method: 'POST',
         headers,
         body: formData,
@@ -208,7 +209,7 @@ export const ResumeUpload: React.FC<ResumeUploadProps> = ({
 
     try {
       const storedToken = localStorage.getItem('token') || localStorage.getItem('smarthire_token');
-      const res = await fetch('http://localhost:5000/api/resume/upload', {
+      const res = await fetch(buildApiUrl('/api/resume/upload'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

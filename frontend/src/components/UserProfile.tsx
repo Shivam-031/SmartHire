@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { buildApiUrl } from '../config/api';
 
 interface UserProfileProps {
   onSelectResume?: (resumeId: string) => void;
@@ -24,7 +25,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   useEffect(() => {
     if (profileModalOpen && token) {
       setLoading(true);
-      fetch('http://localhost:5000/api/profile', {
+      fetch(buildApiUrl('/api/profile'), {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then((res) => res.json())

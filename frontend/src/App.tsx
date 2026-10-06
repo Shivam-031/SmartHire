@@ -14,6 +14,7 @@ import InterviewModeModal from './components/InterviewModeModal';
 import AuthScreen from './components/AuthScreen';
 import ProfileScreen from './components/ProfileScreen';
 import { LandingPage } from './components/LandingPage';
+import { buildApiUrl } from './config/api';
 
 // URL Hash to DocketStep mapping
 const HASH_MAP: Record<string, DocketStep> = {
@@ -225,7 +226,7 @@ const AppContent = () => {
 
     try {
       const storedToken = token || localStorage.getItem('token') || localStorage.getItem('smarthire_token');
-      const response = await fetch('http://localhost:5000/api/interview/start', {
+      const response = await fetch(buildApiUrl('/api/interview/start'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

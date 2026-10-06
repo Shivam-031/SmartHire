@@ -1,0 +1,2 @@
+# SmartHire Production Requirements (Root Mirror)
+-r backend/requirements.txt

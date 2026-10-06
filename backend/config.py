@@ -8,10 +8,15 @@ load_dotenv(os.path.join(BASE_DIR, '.env'))
 load_dotenv(os.path.join(BASE_DIR, 'backend', '.env'))
 
 class Config:
-    # SQL Database URI
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        'DATABASE_URL',
-        f'sqlite:///{os.path.join(BASE_DIR, "backend", "instance", "app.db")}'
+    # SQL Database URI (automatically fixes postgres:// scheme if provided by cloud hosts)
+    db_url = os.environ.get('DATABASE_URL', '')
+    if db_url.startswith('postgres://'):
+        db_url = db_url.replace('postgres://', 'postgresql://', 1)
+
+    os.makedirs(os.path.join(BASE_DIR, "backend", "instance"), exist_ok=True)
+
+    SQLALCHEMY_DATABASE_URI = (
+        db_url if db_url else f'sqlite:///{os.path.join(BASE_DIR, "backend", "instance", "app.db")}'
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

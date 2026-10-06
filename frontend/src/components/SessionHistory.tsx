@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { buildApiUrl } from '../config/api';
 
 interface SessionItem {
   id: number;
@@ -35,7 +36,7 @@ export const SessionHistory: React.FC<SessionHistoryProps> = ({ onSelectSession,
         const storedToken = token || localStorage.getItem('token');
         const headers: HeadersInit = storedToken ? { Authorization: `Bearer ${storedToken}` } : {};
 
-        const res = await fetch('http://localhost:5000/api/sessions', { headers });
+        const res = await fetch(buildApiUrl('/api/sessions'), { headers });
         const data = await res.json();
         if (isMounted) {
           if (res.ok && Array.isArray(data)) {

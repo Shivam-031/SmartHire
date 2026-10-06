@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { buildApiUrl } from '../config/api';
 
 interface ExperienceItem {
   title: string;
@@ -134,7 +135,7 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
 
         // 1. If mongoResumeId specified, load that saved mongo document
         if (mongoResumeId) {
-          const res = await fetch(`http://localhost:5000/api/resume/editor?id=${mongoResumeId}`, { headers });
+          const res = await fetch(buildApiUrl(`/api/resume/editor?id=${mongoResumeId}`), { headers });
           if (res.ok) {
             const data = await res.json();
             if (data?.resume) {
@@ -146,8 +147,8 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
 
         // 2. Prefill from uploaded resume (using sqlResumeId if available, or fallback to latest uploaded)
         const prefillUrl = sqlResumeId
-          ? `http://localhost:5000/api/resume/editor/prefill?sql_resume_id=${sqlResumeId}`
-          : 'http://localhost:5000/api/resume/editor/prefill';
+          ? buildApiUrl(`/api/resume/editor/prefill?sql_resume_id=${sqlResumeId}`)
+          : buildApiUrl('/api/resume/editor/prefill');
 
         const resPrefill = await fetch(prefillUrl, { headers });
         if (resPrefill.ok) {
@@ -160,7 +161,7 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
 
         // 3. Fallback: if user is logged in, check user's saved resume
         if (storedToken) {
-          const res = await fetch('http://localhost:5000/api/resume/editor', { headers });
+          const res = await fetch(buildApiUrl('/api/resume/editor'), { headers });
           if (res.ok) {
             const data = await res.json();
             if (data?.resume) {
@@ -184,7 +185,7 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
     try {
-      const res = await fetch('http://localhost:5000/api/resume/editor', {
+      const res = await fetch(buildApiUrl('/api/resume/editor'), {
         method: 'POST',
         headers,
         body: JSON.stringify(resumeData),
@@ -217,8 +218,8 @@ export const ResumeEditor: React.FC<ResumeEditorProps> = ({
         ...(storedToken ? { Authorization: `Bearer ${storedToken}` } : {}),
       };
       const url = sqlResumeId
-        ? `http://localhost:5000/api/resume/editor/prefill?sql_resume_id=${sqlResumeId}`
-        : 'http://localhost:5000/api/resume/editor/prefill';
+        ? buildApiUrl(`/api/resume/editor/prefill?sql_resume_id=${sqlResumeId}`)
+        : buildApiUrl('/api/resume/editor/prefill');
       const res = await fetch(url, { headers });
       const data = await res.json();
       setSaving(false);

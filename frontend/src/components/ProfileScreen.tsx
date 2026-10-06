@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { buildApiUrl } from '../config/api';
 
 interface ProfileScreenProps {
   onNavigateToFields?: (field: string) => void;
@@ -32,7 +33,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({
     let isMounted = true;
     if (token) {
       setLoading(true);
-      fetch('http://localhost:5000/api/profile', {
+      fetch(buildApiUrl('/api/profile'), {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then((res) => {
