@@ -40,3 +40,4 @@ services:
           type: web
           name: smarthire-backend
           property: host
+

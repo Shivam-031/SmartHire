@@ -119,3 +119,4 @@ This guide details how to deploy **SmartHire** when hosting the **Frontend** and
    VITE_API_BASE_URL=https://smarthire-backend-xxxx.onrender.com
    npm run dev
    ```
+
