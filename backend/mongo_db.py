@@ -14,8 +14,8 @@ def init_mongo():
 
     try:
         from pymongo import MongoClient
-        # Try connecting with a 2-second timeout
-        real_client = MongoClient(Config.MONGO_URI, serverSelectionTimeoutMS=2000)
+        # Try connecting with a 2-second timeout and low memory pool size
+        real_client = MongoClient(Config.MONGO_URI, serverSelectionTimeoutMS=2000, maxPoolSize=10, minPoolSize=1)
         # Test connection
         real_client.admin.command('ping')
         _client = real_client

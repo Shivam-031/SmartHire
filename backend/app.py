@@ -4,7 +4,8 @@ import sys
 # Ensure project root is on Python path so imports work from either root or backend/
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from flask import Flask, jsonify
+import gc
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from backend.models import db
 from backend.mongo_db import init_mongo
@@ -90,6 +91,13 @@ def health():
         "service": "SmartHire API",
         "environment": os.environ.get('FLASK_ENV', 'production')
     }), 200
+
+@app.after_request
+def cleanup_memory(response):
+    """Proactively release buffers after document parsing or PDF exports to stay under 512MB RAM."""
+    if request.path.startswith('/api/resume') or request.path.startswith('/api/ats'):
+        gc.collect()
+    return response
 
 if __name__ == '__main__':
     with app.app_context():
