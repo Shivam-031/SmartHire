@@ -77,16 +77,16 @@ export const FieldSelect: React.FC<FieldSelectProps> = ({
   const currentActive = fields.find((f) => f.id === selectedField) || fields[0];
 
   return (
-    <div className="max-w-5xl mx-auto w-full flex flex-col justify-between py-2 sm:py-6 select-none animate-fadeIn space-y-8">
+    <div className="max-w-5xl mx-auto w-full flex flex-col gap-6 sm:gap-7 py-1 sm:py-3 select-none animate-fadeIn">
       {/* Top Ambient Flare */}
       <div className="relative w-full">
-        <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-96 h-28 bg-[#3b82f6]/15 blur-[90px] pointer-events-none rounded-full" />
+        <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-96 h-24 bg-[#3b82f6]/10 blur-[80px] pointer-events-none rounded-full" />
       </div>
 
       {/* Header Section */}
-      <header className="flex flex-col items-center text-center space-y-3 pt-2">
+      <header className="flex flex-col items-center text-center space-y-2.5">
         {/* Step Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_4px_16px_rgba(0,0,0,0.3)]">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/[0.03] border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_4px_16px_rgba(0,0,0,0.3)]">
           <span className="w-1.5 h-1.5 rounded-full bg-[#22d3ee] shadow-[0_0_8px_rgba(34,211,238,0.9)] animate-pulse" />
           <span className="font-mono text-[11px] uppercase tracking-wider text-[#a1a1aa] font-semibold">
             Step 1 of 6
@@ -96,7 +96,7 @@ export const FieldSelect: React.FC<FieldSelectProps> = ({
         </div>
 
         {/* Main Title */}
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight">
+        <h1 className="text-3xl sm:text-4xl md:text-[2.6rem] font-bold text-white tracking-tight leading-tight">
           Which{' '}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#60a5fa] via-[#c084fc] to-[#f472b6]">
             field
@@ -105,7 +105,7 @@ export const FieldSelect: React.FC<FieldSelectProps> = ({
         </h1>
 
         {/* Subtitle */}
-        <p className="text-sm sm:text-base text-[#a1a1aa] max-w-lg">
+        <p className="text-xs sm:text-sm text-[#a1a1aa] max-w-lg leading-relaxed">
           Your entire interview simulation, resume evaluation, and question bank will be dynamically calibrated around your choice.
         </p>
       </header>
@@ -113,7 +113,7 @@ export const FieldSelect: React.FC<FieldSelectProps> = ({
       {/* Field Cards Container (Bento Selection) */}
       <section
         aria-label="Career Field Selection"
-        className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full my-auto"
+        className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full items-stretch"
         role="radiogroup"
       >
         {fields.map((field) => {
@@ -126,36 +126,39 @@ export const FieldSelect: React.FC<FieldSelectProps> = ({
               role="radio"
               tabIndex={0}
               onClick={() => onSelectField(field.id)}
-              className={`group relative flex flex-col justify-between min-h-[380px] rounded-3xl p-7 text-left cursor-pointer transition-all duration-300 border ${
+              className={`group relative flex flex-col justify-between rounded-3xl p-6 sm:p-7 text-left cursor-pointer transition-all duration-300 overflow-hidden ${
                 isSelected
-                  ? `bg-white/[0.05] shadow-[0_0_35px_${field.glowColor},inset_0_1px_0_rgba(255,255,255,0.2)] border-transparent ring-2`
-                  : 'bg-white/[0.015] hover:bg-white/[0.035] border-white/[0.08] hover:border-white/[0.16] shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_8px_24px_rgba(0,0,0,0.4)] opacity-85 hover:opacity-100'
+                  ? 'bg-white/[0.05] border-2 shadow-2xl scale-[1.01]'
+                  : 'bg-white/[0.015] hover:bg-white/[0.035] border border-white/[0.08] hover:border-white/[0.18] shadow-[0_8px_24px_rgba(0,0,0,0.35)] opacity-90 hover:opacity-100 hover:scale-[1.005]'
               }`}
               style={{
                 borderColor: isSelected ? field.accentFrom : undefined,
+                boxShadow: isSelected
+                  ? `0 0 32px ${field.glowColor}, inset 0 1px 0 rgba(255, 255, 255, 0.15)`
+                  : undefined,
               }}
             >
-              {/* Top Accent Line */}
-              <div
-                className={`accent-bar absolute top-0 left-0 right-0 h-[3px] rounded-t-3xl transition-opacity duration-300 ${
-                  isSelected ? 'opacity-100' : 'opacity-30 group-hover:opacity-80'
-                }`}
-                style={{
-                  background: `linear-gradient(to right, ${field.accentFrom}, ${field.accentTo})`,
-                }}
-              />
+              {/* Subtle Ambient Radial Highlight inside card */}
+              {isSelected && (
+                <div
+                  className="pointer-events-none absolute top-0 left-0 right-0 h-28 opacity-20 blur-2xl transition-opacity"
+                  style={{
+                    background: `linear-gradient(180deg, ${field.accentFrom}, transparent)`,
+                  }}
+                />
+              )}
 
-              <div>
+              <div className="relative z-10 flex flex-col">
                 {/* Card Top Row: Icon + Checked Status Indicator */}
-                <div className="flex items-start justify-between mb-5">
+                <div className="flex items-center justify-between mb-4">
                   <div
-                    className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-105`}
+                    className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shadow-lg transition-transform duration-300 group-hover:scale-105 shrink-0"
                     style={{
                       background: `linear-gradient(135deg, ${field.accentFrom}, ${field.accentTo})`,
-                      boxShadow: `0 4px 20px ${field.glowColor}`,
+                      boxShadow: `0 4px 18px ${field.glowColor}`,
                     }}
                   >
-                    <span className="material-symbols-outlined text-[24px] text-white">
+                    <span className="material-symbols-outlined text-[22px] sm:text-[24px] text-white">
                       {field.icon}
                     </span>
                   </div>
@@ -163,7 +166,7 @@ export const FieldSelect: React.FC<FieldSelectProps> = ({
                   {/* Active / Inactive Status Indicator */}
                   {isSelected ? (
                     <div
-                      className="status-indicator flex items-center justify-center w-7 h-7 rounded-full shadow-inner"
+                      className="flex items-center justify-center w-7 h-7 rounded-full shadow-inner"
                       style={{
                         backgroundColor: `${field.accentTo}25`,
                         border: `1px solid ${field.accentTo}60`,
@@ -177,28 +180,28 @@ export const FieldSelect: React.FC<FieldSelectProps> = ({
                       </span>
                     </div>
                   ) : (
-                    <div className="status-indicator flex items-center justify-center w-7 h-7 rounded-full bg-white/[0.03] border border-white/[0.1] group-hover:border-white/[0.25] transition-all">
+                    <div className="flex items-center justify-center w-7 h-7 rounded-full bg-white/[0.03] border border-white/[0.1] group-hover:border-white/[0.25] transition-all">
                       <span className="w-2 h-2 rounded-full bg-white/20 group-hover:bg-white/50 transition-colors" />
                     </div>
                   )}
                 </div>
 
                 {/* Field Info */}
-                <div className="space-y-2">
-                  <span className="text-[10px] font-mono tracking-widest uppercase text-[#71717a]">
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-mono tracking-widest uppercase text-[#71717a] font-semibold">
                     {field.badge}
                   </span>
-                  <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-1.5">
+                  <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight flex items-center gap-1.5">
                     {field.title}
                   </h2>
-                  <p className="text-xs sm:text-sm text-[#a1a1aa] leading-relaxed">
+                  <p className="text-xs sm:text-[13px] text-[#a1a1aa] leading-relaxed">
                     {field.description}
                   </p>
                 </div>
               </div>
 
               {/* Footer Metadata / Badges */}
-              <div className="space-y-3 pt-6 border-t border-white/[0.06]">
+              <div className="relative z-10 space-y-2.5 mt-5 pt-4 border-t border-white/[0.07]">
                 <div className="flex items-center justify-between">
                   <span
                     className="inline-flex items-center gap-1.5 font-mono text-[11px] font-medium px-2.5 py-1 rounded-full"
@@ -222,11 +225,11 @@ export const FieldSelect: React.FC<FieldSelectProps> = ({
                   </span>
                 </div>
 
-                <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                  <div className="font-mono text-[10px] uppercase tracking-wider text-[#71717a] mb-0.5">
+                <div className="p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                  <div className="font-mono text-[9px] uppercase tracking-wider text-[#71717a] mb-0.5">
                     Specializations
                   </div>
-                  <div className="text-xs text-white/90 truncate font-medium">
+                  <div className="text-[11px] sm:text-xs text-white/90 truncate font-medium">
                     {field.specializations}
                   </div>
                 </div>
@@ -237,15 +240,16 @@ export const FieldSelect: React.FC<FieldSelectProps> = ({
       </section>
 
       {/* Bottom Sticky Action Footer (Stitch Sync Bar) */}
-      <footer className="w-full rounded-2xl bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_12px_32px_rgba(0,0,0,0.5)]">
+      <footer className="w-full rounded-2xl bg-[#0c0c0e]/80 border border-white/[0.08] backdrop-blur-xl px-4 py-3 sm:px-6 sm:py-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 shadow-[0_12px_32px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.06)]">
         <div className="flex items-center gap-3">
           <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-white shrink-0"
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-white shrink-0 shadow-md"
             style={{
               background: `linear-gradient(135deg, ${currentActive.accentFrom}, ${currentActive.accentTo})`,
+              boxShadow: `0 2px 10px ${currentActive.glowColor}`,
             }}
           >
-            <span className="material-symbols-outlined text-[20px]">{currentActive.icon}</span>
+            <span className="material-symbols-outlined text-[19px]">{currentActive.icon}</span>
           </div>
           <div className="text-left">
             <div className="flex items-center gap-2">
@@ -261,7 +265,7 @@ export const FieldSelect: React.FC<FieldSelectProps> = ({
         <button
           type="button"
           onClick={onProceedToRole}
-          className="btn-gradient-primary w-full sm:w-auto px-7 py-3 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_25px_rgba(124,58,237,0.35)] hover:shadow-[0_0_35px_rgba(124,58,237,0.55)] transition-all"
+          className="btn-gradient-primary w-full sm:w-auto px-6 py-2.5 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_20px_rgba(124,58,237,0.35)] hover:shadow-[0_0_30px_rgba(124,58,237,0.55)] transition-all"
         >
           <span>Continue to Role Selection</span>
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
