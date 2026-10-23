@@ -110,13 +110,23 @@ const AppContent = () => {
   const [modeModalOpen, setModeModalOpen] = useState(false);
   const [, setInterviewMode] = useState<'standard' | 'mock'>('standard');
 
+  useEffect(() => {
+    if (user?.target_field) setField(user.target_field);
+    if (user?.target_role) setRole(user.target_role);
+  }, [user]);
+
   // Synchronize browser back/forward and hash changes with auth guard
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.toLowerCase();
       const mapped = HASH_MAP[hash];
       if (mapped) {
-        if (!isAuthenticated && !PUBLIC_STEPS.includes(mapped)) {
+        const hasAuth =
+          isAuthenticated ||
+          !!token ||
+          !!localStorage.getItem('smarthire_token') ||
+          !!localStorage.getItem('token');
+        if (!hasAuth && !PUBLIC_STEPS.includes(mapped)) {
           setIntendedStep(mapped);
           try {
             sessionStorage.setItem('smarthire_intended_step', mapped);
@@ -132,11 +142,17 @@ const AppContent = () => {
     };
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [isAuthenticated]);
+  }, [isAuthenticated, token]);
 
-  // Enforce auth protection if authentication state changes or user lands unauthenticated
+  // Enforce auth protection if authentication state changes or user lands unauthenticated,
+  // and redirect authenticated users away from login/signup to the landing/home page.
   useEffect(() => {
-    if (!isAuthenticated && !PUBLIC_STEPS.includes(step)) {
+    const hasAuth =
+      isAuthenticated ||
+      !!token ||
+      !!localStorage.getItem('smarthire_token') ||
+      !!localStorage.getItem('token');
+    if (!hasAuth && !PUBLIC_STEPS.includes(step)) {
       setIntendedStep(step);
       try {
         sessionStorage.setItem('smarthire_intended_step', step);
@@ -145,13 +161,27 @@ const AppContent = () => {
       if (window.location.hash !== '#/login') {
         window.location.hash = '#/login';
       }
+    } else if (hasAuth && (step === 'login' || step === 'signup')) {
+      const target = intendedStep && !PUBLIC_STEPS.includes(intendedStep)
+        ? intendedStep
+        : 'field_select';
+      setIntendedStep(null);
+      try {
+        sessionStorage.removeItem('smarthire_intended_step');
+      } catch (_) {}
+      navigateTo(target);
     }
-  }, [isAuthenticated, step]);
+  }, [isAuthenticated, token, step]);
 
   // Update hash when navigating to step, intercepting if unauthenticated
   const navigateTo = (newStep: DocketStep) => {
+    const hasAuth =
+      isAuthenticated ||
+      !!token ||
+      !!localStorage.getItem('smarthire_token') ||
+      !!localStorage.getItem('token');
     // Pipeline protection: Only landing page, login, and signup are public
-    if (!isAuthenticated && !PUBLIC_STEPS.includes(newStep)) {
+    if (!hasAuth && !PUBLIC_STEPS.includes(newStep)) {
       setIntendedStep(newStep);
       try {
         sessionStorage.setItem('smarthire_intended_step', newStep);
@@ -286,7 +316,8 @@ const AppContent = () => {
             else if (f === 'management') setRole('Product Manager');
             else if (f === 'law') setRole('Corporate Counsel');
 
-            if (isAuthenticated) {
+            const hasAuth = isAuthenticated || !!token || !!localStorage.getItem('smarthire_token') || !!localStorage.getItem('token');
+            if (hasAuth) {
               navigateTo('role_select');
             } else {
               setIntendedStep('role_select');
