@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { buildApiUrl } from '../config/api';
 
 export interface User {
@@ -91,7 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string) => {
     try {
       const res = await fetch(buildApiUrl('/api/auth/login'), {
         method: 'POST',
@@ -102,15 +102,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!res.ok) {
         return { success: false, error: data.error || 'Authentication failed' };
       }
+      localStorage.setItem('smarthire_token', data.token);
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('smarthire_user', JSON.stringify(data.user));
       setToken(data.token);
       setUser(data.user);
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message || 'Unable to connect to authentication server' };
     }
-  };
+  }, []);
 
-  const signup = async (
+  const signup = useCallback(async (
     name: string,
     email: string,
     password: string,
@@ -127,15 +130,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!res.ok) {
         return { success: false, error: data.error || 'Registration failed' };
       }
+      localStorage.setItem('smarthire_token', data.token);
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('smarthire_user', JSON.stringify(data.user));
       setToken(data.token);
       setUser(data.user);
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message || 'Unable to connect to authentication server' };
     }
-  };
+  }, []);
 
-  const loginWithGoogle = async (
+  const loginWithGoogle = useCallback(async (
     credential: string,
     target_field = 'it',
     target_role = 'Frontend Developer'
@@ -150,41 +156,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!res.ok) {
         return { success: false, error: data.error || 'Google authentication failed' };
       }
+      localStorage.setItem('smarthire_token', data.token);
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('smarthire_user', JSON.stringify(data.user));
       setToken(data.token);
       setUser(data.user);
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message || 'Unable to connect to authentication server' };
     }
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setToken(null);
     setUser(null);
     localStorage.removeItem('smarthire_token');
     localStorage.removeItem('token');
     localStorage.removeItem('smarthire_user');
-  };
+  }, []);
 
-  const updateUserProfile = async (data: Partial<User>) => {
-    if (!token) return;
+  const updateUserProfile = useCallback(async (data: Partial<User>) => {
+    const currentToken = token || localStorage.getItem('smarthire_token');
+    if (!currentToken) return;
     try {
       const res = await fetch(buildApiUrl('/api/profile'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${currentToken}`
         },
         body: JSON.stringify(data)
       });
       if (res.ok) {
         const resData = await res.json();
         setUser(resData.user);
+        localStorage.setItem('smarthire_user', JSON.stringify(resData.user));
       }
     } catch (err) {
       console.error('Failed to update profile:', err);
     }
-  };
+  }, [token]);
 
   return (
     <AuthContext.Provider

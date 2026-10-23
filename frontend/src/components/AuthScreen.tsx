@@ -35,7 +35,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({
   notice,
   onBackToLanding,
 }) => {
-  const { login, signup, loginWithGoogle } = useAuth();
+  const { isAuthenticated, login, signup, loginWithGoogle } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      onSuccess?.();
+    }
+  }, [isAuthenticated, onSuccess]);
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
